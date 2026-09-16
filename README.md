@@ -2,6 +2,11 @@
 
 **The OpenTUI mistakes TypeScript can't see.**
 
+[![npm](https://img.shields.io/npm/v/opentui-lint?label=npm&color=cb3837)](https://www.npmjs.com/package/opentui-lint)
+[![CI](https://github.com/phall1/opentui-lint/actions/workflows/ci.yml/badge.svg)](https://github.com/phall1/opentui-lint/actions/workflows/ci.yml)
+[![runtime dependencies](https://img.shields.io/badge/runtime%20dependencies-0-brightgreen)](https://github.com/phall1/opentui-lint/blob/main/AGENTS.md#the-dependency-boundary)
+[![license](https://img.shields.io/npm/l/opentui-lint?color=blue)](https://github.com/phall1/opentui-lint/blob/main/LICENSE)
+
 `opentui-lint` is an agent-first linter for [OpenTUI](https://github.com/anomalyco/opentui)
 terminal apps. It catches the class of bug that typechecks cleanly, runs without
 an error, and leaves you with a blank screen or a magenta panel.
