@@ -1,0 +1,7 @@
+{
+  // An OpenTUI React app configures the runtime once, here.
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "@opentui/react"
+  }
+}

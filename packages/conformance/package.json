@@ -1,0 +1,21 @@
+{
+  "name": "opentui-lint-conformance",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Proves every diagnostic against a real OpenTUI render.",
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@opentui/core": "^0.5.11",
+    "@opentui/react": "^0.5.11",
+    "react": "^19.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@typescript-eslint/parser": "^8.40.0",
+    "eslint": "^9.33.0",
+    "opentui-lint": "workspace:*"
+  }
+}

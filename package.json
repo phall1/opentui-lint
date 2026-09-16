@@ -1,0 +1,22 @@
+{
+  "name": "opentui-lint-workspace",
+  "private": true,
+  "type": "module",
+  "packageManager": "bun@1.4.2",
+  "workspaces": ["packages/*", "examples/*"],
+  "scripts": {
+    "build": "bun run --filter opentui-lint build",
+    "test": "bun run --filter '*' --if-present test",
+    "typecheck": "bun run --filter '*' --if-present typecheck",
+    "lint": "oxlint .",
+    "fmt": "oxfmt --write .",
+    "fmt:check": "oxfmt --check .",
+    "catalog:sync": "bun run --filter opentui-lint catalog:sync",
+    "catalog:check": "bun run --filter opentui-lint catalog:check"
+  },
+  "devDependencies": {
+    "oxfmt": "^0.41.0",
+    "oxlint": "^1.56.0",
+    "typescript": "^5.9.2"
+  }
+}

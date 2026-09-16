@@ -1,0 +1,21 @@
+{
+  "name": "opentui-lint-example-dashboard",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "A TUI written the way a model tends to write one, plus the config that catches it.",
+  "scripts": {
+    "lint": "eslint ."
+  },
+  "devDependencies": {
+    "@opentui/core": "^0.5.11",
+    "@opentui/react": "^0.5.11",
+    "@types/node": "^22.20.3",
+    "@types/react": "^19.3.0",
+    "@typescript-eslint/parser": "^8.40.0",
+    "eslint": "^9.33.0",
+    "opentui-lint": "workspace:*",
+    "react": "^19.3.0",
+    "typescript": "^5.9.2"
+  }
+}

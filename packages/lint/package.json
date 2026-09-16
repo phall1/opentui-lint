@@ -1,0 +1,47 @@
+{
+  "name": "opentui-lint",
+  "version": "0.0.0",
+  "description": "An agent-first linter for OpenTUI terminal apps. Catches the crashes and silent no-ops TypeScript lets through.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "keywords": [
+    "opentui",
+    "lint",
+    "eslint",
+    "eslintplugin",
+    "oxlint",
+    "terminal",
+    "tui",
+    "design-system"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "catalog:sync": "bun scripts/sync-catalog.ts",
+    "catalog:check": "bun scripts/sync-catalog.ts --check"
+  },
+  "peerDependencies": {
+    "eslint": ">=9.30.0"
+  },
+  "peerDependenciesMeta": {
+    "eslint": { "optional": true }
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/eslint": "^9.6.1",
+    "@typescript-eslint/parser": "^8.40.0",
+    "eslint": "^9.33.0",
+    "tsdown": "^0.12.0",
+    "typescript": "^5.9.2"
+  }
+}
