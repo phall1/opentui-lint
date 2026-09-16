@@ -1,6 +1,12 @@
 {
   "compilerOptions": {
     "strict": true,
+    // Spelled out as well as implied by `strict`. The type-aware tests
+    // distinguish `string` from `string | undefined`, and that distinction only
+    // exists with this flag on — if anything ever resolves this config
+    // differently, a silently non-strict program would make those tests fail
+    // with a confusing diff instead of an obvious one.
+    "strictNullChecks": true,
     "jsx": "preserve",
     "module": "esnext",
     "target": "esnext",

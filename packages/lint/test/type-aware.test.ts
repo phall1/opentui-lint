@@ -21,6 +21,17 @@ import { asRule } from "./helpers.js"
 const FIXTURE = join(import.meta.dir, "fixtures", "typed-app")
 const file = join(FIXTURE, "src", "App.tsx")
 
+/**
+ * Types the snippets need, written into the snippet itself.
+ *
+ * `env.d.ts` still supplies the JSX globals that make the fixture parse, but
+ * anything an *assertion* depends on is declared inline. A CI run where the
+ * ambient declarations did not reach the program produced a degraded
+ * diagnostic and a baffling diff rather than an obvious failure; a
+ * self-contained snippet cannot do that.
+ */
+const PRELUDE = "type Accessor<T> = () => T\n"
+
 function typedTester(framework: "react" | "solid" = "react"): RuleTester {
   return new RuleTester({
     languageOptions: {
@@ -47,8 +58,8 @@ function typedTester(framework: "react" | "solid" = "react"): RuleTester {
  */
 function reported(declareType: string, expr: string, resolvedAs: string) {
   return {
-    code: `declare const value: ${declareType}\nexport const App = () => <box>{${expr}}</box>`,
-    output: `declare const value: ${declareType}\nexport const App = () => <box><text>{${expr}}</text></box>`,
+    code: `${PRELUDE}declare const value: ${declareType}\nexport const App = () => <box>{${expr}}</box>`,
+    output: `${PRELUDE}declare const value: ${declareType}\nexport const App = () => <box><text>{${expr}}</text></box>`,
     filename: file,
     options: [{ checkTypes: true }],
     errors: [{ message: new RegExp(`resolved this expression's type as \`${resolvedAs}\`, which cannot be anything but text`) }],
@@ -57,7 +68,7 @@ function reported(declareType: string, expr: string, resolvedAs: string) {
 
 function notReported(declareType: string, expr: string) {
   return {
-    code: `declare const value: ${declareType}\nexport const App = () => <box>{${expr}}</box>`,
+    code: `${PRELUDE}declare const value: ${declareType}\nexport const App = () => <box>{${expr}}</box>`,
     filename: file,
     options: [{ checkTypes: true }],
   }
@@ -68,7 +79,7 @@ typedTester().run("text-must-be-wrapped (checkTypes)", asRule(rule), {
     // Off by default even with a real type checker sitting right there —
     // `value` here is unambiguously `string`, and it is still not reported.
     {
-      code: `declare const value: string\nexport const App = () => <box>{value}</box>`,
+      code: `${PRELUDE}declare const value: string\nexport const App = () => <box>{value}</box>`,
       filename: file,
     },
     // `ReactNode` is exactly the case the syntactic rule exists to leave
@@ -134,8 +145,8 @@ typedTester("solid").run("text-must-be-wrapped (checkTypes, solid)", asRule(rule
     {
       // Solid signals are accessors: `count()` returns `string`, not
       // `count` itself, so the call's return type is what has to be checked.
-      code: `declare const count: Accessor<string>\nexport const App = () => <box>{count()}</box>`,
-      output: `declare const count: Accessor<string>\nexport const App = () => <box><text>{count()}</text></box>`,
+      code: `${PRELUDE}declare const count: Accessor<string>\nexport const App = () => <box>{count()}</box>`,
+      output: `${PRELUDE}declare const count: Accessor<string>\nexport const App = () => <box><text>{count()}</text></box>`,
       filename: file,
       options: [{ checkTypes: true }],
       errors: [
@@ -161,10 +172,10 @@ typedTester().run("text-must-be-wrapped (checkTypes unblocks a run)", asRule(rul
   valid: [],
   invalid: [
     {
-      code: `declare const items: string[]\nexport const App = () => <box>{items.length} items</box>`,
+      code: `${PRELUDE}declare const items: string[]\nexport const App = () => <box>{items.length} items</box>`,
       filename: file,
       options: [{ checkTypes: true }],
-      output: `declare const items: string[]\nexport const App = () => <box><text>{items.length} items</text></box>`,
+      output: `${PRELUDE}declare const items: string[]\nexport const App = () => <box><text>{items.length} items</text></box>`,
       errors: 2,
     },
     {
@@ -173,7 +184,7 @@ typedTester().run("text-must-be-wrapped (checkTypes unblocks a run)", asRule(rul
       // offered rather than applied. The offered edit splits the line, and that
       // is the honest thing to show: it is the best edit that can be justified
       // from syntax alone, and a person previewing it can see the cost.
-      code: `declare const items: string[]\nexport const App = () => <box>{items.length} items</box>`,
+      code: `${PRELUDE}declare const items: string[]\nexport const App = () => <box>{items.length} items</box>`,
       filename: file,
       output: null,
       errors: [
@@ -182,11 +193,36 @@ typedTester().run("text-must-be-wrapped (checkTypes unblocks a run)", asRule(rul
           suggestions: [
             {
               desc: "Wrap the text in <text>",
-              output: `declare const items: string[]\nexport const App = () => <box>{items.length} <text>items</text></box>`,
+              output: `${PRELUDE}declare const items: string[]\nexport const App = () => <box>{items.length} <text>items</text></box>`,
             },
           ],
         },
       ],
+    },
+  ],
+})
+
+/**
+ * Proves the project program is really wired up, before any wording assertion
+ * is read as evidence of anything.
+ *
+ * A parser that quietly fails to build a typed program degrades this rule to
+ * its syntactic behaviour — by design — and every type-aware expectation then
+ * fails with a diff about message wording rather than the actual cause. That
+ * happened once on CI and cost far more to diagnose than the bug was worth.
+ * This case says the real thing in its name.
+ */
+typedTester().run("the typed fixture really is typed", asRule(rule), {
+  valid: [],
+  invalid: [
+    {
+      // If strictNullChecks were not in effect this type would collapse to
+      // `string`, and the quoted type is the only place that shows.
+      code: `${PRELUDE}declare const value: string | undefined\nexport const App = () => <box>{value}</box>`,
+      filename: file,
+      options: [{ checkTypes: true }],
+      output: `${PRELUDE}declare const value: string | undefined\nexport const App = () => <box><text>{value}</text></box>`,
+      errors: [{ message: /resolved this expression's type as `string \| undefined`/ }],
     },
   ],
 })
