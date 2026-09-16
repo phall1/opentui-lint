@@ -61,9 +61,11 @@
     }
   },
   "devDependencies": {
+    "@effect/platform-bun": "4.0.0-rc.115",
     "@types/bun": "latest",
     "@types/eslint": "^9.6.1",
     "@typescript-eslint/parser": "^8.40.0",
+    "effect": "4.0.0-rc.115",
     "eslint": "^9.33.0",
     "tsdown": "^0.12.0",
     "typescript": "^5.9.2"

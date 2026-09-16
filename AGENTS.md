@@ -14,6 +14,35 @@ bun run lint        # oxlint over this repo's own source
 bun run build       # builds packages/lint
 ```
 
+## The dependency boundary
+
+**The published package has zero runtime dependencies and keeps them.** It lands
+in every consumer's devDependencies; anything added here is a cost every
+OpenTUI app pays for a dev tool.
+
+Effect is used in `scripts/sync-catalog.ts` and belongs in `devDependencies`
+only. Never import it from `src/` — not for convenience, not "just this once".
+Two reasons, both concrete:
+
+- ESLint's rule API is synchronous and callback-driven, with `context.report()`
+  as the only output. There is no error channel, no concurrency and no resource
+  to manage, so `Effect.runSync` at every visitor boundary would buy nothing.
+- The rules work unmodified as **oxlint** JS plugins precisely because they are
+  plain objects with plain functions. That is a tested capability, not an
+  accident.
+
+The generator is the opposite on every count — subprocesses, a temp directory
+that must survive Ctrl-C, four distinct failure modes — which is why it uses
+`Effect.acquireRelease`, a typed error channel and `BunRuntime.runMain`. That
+choice is load-bearing and measured: a plain `try/finally` **leaks the temp
+directory on SIGINT**; `acquireRelease` under `runMain` does not.
+
+After touching the package manifest, confirm the boundary held:
+
+```bash
+npm pack --dry-run --workspace opentui-lint   # expect ~35 kB, dependencies: {}
+```
+
 ## The two rules that matter
 
 **Never assert something about OpenTUI you have not verified against the real
