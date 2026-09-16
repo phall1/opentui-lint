@@ -1,98 +1,91 @@
 # Roadmap
 
-The shipped rules are the correctness half: things that crash, or render wrong,
-with no type error. The rest of the plan is the design-system half — the part
-that corresponds to what `@shadcn/lint` does for Tailwind.
+## Shipped
 
-## Design-system rules
+The original roadmap was the design-system half plus four correctness rules.
+All of it is in, so the list below is what it became rather than what was
+planned — kept because the *reasons* are still the useful part.
 
-These need a project model (which components are yours, where the theme lives),
-not just an AST.
+| Planned | Shipped as |
+| --- | --- |
+| `no-restyle` | [`no-restyle`](rules/no-restyle.md), on a contract engine ported from `@shadcn/lint` |
+| `use-theme-tokens` | [`use-theme-tokens`](rules/use-theme-tokens.md), in two tiers |
+| `no-magic-density` | [`no-magic-density`](rules/no-magic-density.md) |
+| `no-inert-values` | [`no-unsupported-values`](rules/no-unsupported-values.md), broader than planned |
+| `require-registration` | [`require-registration`](rules/require-registration.md) |
+| `no-raw-stdout` | [`no-raw-stdout`](rules/no-raw-stdout.md) |
+| Oxlint JS plugin entry | `packages/oxlint-conformance` runs every rule under the real binary |
+| Type-aware tier | `checkTypes: true` on `text-must-be-wrapped` |
 
-### `no-restyle`
+Three things the plan got wrong, worth recording because the corrections cost
+real work:
 
-The direct analog of `@shadcn/lint`'s flagship rule. A component from your
-`components/ui` owns its colors, padding and border; a call site may only place
-it.
+**The color half of `use-theme-tokens` is weaker than it looked.** The plan
+said "resolve the hex to the nearest token so the message can name it". But
+tuiparts' default theme is built from `RGBA.fromIndex(n)` and
+`RGBA.defaultBackground()`, whose real values depend on the user's terminal
+palette — so there is usually nothing to match a hex against, and nearest-color
+matching against a terminal-resolved palette would produce confidently wrong
+messages. It ships exact-match-only, in two tiers, with the weaker tier naming
+the theme rather than a token.
 
-```tsx
-<Button size="lg" marginTop={1} />          // allowed: layout
-<Button backgroundColor="#22c55e" />        // reported: the recipe owns this
-```
+**`no-restyle` is a policy, not a defect.** tuiparts *deliberately* lets a call
+site override a recipe's themed defaults — its Badge README says so outright.
+The rule cannot claim the code is broken, because it is not. What it claims
+instead is provable: the recipe re-reads its colors through `theme.subscribe`,
+and a literal pins that instance. That is why it is in `strict` and not
+`recommended`.
 
-Needs per-component contracts, as shadcn does:
+**`no-inert-values` was too narrow a name.** The two documented type/runtime
+gaps turned out to have company: `alignItems="space-between"` typechecks and
+lays out identically to `"flex-end"`, and a negative dimension throws. All
+confirmed by rendering them against a control tree.
 
-```js
-"opentui/no-restyle": ["error", {
-  allow: ["layout"],
-  contracts: [
-    { pattern: "^Button$", allow: ["layout", "marginTop", "marginBottom"] },
-    { pattern: "^Panel$", allow: ["layout"], deny: ["border*"] },
-  ],
-}]
-```
+## Open
 
-[tuiparts](https://github.com/tuiparts/tuiparts) is the obvious first target:
-its Recipes install into `components/ui` through the shadcn CLI, exactly the
-layout this rule expects.
+### `require-focus`
 
-### `use-theme-tokens`
+An `<input>`, `<select>` or `<textarea>` that nothing ever focuses is
+unreachable. Whether this is *shippable* depends on facts that have to be
+established by running OpenTUI, not by reading it: whether a mouse click
+focuses an input, whether any built-in key traverses focus, and whether
+`@opentui/keymap` can route focus with no `focused` prop anywhere in the file.
 
-tuiparts ships a consumer-owned Theme Recipe with a real semantic contract:
+If a pointer focuses inputs, the premise collapses for any app a user can click
+in. If focus can be established through a ref, an effect, a keymap or a
+parent's `focused`, a file-local rule cannot see any of it and every one is a
+false positive.
 
-```ts
-export interface Tokens {
-  colors: { background, surface, foreground, border, focus, primary, destructive, … }
-  glyphs: { check, radio, thumb, track }
-  borders: { style: "single" | "rounded" | "double" | "heavy" }
-  density: { paddingX: number; comfortablePaddingX: number }
-}
-```
+Under active investigation. A written-up rejection is an acceptable outcome and
+would be more useful than a rule nobody can trust.
 
-That is a lintable design system. Discover `components/ui/theme.ts`, read the
-token tree, and report raw values where a token exists — resolving the hex to
-the nearest token so the message can name it:
+### Measuring whether the messages actually help
 
-```text
-backgroundColor="#1a1d23" is the value of tokens.colors.surface.
-Use `tokens.colors.surface` from components/ui/theme.ts so the theme switch
-reaches this box.
-```
+`@shadcn/lint` backs its claims with ~150 agent task runs, counting violations
+before and after lint feedback. That is the honest way to claim these messages
+help an agent, and this package currently does not claim it.
 
-This is where `valid-colors` and `no-website-spacing` graduate from "is this
-value legal" to "is this value *yours*".
+The cheaper half of that is already more valuable and is being built first: a
+**corpus check** that runs every rule over real, working, expert-written
+OpenTUI code — OpenTUI's own `packages/examples`, and tuiparts' registry — and
+fails when a rule starts flagging code that works. A linter's whole value rests
+on not crying wolf, and a synthetic test cannot demonstrate that the way
+thousands of lines of real source can.
 
-### `no-magic-density`
+The agent-eval half needs API budget and a task corpus, and is worth doing only
+once the corpus check is clean.
 
-`paddingX={1}` where `tokens.density.paddingX` exists. Same mechanism as above,
-applied to spacing.
+## Not planned
 
-## Correctness rules still to write
+**The Core imperative API.** Every rule here is JSX-only. OpenTUI's Core API
+builds renderables with `new BoxRenderable(ctx, { … })` and restyles them with
+plain assignment — `sidebar.backgroundColor = "#64748b"` — and the receiver's
+type is unknowable without type information. A narrow, provable subset exists
+(a `new XRenderable(…)` object-literal argument where `X` is imported from
+`@opentui/core`) and may be worth it later. Assignment coverage should wait for
+the type-aware tier to grow beyond text.
 
-- **`no-inert-values`** — values that typecheck and are then ignored at runtime:
-  `position="static"` (`PositionTypeString` includes it, renderable validation
-  does not implement it) and `"auto"` on `minWidth`/`maxWidth`/`minHeight`/
-  `maxHeight` (in the public interface, ignored by the runtime). Both are
-  documented upstream as gaps between the types and the implementation, which
-  makes them precisely a linter's job.
-- **`require-registration`** — `<qrcode>` without `registerQRCode()` from
-  `@opentui/qrcode/react`. Same failure mode as an unknown element, but the fix
-  is an import and a call rather than a different tag.
-- **`require-focus`** — an `<input>`, `<select>` or `<textarea>` that nothing
-  ever focuses is unreachable: no pointer to click it with, and no keyboard
-  route in. Needs care to avoid false positives on keymap-driven apps.
-- **`no-raw-stdout`** — `process.stdout.write` outside the renderer corrupts the
-  frame. (`console.log` is fine: OpenTUI captures it into the console overlay.)
-
-## Tooling
-
-- **Oxlint JS plugin entry.** The rule objects are already
-  ESLint/Oxlint-compatible; what is missing is the packaging and a test that
-  runs the suite under `oxlint`. OpenTUI's own repo uses oxlint, so this is the
-  linter its users already have.
-- **A `strict` type-aware tier.** `text-must-be-wrapped` reports only provable
-  text today. With `@typescript-eslint`'s type information it could resolve
-  `{label}` and catch the rest — as an opt-in tier, since it costs a program.
-- **An eval suite.** `@shadcn/lint` measures itself by running agents on tasks
-  and counting violations before and after lint feedback. The same measurement
-  is the honest way to claim these messages actually help.
+**Effect anywhere in the published package.** See `AGENTS.md`. The plugin has
+zero runtime dependencies and keeps them; Effect is confined to the catalog
+generator, where there is real IO, real concurrency, and a temp directory that
+must survive a Ctrl-C.
