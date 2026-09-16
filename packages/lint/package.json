@@ -25,7 +25,7 @@
     "./package.json": "./package.json"
   },
   "bin": {
-    "opentui-lint": "./dist/cli.js"
+    "opentui-lint": "dist/cli.js"
   },
   "types": "./dist/index.d.ts",
   "files": [
