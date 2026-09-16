@@ -30,8 +30,23 @@ export function isTextNodeElement(framework: Framework, name: string): boolean {
   return FRAMEWORKS[framework].elements[name]?.textNode === true
 }
 
-/** Element names that only exist because React's DOM types are inherited. */
-export function isDomElement(framework: Framework, name: string): boolean {
+/**
+ * Every HTML element name, taken from React's DOM types.
+ *
+ * Used for both bindings, not just React. Solid's `JSX.IntrinsicElements` does
+ * not inherit the DOM elements, so its `domLeaks` list is empty — but its
+ * string index signature lets `<div>` through the checker all the same, and an
+ * agent reaching for `<div>` in a Solid file has made exactly the same mistake
+ * and needs exactly the same answer.
+ */
+const HTML_ELEMENTS = new Set<string>(FRAMEWORKS.react.domLeaks)
+
+export function isDomElement(name: string): boolean {
+  return HTML_ELEMENTS.has(name)
+}
+
+/** True when JSX accepts the name only because of the DOM types it inherits. */
+export function isInheritedDomElement(framework: Framework, name: string): boolean {
   return FRAMEWORKS[framework].domLeaks.includes(name)
 }
 

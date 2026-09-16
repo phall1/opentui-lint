@@ -68,3 +68,23 @@ undetectedTester().run("no-web-props (not an OpenTUI file)", asRule(rule), {
   valid: [`export const Page = () => <div className="grid" onClick={go} aria-label="x" />`],
   invalid: [],
 })
+
+tester("solid").run("no-web-props (solid)", asRule(rule), {
+  valid: [
+    // `on:` is Solid's own event syntax and binds a real listener.
+    `const a = <box on:click={go} />`,
+    `const a = <box on:mousedown={go} />`,
+    // Solid's style object on a text node carries real meaning.
+    `const a = <span style={{ fg: "red" }} />`,
+  ],
+  invalid: [
+    {
+      code: `const a = <box className="row" />`,
+      errors: [{ message: /OpenTUI has no class names/ }],
+    },
+    {
+      code: `const a = <box onClick={go} />`,
+      errors: [{ message: /Use `onMouseDown`/ }],
+    },
+  ],
+})

@@ -1,0 +1,20 @@
+{
+  "name": "opentui-lint-conformance-solid",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Proves every Solid diagnostic against a real @opentui/solid render.",
+  "scripts": {
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@opentui/core": "^0.5.11",
+    "@opentui/solid": "^0.5.11",
+    "solid-js": "^1.9.15"
+  },
+  "devDependencies": {
+    "@typescript-eslint/parser": "^8.40.0",
+    "eslint": "^9.33.0",
+    "opentui-lint": "workspace:*"
+  }
+}

@@ -63,3 +63,21 @@ undetectedTester().run("text-must-be-wrapped (not an OpenTUI file)", asRule(rule
   valid: [`export const Page = () => <div>Hello</div>`],
   invalid: [],
 })
+
+tester("solid").run("text-must-be-wrapped (solid)", asRule(rule), {
+  valid: ["const a = <text>Hello</text>", "const a = <box><text>{count()}</text></box>"],
+  invalid: [
+    {
+      // Solid fails on insert, with its own message and no error boundary.
+      code: "const App = () => <box>Hello</box>",
+      errors: [
+        {
+          message: /Orphan text error: "…" must have a <text> as a parent.*no error boundary/s,
+          suggestions: [
+            { desc: "Wrap in <text>", output: "const App = () => <box><text>Hello</text></box>" },
+          ],
+        },
+      ],
+    },
+  ],
+})

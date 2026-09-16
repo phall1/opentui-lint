@@ -44,6 +44,15 @@ undetectedTester().run("framework detection", asRule(rule), {
       errors: [{ message: /<div> is an HTML element/ }],
     },
     {
+      // Regression: a workspace package with a package.json but no tsconfig of
+      // its own inherits the repo root's. Stopping the walk at the package
+      // boundary silenced every rule across a whole package — a clean run that
+      // means nothing.
+      code: `export const App = () => <ascii-font text="hi" />`,
+      filename: join(FIXTURES, "monorepo", "packages", "tui", "src", "Row.tsx"),
+      errors: [{ message: /is the @opentui\/react spelling/ }],
+    },
+    {
       // Resolved through `extends`, as monorepos usually wire it.
       code: `export const App = () => <ascii-font text="hi" />`,
       filename: file("solid-app"),

@@ -64,6 +64,20 @@ tester("solid").run("no-unknown-elements (solid)", asRule(rule), {
       code: `const a = <ascii-font text="hi" />`,
       errors: [{ message: /is the @opentui\/react spelling.*calls it <ascii_font>/s }],
     },
+    {
+      // Solid's JSX does not inherit the DOM elements, but its index signature
+      // still lets <div> through — same mistake, same answer, different reason.
+      code: `const a = <div><text>hi</text></div>`,
+      errors: [
+        {
+          message: /<div> is an HTML element.*string index signature for extend\(\).*\[Reconciler\] Unknown component type: div.*Use <box>/s,
+        },
+      ],
+    },
+    {
+      code: `const a = <p>hi</p>`,
+      errors: [{ message: /\[Reconciler\] Unknown component type: p/ }],
+    },
   ],
 })
 

@@ -1,4 +1,5 @@
 import { isTextNodeElement } from "../catalog/index.js"
+import { failureText, failureVisible } from "../catalog/runtime.js"
 import { elementName, textContext } from "../project/jsx.js"
 import { defineRule } from "../project/rule.js"
 
@@ -43,7 +44,9 @@ export default defineRule(
         node,
         message:
           `<${name}> is a text modifier, not a renderable, and it is ${where}. ` +
-          `OpenTUI throws 'Component of type "${name}" must be created inside of a text node'. ` +
+          `@opentui/${context.framework} throws ` +
+          `"${failureText(context.framework, "textNodeOutsideText", name)}" and ` +
+          `${failureVisible(context.framework, "textNodeOutsideText")}. ` +
           `Put it inside <text>: <text><${name}>…</${name}></text>.`,
       })
     },

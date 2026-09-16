@@ -6,6 +6,10 @@
 terminal apps. It catches the class of bug that typechecks cleanly, runs without
 an error, and leaves you with a blank screen or a magenta panel.
 
+**React and Solid are equal first-class targets.** They are not the same program
+and they do not fail the same way, so the diagnostics differ — see
+[Solid](#solid-is-not-react-with-different-spelling).
+
 It is to OpenTUI roughly what [`@shadcn/lint`](https://github.com/shadcn-ui/lint)
 is to Tailwind design systems — with one difference in emphasis. shadcn's rules
 mostly restate policies TypeScript *could* express, with better error messages.
@@ -22,9 +26,26 @@ export interface OpenTUIComponents {
 }
 ```
 
-The effect is that **every lowercase tag typechecks**. On top of that, the React
-binding's interface extends `React.JSX.IntrinsicElements`, pulling in all 164
-HTML element names with their full DOM prop types.
+The effect is that **every lowercase tag typechecks**, in React and in Solid
+alike. On top of that, the React binding's interface extends
+`React.JSX.IntrinsicElements`, pulling in all 164 HTML element names with their
+full DOM prop types.
+
+OpenTUI's own `.oxlintrc.json` shows the shape of the gap from the other side.
+It turns off the one generic rule that could have flagged unknown JSX props,
+because OpenTUI's elements are not DOM elements:
+
+```json
+"rules": {
+  "react/react-in-jsx-scope": "off",
+  "react/no-unknown-property": "off"
+}
+```
+
+That config is repo hygiene for OpenTUI's own source, and it is the right call
+there. But it means the standard JSX lint rules have nothing to say about an app
+built on OpenTUI — the escape hatch is a blunt "off", and the whole space behind
+it is uncovered.
 
 So this compiles:
 
@@ -70,6 +91,30 @@ realistic file: a deploy dashboard written with web reflexes. `tsc` reports a
 single error — `Property 'className' does not exist on type 'BoxProps'`, which
 does not even mention the dead `onClick` on the same element. `opentui-lint`
 reports fifteen, six of which stop the render outright.
+
+## Solid is not React with different spelling
+
+Both bindings reject the same code, by different routes and with different
+errors. The linter quotes whichever one your file will actually hit.
+
+| | React | Solid |
+| --- | --- | --- |
+| Unknown element | `Unknown component type: div` | `[Reconciler] Unknown component type: div` |
+| Text outside `<text>` | `Text must be created inside of a text node` | `Orphan text error: "…" must have a <text> as a parent` |
+| Where it fails | `createTextInstance`, before mount | `insertNode`, after the node is built |
+| What you see | ErrorBoundary paints a stack trace over your app | no boundary — the render throws |
+| Compound names | `ascii-font`, `tab-select`, `line-number` | `ascii_font`, `tab_select`, `line_number` |
+| Events | `onMouseDown` | `onMouseDown`, plus `on:mousedown` |
+| DOM elements in JSX | inherited from `React.JSX.IntrinsicElements` | not inherited, but the index signature lets them through anyway |
+
+Writing `<div>` is the same mistake in both, so it gets the same answer —
+`Use <box>` — with a different explanation of why the checker stayed quiet.
+Copying a snippet between the two bindings is its own mistake, and
+`no-unknown-elements` names it in both directions.
+
+[`examples/dashboard`](examples/dashboard) and
+[`examples/dashboard-solid`](examples/dashboard-solid) are the same file in both
+bindings. `tsc` finds one error in each; the linter finds fifteen and fourteen.
 
 ## Install
 
@@ -197,16 +242,37 @@ report both as errors.
 
 ## Conformance
 
-`packages/conformance` runs every diagnostic against an actual OpenTUI renderer
-and asserts both halves of each claim: that the rule reports the snippet, and
-that OpenTUI really does the thing the message describes.
+Two packages run every diagnostic against an actual OpenTUI renderer and assert
+both halves of each claim: that the rule reports the snippet, and that OpenTUI
+really does the thing the message describes.
 
 ```bash
-bun run --filter opentui-lint-conformance test
+bun run --filter 'opentui-lint-conformance*' test
 ```
+
+They are separate packages because the two JSX pipelines cannot share a process
+— `@opentui/solid` compiles JSX through its own Bun preload. The Solid suite
+additionally asserts that no Solid diagnostic quotes React's wording, which is
+how the messages stay honest as the bindings drift apart.
 
 If a future OpenTUI starts validating colors, or gives `<div>` a meaning, these
 tests fail instead of the linter quietly lying to people.
+
+## Oxlint
+
+The rule objects work unmodified as an Oxlint JS plugin, which matters because
+OpenTUI's own repo uses oxlint:
+
+```json
+{
+  "jsPlugins": ["./node_modules/opentui-lint/dist/index.js"],
+  "settings": { "opentui": { "framework": "react" } },
+  "rules": { "opentui-lint/no-unknown-elements": "error" }
+}
+```
+
+Verified against oxlint 1.83. Its JS plugin API is still alpha, so treat this as
+working-but-young; ESLint is the better-tested path today.
 
 ## Status
 

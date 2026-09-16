@@ -42,10 +42,23 @@ stays quiet and the limitation gets documented in the rule's doc page.
    genuine defect rather than a style preference.
 3. Test it in `packages/lint/test/`, including a case under `undetectedTester()`
    proving it stays silent in a non-OpenTUI file.
-4. Add a case to `packages/conformance/cases.tsx` pairing the snippet with what
-   OpenTUI really does with it. A rule with no conformance case is a claim
-   nobody checked.
+4. Add a conformance case in **both** bindings — `packages/conformance/cases.tsx`
+   for React and `packages/conformance-solid/conformance.test.tsx` for Solid —
+   pairing the snippet with what OpenTUI really does with it. A rule with no
+   conformance case is a claim nobody checked.
 5. Write `docs/rules/<name>.md`, including a "what it does not report" section.
+
+## React and Solid are equal targets
+
+They are different programs. Solid's reconciler has no text-context check, no
+ErrorBoundary, and its own error strings; its compound elements use underscores;
+`on:mousedown` is real event syntax there and nowhere else. Anything a message
+says about "what OpenTUI does" belongs in `src/catalog/runtime.ts`, keyed by
+framework, and gets asserted against a real render of that binding. Never write
+a runtime error string inline in a rule.
+
+A message that quotes the wrong error is worse than a vague one: it sends the
+reader searching the codebase for a string that is not there.
 
 ## Message style
 

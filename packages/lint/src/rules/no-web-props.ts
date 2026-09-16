@@ -106,6 +106,10 @@ export default defineRule(
           const name = attributeName(attribute)
           if (!name || allow.has(name)) continue
 
+          // Solid's sanctioned event syntax: `setProperty` routes any `on:x`
+          // straight to `node.on("x", …)` on the renderable's emitter.
+          if (context.framework === "solid" && name.startsWith("on:")) continue
+
           if (isWebNamespaced(name)) {
             context.report({
               node: attribute,

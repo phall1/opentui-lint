@@ -1,0 +1,7 @@
+# @opentui/solid compiles JSX through its own Bun preload, exactly as a real
+# Solid app does. This is why the Solid conformance suite is a separate package
+# from the React one: the two JSX pipelines cannot share a process.
+preload = ["@opentui/solid/preload"]
+
+[test]
+preload = ["@opentui/solid/preload"]

@@ -37,3 +37,13 @@ undetectedTester().run("no-orphan-text-nodes (not an OpenTUI file)", asRule(rule
   valid: [`export const Page = () => <div><span>hi</span><b>x</b></div>`],
   invalid: [],
 })
+
+tester("solid").run("no-orphan-text-nodes (solid)", asRule(rule), {
+  valid: ["const a = <text><b>Total</b></text>"],
+  invalid: [
+    {
+      code: "const a = <box><b>Total</b></box>",
+      errors: [{ message: /Orphan text error.*must have a <text> as a parent/s }],
+    },
+  ],
+})

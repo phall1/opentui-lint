@@ -71,6 +71,13 @@ function readJsxImportSource(configPath: string, seen: Set<string>): string | un
  * `compilerOptions.jsxImportSource`, which is how most OpenTUI projects are
  * wired — the framework is configured once and never mentioned again in the
  * component files themselves.
+ *
+ * The walk deliberately does not stop at a `package.json`. A workspace package
+ * frequently has no tsconfig of its own and inherits the repo root's, and
+ * stopping early there meant every rule went silent across a whole package —
+ * the worst possible failure for a linter, because it looks like a clean run.
+ * Nearest-config-wins is also how `tsc` itself resolves, so a web package that
+ * needs different settings still gets them from its own tsconfig.
  */
 function frameworkFromTsconfig(filename: string): Framework | null {
   let dir = dirname(resolve(filename))
@@ -94,8 +101,7 @@ function frameworkFromTsconfig(filename: string): Framework | null {
     }
 
     const parent = dirname(dir)
-    // Stop at a package boundary so a sibling app's config is never borrowed.
-    if (parent === dir || existsSync(join(dir, "package.json"))) break
+    if (parent === dir) break
     dir = parent
   }
 

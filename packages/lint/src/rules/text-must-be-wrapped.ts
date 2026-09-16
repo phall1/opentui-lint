@@ -1,12 +1,16 @@
+import { failureText, failureVisible } from "../catalog/runtime.js"
 import { isDefinitelyText, textContext } from "../project/jsx.js"
 import { defineRule } from "../project/rule.js"
 
 /**
  * `<box>Hello</box>` is the single most common way an OpenTUI app dies.
  *
- * Every binding's `createTextInstance` throws "Text must be created inside of a
- * text node" unless the host context is a `<text>` subtree. TypeScript cannot
- * help: `BoxProps["children"]` is `React.ReactNode`, which includes `string`.
+ * Both bindings refuse it, by different routes. React's `createTextInstance`
+ * checks its host context and throws "Text must be created inside of a text
+ * node"; Solid builds the node happily and then fails on insert with
+ * `Orphan text error: "Hello" must have a <text> as a parent`. TypeScript
+ * cannot help with either: `children` is `ReactNode`/`JSX.Element`, which
+ * includes `string`.
  *
  * The rule only reports text it can prove statically — a literal, a template
  * literal, a concatenation. `{label}` could be a string or an element, and
@@ -33,9 +37,11 @@ export default defineRule(
       context.report({
         node,
         message:
-          `${label} renders as a text node, and OpenTUI throws ` +
-          `"Text must be created inside of a text node" when one is created outside <text>. ` +
-          `TypeScript allows it because children are typed as ReactNode. ` +
+          `${label} renders as a text node outside <text>, so @opentui/${context.framework} throws ` +
+          `"${failureText(context.framework, "textOutsideText")}" and ` +
+          `${failureVisible(context.framework, "textOutsideText")}. ` +
+          `TypeScript allows it because children are typed as ` +
+          `${context.framework === "react" ? "ReactNode" : "JSX.Element"}, which includes strings. ` +
           `Wrap it: ${where} → <text>${source}</text>.`,
         suggest: [
           {

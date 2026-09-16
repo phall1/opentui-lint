@@ -1,0 +1,17 @@
+{
+  "name": "opentui-lint-example-dashboard-solid",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "The same dashboard in Solid, where the runtime fails differently.",
+  "scripts": { "lint": "eslint ." },
+  "devDependencies": {
+    "@opentui/core": "^0.5.11",
+    "@opentui/solid": "^0.5.11",
+    "@typescript-eslint/parser": "^8.40.0",
+    "eslint": "^9.33.0",
+    "opentui-lint": "workspace:*",
+    "solid-js": "^1.9.15",
+    "typescript": "^5.9.2"
+  }
+}

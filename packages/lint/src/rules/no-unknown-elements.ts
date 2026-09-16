@@ -3,9 +3,11 @@ import {
   domEquivalent,
   elementsFor,
   isDomElement,
+  isInheritedDomElement,
   knowsElement,
   suggestElement,
 } from "../catalog/index.js"
+import { failureText, failureVisible, packageName } from "../catalog/runtime.js"
 import { elementName, isHostElement } from "../project/jsx.js"
 import { defineRule } from "../project/rule.js"
 
@@ -15,14 +17,14 @@ import { defineRule } from "../project/rule.js"
  * `JSX.IntrinsicElements` in both OpenTUI bindings carries a string index
  * signature (from `ExtendedIntrinsicElements`, which exists so `extend()` can
  * add custom renderables). The side effect is that *every* lowercase tag
- * typechecks. On top of that, the React binding's interface extends
- * `React.JSX.IntrinsicElements`, so all 164 HTML element names are in scope
- * with their full DOM prop types.
+ * typechecks, in React and in Solid alike. React's interface additionally
+ * extends `React.JSX.IntrinsicElements`, so all 164 HTML element names are in
+ * scope with their full DOM prop types.
  *
- * At render the reconciler looks the tag up in its catalogue and throws
- * `Unknown component type: div`. The binding wraps the tree in an
- * ErrorBoundary, so what the developer actually sees is their app replaced by
- * a red reconciler stack trace — no file, no line, no hint.
+ * At render each binding looks the tag up in its catalogue and throws. React
+ * wraps the tree in an ErrorBoundary, so the app is replaced by a red stack
+ * trace; Solid has no boundary and the render throws outright. Either way
+ * there is no file and no line number.
  */
 export default defineRule(
   {
@@ -55,46 +57,51 @@ export default defineRule(
         if (allow.has(name) || context.extendedElements.has(name)) return
         if (knowsElement(context.framework, name)) return
 
-        const other = context.framework === "react" ? "solid" : "react"
+        const framework = context.framework
+        const other = framework === "react" ? "solid" : "react"
+        const throws = failureText(framework, "unknownElement", name)
 
-        // Ordered most-specific first: a wrong-framework spelling and an HTML
-        // tag are different mistakes and deserve different instructions.
-        const renamed = crossFrameworkName(context.framework, name)
+        // Ordered most-specific first: a wrong-binding spelling and an HTML tag
+        // are different mistakes and deserve different instructions.
+        const renamed = crossFrameworkName(framework, name)
         if (renamed) {
           context.report({
             node,
             message:
-              `<${name}> is the @opentui/${other} spelling. ` +
-              `This file renders with @opentui/${context.framework}, which calls it <${renamed}>. ` +
-              `Rendering <${name}> throws "Unknown component type: ${name}".`,
+              `<${name}> is the ${packageName(other)} spelling. ` +
+              `This file renders with ${packageName(framework)}, which calls it <${renamed}>. ` +
+              `Rendering <${name}> throws "${throws}".`,
           })
           return
         }
 
-        if (isDomElement(context.framework, name)) {
+        if (isDomElement(name)) {
           const replacement = domEquivalent(name)
+          const why = isInheritedDomElement(framework, name)
+            ? `It typechecks because ${packageName(framework)}'s JSX namespace extends React's DOM elements`
+            : `It typechecks because ${packageName(framework)}'s JSX namespace has a string index signature for extend()`
           context.report({
             node,
             message:
               `<${name}> is an HTML element and OpenTUI has no renderable for it. ` +
-              `It only typechecks because @opentui/react's JSX namespace extends React's DOM elements; ` +
-              `at render it throws "Unknown component type: ${name}" and the ErrorBoundary replaces your app ` +
-              `with a stack trace. ` +
+              `${why}; at render it throws "${throws}" and ` +
+              `${failureVisible(framework, "unknownElement")}. ` +
               (replacement ? `Use <${replacement}>.` : `Use <box> for layout and <text> for content.`),
           })
           return
         }
 
-        const suggestion = suggestElement(context.framework, name)
-        const catalogue = Object.keys(elementsFor(context.framework).elements)
-          .filter((element) => !elementsFor(context.framework).elements[element]!.textNode)
+        const suggestion = suggestElement(framework, name)
+        const facts = elementsFor(framework)
+        const catalogue = Object.keys(facts.elements)
+          .filter((element) => !facts.elements[element]!.textNode)
           .join(", ")
 
         context.report({
           node,
           message:
-            `<${name}> is not in the @opentui/${context.framework} catalogue, so it throws ` +
-            `"Unknown component type: ${name}" at render. ` +
+            `<${name}> is not in the ${packageName(framework)} catalogue, so it throws ` +
+            `"${throws}" at render. ` +
             (suggestion
               ? `Did you mean <${suggestion}>?`
               : `Available elements: ${catalogue}. ` +
