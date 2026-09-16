@@ -29,24 +29,37 @@ tester().run("no-unknown-elements", asRule(rule), {
   invalid: [
     {
       code: "const a = <div><text>hi</text></div>",
+      output: "const a = <box><text>hi</text></box>",
       errors: [{ message: /<div> is an HTML element.*Use <box>/s }],
     },
     {
       code: `const a = <p>hello</p>`,
+      output: `const a = <text>hello</text>`,
       errors: [{ message: /Use <text>/ }],
     },
     {
+      // No single right answer, so it is described and never rewritten.
       code: `const a = <button onClick={f}>Go</button>`,
-      errors: [{ message: /Use <box with onMouseDown, or a Button recipe>|onMouseDown/ }],
+      output: null,
+      errors: [{ message: /onMouseDown, or a Button recipe/ }],
     },
     {
-      // Solid's spelling used in a React file.
+      // Solid's spelling used in a React file: a pure rename.
       code: `const a = <ascii_font text="hi" />`,
+      output: `const a = <ascii-font text="hi" />`,
       errors: [{ message: /is the @opentui\/solid spelling.*calls it <ascii-font>/s }],
     },
     {
+      // A typo could equally be an unregistered custom renderable, so the
+      // near-miss is offered rather than applied.
       code: "const a = <bax />",
-      errors: [{ message: /Did you mean <box>\?/ }],
+      output: null,
+      errors: [
+        {
+          message: /Did you mean <box>\?/,
+          suggestions: [{ desc: "Rename to <box>", output: "const a = <box />" }],
+        },
+      ],
     },
   ],
 })
@@ -62,12 +75,14 @@ tester("solid").run("no-unknown-elements (solid)", asRule(rule), {
   invalid: [
     {
       code: `const a = <ascii-font text="hi" />`,
+      output: `const a = <ascii_font text="hi" />`,
       errors: [{ message: /is the @opentui\/react spelling.*calls it <ascii_font>/s }],
     },
     {
       // Solid's JSX does not inherit the DOM elements, but its index signature
       // still lets <div> through — same mistake, same answer, different reason.
       code: `const a = <div><text>hi</text></div>`,
+      output: `const a = <box><text>hi</text></box>`,
       errors: [
         {
           message: /<div> is an HTML element.*string index signature for extend\(\).*\[Reconciler\] Unknown component type: div.*Use <box>/s,
@@ -76,6 +91,7 @@ tester("solid").run("no-unknown-elements (solid)", asRule(rule), {
     },
     {
       code: `const a = <p>hi</p>`,
+      output: `const a = <text>hi</text>`,
       errors: [{ message: /\[Reconciler\] Unknown component type: p/ }],
     },
   ],

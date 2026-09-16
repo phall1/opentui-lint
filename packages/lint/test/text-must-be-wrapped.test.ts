@@ -1,16 +1,12 @@
 import rule from "../src/rules/text-must-be-wrapped.js"
 import { asRule, tester, undetectedTester } from "./helpers.js"
 
-/** Builds the invalid case for a child that should have been wrapped. */
+/** An invalid case whose autofix wraps `child` where it stands. */
 function wrapped(before: string, child: string) {
   return {
     code: before,
-    errors: [
-      {
-        message: /renders as a text node/,
-        suggestions: [{ desc: "Wrap in <text>", output: before.replace(child, `<text>${child}</text>`) }],
-      },
-    ],
+    output: before.replace(child, `<text>${child}</text>`),
+    errors: [{ message: /renders as a text node/ }],
   }
 }
 
@@ -49,35 +45,58 @@ tester().run("text-must-be-wrapped", asRule(rule), {
     wrapped("export function App() { return <box>Hello</box> }", "Hello"),
     // An outer <text> does not reach through an intervening <box>.
     wrapped("const a = <text><box>Hello</box></text>", "Hello"),
-    wrapped("const a = <box>Hello</box>", "Hello"),
     wrapped("const a = <scrollbox>{`${count} items`}</scrollbox>", "{`${count} items`}"),
     wrapped(`const a = <box>{"Total: " + count}</box>`, `{"Total: " + count}`),
     wrapped("const a = <box>{count.toFixed(2)}</box>", "{count.toFixed(2)}"),
     wrapped(`const a = <box>{ready && "online"}</box>`, `{ready && "online"}`),
-    // A joined array really is a string.
     wrapped(`const a = <box>{parts.join(", ")}</box>`, `{parts.join(", ")}`),
   ],
 })
 
-undetectedTester().run("text-must-be-wrapped (not an OpenTUI file)", asRule(rule), {
-  valid: [`export const Page = () => <div>Hello</div>`],
-  invalid: [],
+/**
+ * The grouping behavior, which is the whole reason the fix works on runs.
+ *
+ * A box lays out as a column by default, so wrapping each stray child on its
+ * own would silently put every fragment on its own line.
+ */
+tester().run("text-must-be-wrapped (run grouping)", asRule(rule), {
+  valid: [],
+  invalid: [
+    {
+      // One run spanning text, a modifier and more text — one <text>, one line.
+      code: "const a = <box>Total: <b>7</b> items</box>",
+      output: "const a = <box><text>Total: <b>7</b> items</text></box>",
+      errors: 2,
+    },
+    {
+      // Two runs separated by a real renderable stay two <text> elements,
+      // because that is genuinely two lines.
+      code: "const a = <box>one<box /><text>mid</text>two</box>",
+      output: "const a = <box><text>one</text><box /><text>mid</text><text>two</text></box>",
+      errors: 2,
+    },
+    {
+      // Interleaved text and interpolation is a single run.
+      code: "const a = <box>Ready: {count.toFixed(0)} of {total.toFixed(0)}</box>",
+      output: "const a = <box><text>Ready: {count.toFixed(0)} of {total.toFixed(0)}</text></box>",
+      // Two text fragments plus two interpolations, all in one run.
+      errors: 4,
+    },
+  ],
 })
 
 tester("solid").run("text-must-be-wrapped (solid)", asRule(rule), {
   valid: ["const a = <text>Hello</text>", "const a = <box><text>{count()}</text></box>"],
   invalid: [
     {
-      // Solid fails on insert, with its own message and no error boundary.
       code: "const App = () => <box>Hello</box>",
-      errors: [
-        {
-          message: /Orphan text error: "…" must have a <text> as a parent.*no error boundary/s,
-          suggestions: [
-            { desc: "Wrap in <text>", output: "const App = () => <box><text>Hello</text></box>" },
-          ],
-        },
-      ],
+      output: "const App = () => <box><text>Hello</text></box>",
+      errors: [{ message: /Orphan text error: "…" must have a <text> as a parent.*no error boundary/s }],
     },
   ],
+})
+
+undetectedTester().run("text-must-be-wrapped (not an OpenTUI file)", asRule(rule), {
+  valid: [`export const Page = () => <div>Hello</div>`],
+  invalid: [],
 })

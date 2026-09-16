@@ -1,4 +1,5 @@
-import { CSS_ONLY_PROPS, WEB_ONLY_PROPS, elementsFor, knowsElement } from "../catalog/index.js"
+import { CSS_ONLY_PROPS, PROP_RENAME, WEB_ONLY_PROPS, elementsFor, knowsElement } from "../catalog/index.js"
+import { removeAttribute, renameAttribute } from "../project/fixes.js"
 import {
   attributeName,
   elementName,
@@ -7,7 +8,7 @@ import {
   resolveObjectExpression,
 } from "../project/jsx.js"
 import { defineRule } from "../project/rule.js"
-import type { Node } from "../project/types.js"
+import type { Fixer, Node } from "../project/types.js"
 
 function advise(name: string): string | undefined {
   return WEB_ONLY_PROPS[name] ?? CSS_ONLY_PROPS[name]
@@ -58,13 +59,45 @@ export default defineRule(
         additionalProperties: false,
       },
     ],
+    fixable: "code",
+    hasSuggestions: true,
   },
   (context) => {
     const options = context.options[0] ?? {}
     const allow = new Set<string>((options.allow as string[]) ?? [])
     const checkUnknownProps = options.checkUnknownProps === true
 
-    function report(name: string, node: Node, elementLabel: string): void {
+    /** Attribute-only: a key inside a style object is not removable this way. */
+    function removable(node: Node) {
+      return node.type === "JSXAttribute"
+        ? {
+            suggest: [
+              {
+                desc: `Remove \`${attributeName(node) ?? "it"}\``,
+                fix: (fixer: Fixer) => removeAttribute(context, node, fixer),
+              },
+            ],
+          }
+        : {}
+    }
+
+    function report(name: string, node: Node, elementLabel: string, accepts?: ReadonlySet<string>): void {
+      // Only rename when the target really is a prop of this element. `src`
+      // becomes `source` on <image>, but on a <box> neither name means
+      // anything and renaming would just move the problem.
+      const rename = PROP_RENAME[name]
+      if (rename && node.type === "JSXAttribute" && (!accepts || accepts.has(rename))) {
+        context.report({
+          node,
+          message:
+            `\`${name}\` does nothing on ${elementLabel}. OpenTUI assigns unknown props straight onto the ` +
+            `renderable, so there is no error at runtime — the value is simply never read. ` +
+            `The OpenTUI name is \`${rename}\`.`,
+          fix: (fixer) => renameAttribute(node, rename, fixer),
+        })
+        return
+      }
+
       const advice = advise(name)
       if (advice) {
         context.report({
@@ -72,6 +105,7 @@ export default defineRule(
           message:
             `\`${name}\` does nothing on ${elementLabel}. OpenTUI assigns unknown props straight onto the ` +
             `renderable, so there is no error at runtime — the value is simply never read. ${advice}`,
+          ...removable(node),
         })
         return
       }
@@ -81,6 +115,7 @@ export default defineRule(
         message:
           `\`${name}\` is not a prop of ${elementLabel}. OpenTUI assigns it to the renderable and never reads ` +
           `it, so this silently does nothing. Remove it, or register a renderable that accepts it with extend().`,
+        ...removable(node),
       })
     }
 
@@ -116,6 +151,7 @@ export default defineRule(
               message:
                 `\`${name}\` does nothing on ${label}. Terminal cells carry no attributes; ` +
                 `OpenTUI stores the value on the renderable and never reads it.`,
+              ...removable(attribute),
             })
             continue
           }
@@ -134,8 +170,8 @@ export default defineRule(
             continue
           }
 
-          if (advise(name) || (checkUnknownProps && valid && !valid.has(name))) {
-            report(name, attribute, label)
+          if (PROP_RENAME[name] || advise(name) || (checkUnknownProps && valid && !valid.has(name))) {
+            report(name, attribute, label, valid)
           }
         }
       },

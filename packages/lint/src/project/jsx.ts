@@ -146,14 +146,25 @@ export function staticString(value: Node | undefined | null): string | undefined
   return undefined
 }
 
+export interface StaticStringSite {
+  value: string
+  /**
+   * The node holding this exact string — a single branch of a conditional, not
+   * the conditional itself. A fix that replaced the whole expression would
+   * delete the other branch along with it.
+   */
+  node: Node
+}
+
 /**
- * Every statically-known string an attribute value can take.
+ * Every statically-known string an attribute value can take, with the node
+ * each one came from.
  *
  * `bg={active ? "indigo" : "transparent"}` is the normal way to write a
  * conditional style, and checking only whole-expression literals would miss
  * both branches of it.
  */
-export function staticStrings(value: Node | undefined | null): string[] {
+export function staticStrings(value: Node | undefined | null): StaticStringSite[] {
   if (!value) return []
   if (value.type === "JSXExpressionContainer") return staticStrings(value.expression)
   if (value.type === "TSAsExpression") return staticStrings(value.expression)
@@ -164,7 +175,7 @@ export function staticStrings(value: Node | undefined | null): string[] {
     return [...staticStrings(value.left), ...staticStrings(value.right)]
   }
   const single = staticString(value)
-  return single === undefined ? [] : [single]
+  return single === undefined ? [] : [{ value: single, node: value }]
 }
 
 /** The static number behind an attribute value, when there is one. */

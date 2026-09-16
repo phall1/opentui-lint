@@ -239,6 +239,34 @@ function readIntrinsicElements(
  */
 const TEXT_NODE_ELEMENTS = new Set(["span", "b", "strong", "i", "em", "u", "br", "a"])
 
+/** Every prop name that appears on at least one element, in either binding. */
+function allProps(frameworks: Record<FrameworkName, FrameworkFacts>): string[] {
+  const names = new Set<string>()
+  for (const facts of Object.values(frameworks)) {
+    for (const element of Object.values(facts.elements)) {
+      for (const prop of element.props) names.add(prop)
+    }
+  }
+  return [...names].toSorted()
+}
+
+/**
+ * OpenTUI's color props all end in Color/Bg/Fg, or are the bare `fg`/`bg`/
+ * `color` on text. Intersecting that shape with the real prop surface keeps
+ * the list honest in both directions: nothing invented, nothing missed.
+ */
+function derivedColorProps(frameworks: Record<FrameworkName, FrameworkFacts>): string[] {
+  return allProps(frameworks).filter(
+    (name) => /(?:Color|Bg|Fg)$/.test(name) || name === "fg" || name === "bg" || name === "color",
+  )
+}
+
+function derivedSpacingProps(frameworks: Record<FrameworkName, FrameworkFacts>): string[] {
+  return allProps(frameworks).filter(
+    (name) => /^(?:padding|margin)/.test(name) || /^(?:row|column)?[Gg]ap$/.test(name),
+  )
+}
+
 const json = (value: unknown) => JSON.stringify(value, null, 2)
 
 function render(
@@ -260,46 +288,22 @@ export const CATALOG_VERSION = ${json(version)}
  */
 export const NAMED_COLORS = ${json(colors)} as const
 
-/** Props whose values flow through \`parseColor()\`. */
-export const COLOR_PROPS = ${json([
-    "backgroundColor",
-    "borderColor",
-    "bg",
-    "fg",
-    "color",
-    "focusedBackgroundColor",
-    "focusedBorderColor",
-    "focusedTextColor",
-    "placeholderColor",
-    "cursorColor",
-    "selectionBg",
-    "selectionFg",
-    "selectedBackgroundColor",
-    "selectedTextColor",
-    "titleColor",
-    "scrollbarColor",
-  ])} as const
+/**
+ * Props whose values flow through \`parseColor()\`.
+ *
+ * Derived from the real per-element prop lists, not typed out. The
+ * hand-written version of this omitted \`textColor\` — the primary color prop
+ * on <input> and <textarea> — and carried a \`scrollbarColor\` that exists on no
+ * element at all. A list asserted rather than computed is exactly the drift
+ * this generator exists to prevent.
+ */
+export const COLOR_PROPS = ${json(derivedColorProps(frameworks))} as const
 
-/** Layout props measured in whole terminal cells, not pixels. */
-export const SPACING_PROPS = ${json([
-    "padding",
-    "paddingX",
-    "paddingY",
-    "paddingTop",
-    "paddingRight",
-    "paddingBottom",
-    "paddingLeft",
-    "margin",
-    "marginX",
-    "marginY",
-    "marginTop",
-    "marginRight",
-    "marginBottom",
-    "marginLeft",
-    "gap",
-    "rowGap",
-    "columnGap",
-  ])} as const
+/**
+ * Layout props measured in whole terminal cells, not pixels. Also derived, so
+ * a new spacing prop upstream cannot go unnoticed.
+ */
+export const SPACING_PROPS = ${json(derivedSpacingProps(frameworks))} as const
 
 export interface ElementFacts {
   props: readonly string[]

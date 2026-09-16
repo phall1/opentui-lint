@@ -53,10 +53,13 @@ export function isInheritedDomElement(framework: Framework, name: string): boole
 /**
  * What a web developer reaches for, and what OpenTUI actually renders.
  *
- * These pairings are advisory text in diagnostics, so an agent that wrote
- * `<div>` is told to write `<box>` instead of being left to guess.
+ * Split in two on purpose. `DOM_RENAME` holds the cases with exactly one
+ * correct answer — a `<div>` is a `<box>`, a `<p>` is a `<text>` — and those
+ * are applied as real autofixes. Everything else is advice only: `<button>`
+ * needs a handler wired up and `<canvas>` needs a different architecture, and
+ * a linter that rewrote those would be guessing on the author's behalf.
  */
-const DOM_EQUIVALENTS: Record<string, string> = {
+const DOM_RENAME: Record<string, string> = {
   div: "box",
   section: "box",
   article: "box",
@@ -68,8 +71,17 @@ const DOM_EQUIVALENTS: Record<string, string> = {
   form: "box",
   fieldset: "box",
   figure: "box",
+  figcaption: "text",
+  ul: "box",
+  ol: "box",
+  dl: "box",
+  table: "box",
+  tbody: "box",
+  thead: "box",
+  tr: "box",
+  iframe: "box",
   p: "text",
-  h1: "text (or ascii-font for a banner)",
+  h1: "text",
   h2: "text",
   h3: "text",
   h4: "text",
@@ -77,30 +89,39 @@ const DOM_EQUIVALENTS: Record<string, string> = {
   h6: "text",
   label: "text",
   li: "text",
+  dt: "text",
+  dd: "text",
   td: "text",
   th: "text",
-  pre: "code",
-  button: "box with onMouseDown, or a Button recipe",
-  ul: "box",
-  ol: "box",
-  table: "box",
-  tr: "box",
-  img: "image",
-  picture: "image",
-  video: "image",
-  hr: "box with border",
   small: "text",
   blockquote: "text",
-  code: "code",
-  textarea: "textarea",
-  select: "select",
-  option: "an option object on <select>",
+  caption: "text",
+  legend: "text",
+  pre: "code",
+  img: "image",
+}
+
+/** Cases with no single right answer — described, never rewritten. */
+const DOM_ADVICE: Record<string, string> = {
+  button: "<box> with onMouseDown, or a Button recipe from your component library",
   canvas: "a FrameBuffer renderable",
-  iframe: "box",
+  hr: "<box> with a border",
+  video: "<image>, which does not animate — or an embedded terminal",
+  option: "an entry in the options array on <select>",
+  picture: "<image>",
+  source: "<image> with a source prop",
+  svg: "<ascii-font> for text, or draw into a FrameBuffer",
+}
+
+/** The element to rewrite to, when there is exactly one correct answer. */
+export function domRename(name: string): string | undefined {
+  return DOM_RENAME[name]
 }
 
 export function domEquivalent(name: string): string | undefined {
-  return DOM_EQUIVALENTS[name]
+  const rename = DOM_RENAME[name]
+  if (rename) return `<${rename}>${name === "h1" ? ", or <ascii-font> for a banner" : ""}`
+  return DOM_ADVICE[name]
 }
 
 /** The same element under the other framework's naming convention, if any. */
@@ -176,6 +197,20 @@ export function checkColor(value: string): ColorVerdict {
   const fn = /^([a-z]+)\s*\(/i.exec(normalized)
   if (fn) return { kind: "css-function", fn: fn[1]! }
   return { kind: "unknown-name" }
+}
+
+/**
+ * Web props with exactly one OpenTUI counterpart, so the fix is a pure rename.
+ *
+ * Deliberately short. `onClick` is missing because `onMouseDown` fires on press
+ * rather than release and an interactive element may want `onSelect` instead —
+ * that is a decision, not a rename.
+ */
+export const PROP_RENAME: Record<string, string> = {
+  onMouseEnter: "onMouseOver",
+  onMouseLeave: "onMouseOut",
+  onMouseWheel: "onMouseScroll",
+  src: "source",
 }
 
 /** Web-only props that survive into a renderable and then do nothing at all. */

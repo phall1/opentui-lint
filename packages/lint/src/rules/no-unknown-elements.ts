@@ -1,6 +1,7 @@
 import {
   crossFrameworkName,
   domEquivalent,
+  domRename,
   elementsFor,
   isDomElement,
   isInheritedDomElement,
@@ -8,8 +9,10 @@ import {
   suggestElement,
 } from "../catalog/index.js"
 import { failureText, failureVisible, packageName } from "../catalog/runtime.js"
+import { renameElement } from "../project/fixes.js"
 import { elementName, isHostElement } from "../project/jsx.js"
 import { defineRule } from "../project/rule.js"
+import type { Fixer } from "../project/types.js"
 
 /**
  * The flagship rule.
@@ -46,6 +49,8 @@ export default defineRule(
         additionalProperties: false,
       },
     ],
+    fixable: "code",
+    hasSuggestions: true,
   },
   (context) => {
     const allow = new Set<string>((context.options[0]?.allow as string[]) ?? [])
@@ -71,11 +76,15 @@ export default defineRule(
               `<${name}> is the ${packageName(other)} spelling. ` +
               `This file renders with ${packageName(framework)}, which calls it <${renamed}>. ` +
               `Rendering <${name}> throws "${throws}".`,
+            // The two bindings differ only in separator, so this is a pure
+            // rename with exactly one right answer.
+            fix: (fixer) => renameElement(node.parent ?? node, renamed, fixer),
           })
           return
         }
 
         if (isDomElement(name)) {
+          const rename = domRename(name)
           const replacement = domEquivalent(name)
           const why = isInheritedDomElement(framework, name)
             ? `It typechecks because ${packageName(framework)}'s JSX namespace extends React's DOM elements`
@@ -86,7 +95,10 @@ export default defineRule(
               `<${name}> is an HTML element and OpenTUI has no renderable for it. ` +
               `${why}; at render it throws "${throws}" and ` +
               `${failureVisible(framework, "unknownElement")}. ` +
-              (replacement ? `Use <${replacement}>.` : `Use <box> for layout and <text> for content.`),
+              (replacement ? `Use ${replacement}.` : `Use <box> for layout and <text> for content.`),
+            // Only the unambiguous mappings are rewritten. <button> and
+            // <canvas> need a decision, not a substitution.
+            ...(rename ? { fix: (fixer: Fixer) => renameElement(node.parent ?? node, rename, fixer) } : {}),
           })
           return
         }
@@ -106,6 +118,18 @@ export default defineRule(
               ? `Did you mean <${suggestion}>?`
               : `Available elements: ${catalogue}. ` +
                 `Register a custom renderable with extend({ ${name}: MyRenderable }) if it is your own.`),
+          // A near-miss is offered rather than applied: a typo could equally
+          // well be a custom renderable someone has not registered yet.
+          ...(suggestion
+            ? {
+                suggest: [
+                  {
+                    desc: `Rename to <${suggestion}>`,
+                    fix: (fixer: Fixer) => renameElement(node.parent ?? node, suggestion, fixer),
+                  },
+                ],
+              }
+            : {}),
         })
       },
     }

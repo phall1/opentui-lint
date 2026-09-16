@@ -23,23 +23,30 @@ undetectedTester().run("framework detection", asRule(rule), {
       // The per-file pragma.
       code: `/** @jsxImportSource @opentui/react */
              export const App = () => <div />`,
+      output: `/** @jsxImportSource @opentui/react */
+             export const App = () => <box />`,
       errors: [{ message: /<div> is an HTML element/ }],
     },
     {
       // An import of the binding.
       code: `import { useKeyboard } from "@opentui/react"
              export const App = () => <div />`,
+      output: `import { useKeyboard } from "@opentui/react"
+             export const App = () => <box />`,
       errors: [{ message: /<div> is an HTML element/ }],
     },
     {
       // A subpath import still identifies the runtime.
       code: `import { testRender } from "@opentui/react/test-utils"
              export const App = () => <div />`,
+      output: `import { testRender } from "@opentui/react/test-utils"
+             export const App = () => <box />`,
       errors: 1,
     },
     {
       // Inherited from the nearest tsconfig.
       code: `export const App = () => <div />`,
+      output: `export const App = () => <box />`,
       filename: file("react-app"),
       errors: [{ message: /<div> is an HTML element/ }],
     },
@@ -49,12 +56,14 @@ undetectedTester().run("framework detection", asRule(rule), {
       // boundary silenced every rule across a whole package — a clean run that
       // means nothing.
       code: `export const App = () => <ascii-font text="hi" />`,
+      output: `export const App = () => <ascii_font text="hi" />`,
       filename: join(FIXTURES, "monorepo", "packages", "tui", "src", "Row.tsx"),
       errors: [{ message: /is the @opentui\/react spelling/ }],
     },
     {
       // Resolved through `extends`, as monorepos usually wire it.
       code: `export const App = () => <ascii-font text="hi" />`,
+      output: `export const App = () => <ascii_font text="hi" />`,
       filename: file("solid-app"),
       errors: [{ message: /is the @opentui\/react spelling/ }],
     },

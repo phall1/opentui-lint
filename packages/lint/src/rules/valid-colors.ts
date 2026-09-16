@@ -1,4 +1,6 @@
 import { NAMED_COLORS, checkColor, isColorProp, suggestColor } from "../catalog/index.js"
+import { convertColor } from "../catalog/css-colors.js"
+import { replaceStringValue } from "../project/fixes.js"
 import {
   attributeName,
   objectEntries,
@@ -28,6 +30,8 @@ export default defineRule(
       description: "Disallow color values OpenTUI silently renders as magenta.",
       url: "https://github.com/phall1/opentui-lint/blob/main/docs/rules/valid-colors.md",
     },
+    fixable: "code",
+    hasSuggestions: true,
     schema: [
       {
         type: "object",
@@ -50,9 +54,6 @@ export default defineRule(
       const verdict = checkColor(value)
       if (verdict.kind === "ok") return
 
-      const suggestion = suggestColor(value)
-      const fallback = `Use a hex string such as "#22c55e", or one of: ${NAMED_COLORS.join(", ")}.`
-
       const explanation =
         verdict.kind === "css-function"
           ? `parseColor() does not support CSS color functions, so \`${verdict.fn}(…)\` resolves to opaque magenta.`
@@ -60,13 +61,56 @@ export default defineRule(
             ? `"${value}" is not a valid hex color, so it resolves to opaque magenta.`
             : `"${value}" is not one of OpenTUI's color names, so it resolves to opaque magenta.`
 
+      const lead =
+        `${propName}="${value}" will render magenta. ${explanation} ` +
+        `This never fails typecheck — ColorInput is just \`string | RGBA\` — and at runtime it only warns. `
+
+      // An exact conversion is applied. `rgb(34, 197, 94)` *is* `#22c55e` and
+      // CSS `indigo` *is* `#4b0082` — there is nothing to decide.
+      const converted = convertColor(value)
+      if (converted?.exact) {
+        context.report({
+          node,
+          message: `${lead}${converted.reason}, so use "${converted.hex}".`,
+          fix: (fixer) => replaceStringValue(node, converted.hex, fixer),
+        })
+        return
+      }
+
+      // A Tailwind palette name is a guess about which shade was meant, so it
+      // is offered rather than applied.
+      if (converted) {
+        context.report({
+          node,
+          message: `${lead}${converted.reason}, so "${converted.hex}" is probably what you want.`,
+          suggest: [
+            {
+              desc: `Replace with "${converted.hex}" (${value}-500)`,
+              fix: (fixer) => replaceStringValue(node, converted.hex, fixer),
+            },
+          ],
+        })
+        return
+      }
+
+      const suggestion = suggestColor(value)
       context.report({
         node,
         message:
-          `${propName}="${value}" will render magenta. ${explanation} ` +
-          `This never fails typecheck — ColorInput is just \`string | RGBA\` — and at runtime it only warns. ` +
-          (suggestion ? `Did you mean "${suggestion}"? ` : "") +
-          (suggestion ? "" : fallback),
+          lead +
+          (suggestion
+            ? `Did you mean "${suggestion}"?`
+            : `Use a hex string such as "#22c55e", or one of: ${NAMED_COLORS.join(", ")}.`),
+        ...(suggestion
+          ? {
+              suggest: [
+                {
+                  desc: `Replace with "${suggestion}"`,
+                  fix: (fixer) => replaceStringValue(node, suggestion, fixer),
+                },
+              ],
+            }
+          : {}),
       })
     }
 
@@ -76,7 +120,7 @@ export default defineRule(
       if (!object) return
       for (const entry of objectEntries(object)) {
         if (!isColor(entry.key)) continue
-        for (const value of staticStrings(entry.valueNode)) check(entry.key, value, entry.valueNode)
+        for (const site of staticStrings(entry.valueNode)) check(entry.key, site.value, site.node)
       }
     }
 
@@ -93,7 +137,7 @@ export default defineRule(
         }
 
         if (!isColor(name)) return
-        for (const value of staticStrings(node.value)) check(name, value, node.value ?? node)
+        for (const site of staticStrings(node.value)) check(name, site.value, site.node)
       },
     }
   },

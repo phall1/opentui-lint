@@ -1,7 +1,9 @@
 import { isTextNodeElement } from "../catalog/index.js"
 import { failureText, failureVisible } from "../catalog/runtime.js"
+import { runContaining, textRuns, wrapRun } from "../project/fixes.js"
 import { elementName, textContext } from "../project/jsx.js"
 import { defineRule } from "../project/rule.js"
+import type { Fixer, Node } from "../project/types.js"
 
 /**
  * `<b>`, `<span>` and friends are text *nodes*, not renderables.
@@ -25,8 +27,15 @@ export default defineRule(
       url: "https://github.com/phall1/opentui-lint/blob/main/docs/rules/no-orphan-text-nodes.md",
     },
     schema: [],
+    fixable: "code",
+    hasSuggestions: true,
   },
-  (context) => ({
+  (context) => {
+    // See `text-must-be-wrapped`: the fix wraps a whole run, so only the run's
+    // first offender carries it.
+    const claimed = new WeakSet<Node>()
+
+    return {
     JSXOpeningElement(node) {
       const name = elementName(node)
       if (!name || !isTextNodeElement(context.framework, name)) return
@@ -40,6 +49,11 @@ export default defineRule(
       if (enclosing.crossedComponent) return
 
       const where = enclosing.boundary ? `directly inside <${enclosing.boundary}>` : "at the top of the tree"
+      const element = node.parent
+      const run = element?.parent ? runContaining(textRuns(element.parent, context.framework), element) : undefined
+      const owns = run !== undefined && !claimed.has(run.first)
+      if (run && owns) claimed.add(run.first)
+
       context.report({
         node,
         message:
@@ -48,7 +62,17 @@ export default defineRule(
           `"${failureText(context.framework, "textNodeOutsideText", name)}" and ` +
           `${failureVisible(context.framework, "textNodeOutsideText")}. ` +
           `Put it inside <text>: <text><${name}>…</${name}></text>.`,
+        ...(run && owns
+          ? run.ambiguousNeighbor
+            ? {
+                suggest: [
+                  { desc: "Wrap the text in <text>", fix: (fixer: Fixer) => wrapRun(context, run, fixer) },
+                ],
+              }
+            : { fix: (fixer: Fixer) => wrapRun(context, run, fixer) }
+          : {}),
       })
     },
-  }),
+    }
+  },
 )

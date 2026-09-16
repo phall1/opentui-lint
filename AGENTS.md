@@ -33,6 +33,25 @@ When an AST cannot decide — `{label}` could be a string or an element, a text
 modifier returned from a component could be wrapped at the call site — the rule
 stays quiet and the limitation gets documented in the rule's doc page.
 
+## Autofix discipline
+
+A fix is applied only when there is exactly one correct answer: `<div>` → `<box>`,
+`rgb(34, 197, 94)` → `#22c55e`, `onMouseEnter` → `onMouseOver`. Anything that
+involves a judgement — which Tailwind shade `slate` meant, whether a dead prop
+should be deleted, whether `<button>` wants `onMouseDown` or a recipe — is a
+`suggest`, never a `fix`.
+
+Two traps that already bit once each:
+
+- **Fix the narrowest node.** `staticStrings` returns the node each string came
+  from precisely so a fix on `bg={active ? "indigo" : "transparent"}` rewrites
+  the branch and not the ternary. An autofix that deletes logic is worse than no
+  autofix.
+- **Group text runs.** A box lays out as a column, so wrapping each stray child
+  separately silently moves them onto different lines. `textRuns` exists for
+  this, and a run with an untypeable expression beside it downgrades to a
+  suggestion rather than shipping half a fix.
+
 ## Adding a rule
 
 1. Write it in `packages/lint/src/rules/`, built with `defineRule` from

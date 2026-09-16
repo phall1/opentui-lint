@@ -148,19 +148,43 @@ export function readSettings(context: RuleContext): OpenTuiSettings {
   return (settings && typeof settings === "object" ? settings : {}) as OpenTuiSettings
 }
 
+export type DetectionSignal = "settings" | "pragma" | "import" | "tsconfig" | "none"
+
+export interface Detection {
+  framework: Framework | null
+  /** Which signal decided it — surfaced by `opentui-lint doctor`. */
+  via: DetectionSignal
+}
+
+/**
+ * Resolves the OpenTUI framework for one file, reporting which signal decided.
+ *
+ * The signal matters as much as the answer: a file that resolves to `null` is
+ * silently exempt from every rule, and without a way to see *why*, a clean run
+ * is indistinguishable from a run that checked nothing.
+ */
+export function explainFramework(context: RuleContext, program: Node): Detection {
+  const configured = readSettings(context).framework
+  if (configured) return { framework: configured, via: "settings" }
+
+  const pragma = frameworkFromPragma(context)
+  if (pragma) return { framework: pragma, via: "pragma" }
+
+  const imported = frameworkFromImports(program)
+  if (imported) return { framework: imported, via: "import" }
+
+  const config = frameworkFromTsconfig(context.filename)
+  if (config) return { framework: config, via: "tsconfig" }
+
+  return { framework: null, via: "none" }
+}
+
 /**
  * Resolves the OpenTUI framework for one file, or `null` when the file has no
  * OpenTUI evidence at all and every rule should stand down.
  */
 export function detectFramework(context: RuleContext, program: Node): Framework | null {
-  const configured = readSettings(context).framework
-  if (configured) return configured
-
-  return (
-    frameworkFromPragma(context) ??
-    frameworkFromImports(program) ??
-    frameworkFromTsconfig(context.filename)
-  )
+  return explainFramework(context, program).framework
 }
 
 /** Exposed so tests can reset the per-directory tsconfig memoization. */

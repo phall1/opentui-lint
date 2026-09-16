@@ -1,6 +1,18 @@
+import { describe, it } from "bun:test"
 import { RuleTester } from "eslint"
 import tsParser from "@typescript-eslint/parser"
 import type { RuleModule } from "../src/project/types.js"
+
+/**
+ * Hand RuleTester the runner's hooks explicitly.
+ *
+ * It otherwise looks for `describe`/`it` on `globalThis`, and Bun exposes them
+ * as imports from `bun:test` rather than as globals. Without this it silently
+ * falls back to running every case inline — which still *fails* correctly, but
+ * reports "Ran 0 tests", so a green suite would mean nothing.
+ */
+RuleTester.describe = describe as never
+RuleTester.it = it as never
 
 /**
  * A tester wired the way an OpenTUI project is: TypeScript parser, JSX on, and

@@ -1,6 +1,9 @@
 import { failureText, failureVisible } from "../catalog/runtime.js"
+import { runContaining, textRuns, wrapRun } from "../project/fixes.js"
+import type { TextRun } from "../project/fixes.js"
 import { isDefinitelyText, textContext } from "../project/jsx.js"
 import { defineRule } from "../project/rule.js"
+import type { Fixer, Node } from "../project/types.js"
 
 /**
  * `<box>Hello</box>` is the single most common way an OpenTUI app dies.
@@ -24,16 +27,44 @@ export default defineRule(
       url: "https://github.com/phall1/opentui-lint/blob/main/docs/rules/text-must-be-wrapped.md",
     },
     schema: [],
+    fixable: "code",
     hasSuggestions: true,
   },
   (context) => {
-    const report = (
-      node: { [key: string]: any; type: string },
-      label: string,
-      source: string,
-      parent: string | undefined,
-    ) => {
+    /**
+     * A certain fix is applied; an uncertain one is offered.
+     *
+     * The split is `ambiguousNeighbor`: when an untypeable expression sits
+     * against the run, any automatic wrap would be half a fix.
+     */
+    const wrapAction = (run: TextRun) =>
+      run.ambiguousNeighbor
+        ? {
+            suggest: [
+              {
+                desc: "Wrap the text in <text>",
+                fix: (fixer: Fixer) => wrapRun(context, run, fixer),
+              },
+            ],
+          }
+        : { fix: (fixer: Fixer) => wrapRun(context, run, fixer) }
+
+    /**
+     * Only the first offender in a run carries the fix.
+     *
+     * The fix wraps the whole run, so letting every member emit its own would
+     * produce a pile of overlapping edits for one range. It also keeps
+     * `no-orphan-text-nodes` from fighting this rule over a shared run.
+     */
+    const claimed = new WeakSet<Node>()
+
+    const report = (node: Node, label: string, source: string, parent: string | undefined) => {
       const where = parent ? `<${parent}>` : "a non-text element"
+      const enclosing = node.parent
+      const run = enclosing ? runContaining(textRuns(enclosing, context.framework), node) : undefined
+      const owns = run !== undefined && !claimed.has(run.first)
+      if (run && owns) claimed.add(run.first)
+
       context.report({
         node,
         message:
@@ -43,12 +74,7 @@ export default defineRule(
           `TypeScript allows it because children are typed as ` +
           `${context.framework === "react" ? "ReactNode" : "JSX.Element"}, which includes strings. ` +
           `Wrap it: ${where} → <text>${source}</text>.`,
-        suggest: [
-          {
-            desc: "Wrap in <text>",
-            fix: (fixer) => fixer.replaceText(node, `<text>${context.sourceCode.getText(node)}</text>`),
-          },
-        ],
+        ...(run && owns ? wrapAction(run) : {}),
       })
     }
 

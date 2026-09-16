@@ -42,45 +42,71 @@ export const NAMED_COLORS = [
   "yellow"
 ] as const
 
-/** Props whose values flow through `parseColor()`. */
+/**
+ * Props whose values flow through `parseColor()`.
+ *
+ * Derived from the real per-element prop lists, not typed out. The
+ * hand-written version of this omitted `textColor` — the primary color prop
+ * on <input> and <textarea> — and carried a `scrollbarColor` that exists on no
+ * element at all. A list asserted rather than computed is exactly the drift
+ * this generator exists to prevent.
+ */
 export const COLOR_PROPS = [
+  "addedBg",
+  "addedContentBg",
+  "addedLineNumberBg",
+  "addedSignColor",
   "backgroundColor",
-  "borderColor",
   "bg",
-  "fg",
+  "borderColor",
   "color",
+  "contextBg",
+  "contextContentBg",
+  "cursorColor",
+  "descriptionColor",
+  "fg",
   "focusedBackgroundColor",
   "focusedBorderColor",
   "focusedTextColor",
+  "lineNumberBg",
+  "lineNumberFg",
   "placeholderColor",
-  "cursorColor",
+  "removedBg",
+  "removedContentBg",
+  "removedLineNumberBg",
+  "removedSignColor",
+  "selectedBackgroundColor",
+  "selectedDescriptionColor",
+  "selectedTextColor",
   "selectionBg",
   "selectionFg",
-  "selectedBackgroundColor",
-  "selectedTextColor",
-  "titleColor",
-  "scrollbarColor"
+  "tabIndicatorColor",
+  "textColor",
+  "titleColor"
 ] as const
 
-/** Layout props measured in whole terminal cells, not pixels. */
+/**
+ * Layout props measured in whole terminal cells, not pixels. Also derived, so
+ * a new spacing prop upstream cannot go unnoticed.
+ */
 export const SPACING_PROPS = [
-  "padding",
-  "paddingX",
-  "paddingY",
-  "paddingTop",
-  "paddingRight",
-  "paddingBottom",
-  "paddingLeft",
+  "columnGap",
+  "gap",
   "margin",
-  "marginX",
-  "marginY",
-  "marginTop",
-  "marginRight",
   "marginBottom",
   "marginLeft",
-  "gap",
-  "rowGap",
-  "columnGap"
+  "marginRight",
+  "marginTop",
+  "marginX",
+  "marginY",
+  "padding",
+  "paddingBottom",
+  "paddingLeft",
+  "paddingRight",
+  "paddingTop",
+  "paddingX",
+  "paddingY",
+  "rowGap"
 ] as const
 
 export interface ElementFacts {

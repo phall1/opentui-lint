@@ -1,6 +1,6 @@
 {
   "name": "opentui-lint",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "An agent-first linter for OpenTUI terminal apps. Catches the crashes and silent no-ops TypeScript lets through.",
   "author": {
     "name": "Patrick Hall",
@@ -23,6 +23,9 @@
       "default": "./dist/index.js"
     },
     "./package.json": "./package.json"
+  },
+  "bin": {
+    "opentui-lint": "./dist/cli.js"
   },
   "types": "./dist/index.d.ts",
   "files": [

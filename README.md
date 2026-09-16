@@ -165,16 +165,27 @@ No evidence, no diagnostics. The plugin never guesses from the presence of JSX.
 
 ## Rules
 
-| Rule | Catches | In `recommended` |
-| --- | --- | --- |
-| [`no-unknown-elements`](docs/rules/no-unknown-elements.md) | `<div>`, `<p>`, wrong-binding spellings, typos | error |
-| [`text-must-be-wrapped`](docs/rules/text-must-be-wrapped.md) | strings and numbers outside `<text>` | error |
-| [`no-orphan-text-nodes`](docs/rules/no-orphan-text-nodes.md) | `<b>`, `<span>`, `<a>` outside `<text>` | error |
-| [`valid-colors`](docs/rules/valid-colors.md) | color values that render magenta | error |
-| [`no-web-props`](docs/rules/no-web-props.md) | `className`, `onClick`, `boxShadow`, `data-*` | error |
-| [`no-website-spacing`](docs/rules/no-website-spacing.md) | web-sized padding, margin and gap | off (in `strict`) |
+| Rule | Catches | Fixes | In `recommended` |
+| --- | --- | --- | --- |
+| [`no-unknown-elements`](docs/rules/no-unknown-elements.md) | `<div>`, `<p>`, wrong-binding spellings, typos | ✅ | error |
+| [`text-must-be-wrapped`](docs/rules/text-must-be-wrapped.md) | strings and numbers outside `<text>` | ✅ | error |
+| [`no-orphan-text-nodes`](docs/rules/no-orphan-text-nodes.md) | `<b>`, `<span>`, `<a>` outside `<text>` | ✅ | error |
+| [`valid-colors`](docs/rules/valid-colors.md) | color values that render magenta | ✅ | error |
+| [`no-web-props`](docs/rules/no-web-props.md) | `className`, `onClick`, `boxShadow`, `data-*` | ✅ | error |
+| [`no-unsupported-values`](docs/rules/no-unsupported-values.md) | `position="static"`, `minWidth="auto"`, `width={-1}` | — | error |
+| [`require-registration`](docs/rules/require-registration.md) | `<qr-code>` without `registerQRCode()` | — | error |
+| [`no-raw-stdout`](docs/rules/no-raw-stdout.md) | `process.stdout.write` corrupting the frame | — | error |
+| [`no-website-spacing`](docs/rules/no-website-spacing.md) | web-sized padding, margin and gap | — | off (in `strict`) |
 
 `strict` is `recommended` plus `no-website-spacing`.
+
+Three of those come from values the types actively bless. `position="static"` is
+in `PositionTypeString` but `isPositionTypeType` rejects it, so it silently
+becomes `"relative"` — and on a *change* the setter returns early, so a
+renderable toggled from `"absolute"` to `"static"` **stays absolute**.
+`minWidth="auto"` is in the option type and dropped by `isSizeType`.
+`alignItems="space-between"` typechecks and lays out identically to
+`"flex-end"`. All three were confirmed by rendering them against a control tree.
 
 ## What the errors look like
 
