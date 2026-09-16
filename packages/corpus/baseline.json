@@ -1,0 +1,191 @@
+[
+  {
+    "target": "opentui-react-examples",
+    "ruleId": "no-website-spacing",
+    "file": "animation.tsx",
+    "line": 57,
+    "column": 9,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  },
+  {
+    "target": "opentui-react-examples",
+    "ruleId": "no-website-spacing",
+    "file": "animation.tsx",
+    "line": 58,
+    "column": 9,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  },
+  {
+    "target": "opentui-react-examples",
+    "ruleId": "no-website-spacing",
+    "file": "basic.tsx",
+    "line": 40,
+    "column": 19,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  },
+  {
+    "target": "opentui-react-examples",
+    "ruleId": "no-website-spacing",
+    "file": "diff.tsx",
+    "line": 174,
+    "column": 9,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  },
+  {
+    "target": "opentui-react-examples",
+    "ruleId": "no-website-spacing",
+    "file": "keymap.tsx",
+    "line": 1132,
+    "column": 9,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  },
+  {
+    "target": "opentui-react-examples",
+    "ruleId": "no-website-spacing",
+    "file": "opacity.tsx",
+    "line": 57,
+    "column": 45,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  },
+  {
+    "target": "opentui-react-examples",
+    "ruleId": "no-website-spacing",
+    "file": "scroll.tsx",
+    "line": 82,
+    "column": 15,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  },
+  {
+    "target": "opentui-react-examples",
+    "ruleId": "no-website-spacing",
+    "file": "scroll.tsx",
+    "line": 83,
+    "column": 15,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  },
+  {
+    "target": "opentui-solid-examples",
+    "ruleId": "no-website-spacing",
+    "file": "components/animation-demo.tsx",
+    "line": 72,
+    "column": 17,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  },
+  {
+    "target": "opentui-solid-examples",
+    "ruleId": "no-website-spacing",
+    "file": "components/autocomplete-demo.tsx",
+    "line": 200,
+    "column": 68,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  },
+  {
+    "target": "opentui-solid-examples",
+    "ruleId": "no-website-spacing",
+    "file": "components/autocomplete-demo.tsx",
+    "line": 262,
+    "column": 12,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  },
+  {
+    "target": "opentui-solid-examples",
+    "ruleId": "no-website-spacing",
+    "file": "components/custom-scroll-accel-demo.tsx",
+    "line": 122,
+    "column": 11,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  },
+  {
+    "target": "opentui-solid-examples",
+    "ruleId": "no-website-spacing",
+    "file": "components/custom-scroll-accel-demo.tsx",
+    "line": 123,
+    "column": 11,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  },
+  {
+    "target": "opentui-solid-examples",
+    "ruleId": "no-website-spacing",
+    "file": "components/keymap-demo.tsx",
+    "line": 1027,
+    "column": 9,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  },
+  {
+    "target": "opentui-solid-examples",
+    "ruleId": "no-website-spacing",
+    "file": "components/textarea-minimal-demo.tsx",
+    "line": 9,
+    "column": 10,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  },
+  {
+    "target": "opentui-solid-examples",
+    "ruleId": "no-website-spacing",
+    "file": "components/textarea-minimal-demo.tsx",
+    "line": 9,
+    "column": 26,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  },
+  {
+    "target": "opentui-solid-examples",
+    "ruleId": "no-website-spacing",
+    "file": "components/textarea-minimal-demo.tsx",
+    "line": 29,
+    "column": 16,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  },
+  {
+    "target": "opentui-solid-examples",
+    "ruleId": "no-website-spacing",
+    "file": "session.tsx",
+    "line": 117,
+    "column": 43,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  },
+  {
+    "target": "opentui-solid-examples",
+    "ruleId": "no-website-spacing",
+    "file": "session.tsx",
+    "line": 117,
+    "column": 59,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  },
+  {
+    "target": "opentui-solid-examples",
+    "ruleId": "no-website-spacing",
+    "file": "session.tsx",
+    "line": 165,
+    "column": 7,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  },
+  {
+    "target": "opentui-solid-examples",
+    "ruleId": "no-website-spacing",
+    "file": "session.tsx",
+    "line": 166,
+    "column": 7,
+    "classification": "acceptable",
+    "reason": "strict-only style/policy rule (plugin.ts: 'not a defect anyone can point at'); OpenTUI's own demo chooses 2-3 cell padding/margin/gap for readability in an interactive example, a real and intentional deviation from the default 1-cell budget rather than a rule bug or a broken render."
+  }
+]

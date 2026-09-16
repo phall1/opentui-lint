@@ -1,0 +1,18 @@
+{
+  "name": "opentui-lint-corpus",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Runs opentui-lint over real, working, expert-written OpenTUI source (OpenTUI's own examples plus tuiparts' registry) and triages every finding against a checked-in baseline. The strongest evidence a linter does not cry wolf is finding nothing on code nobody wrote to be linted.",
+  "scripts": {
+    "fetch": "bun src/fetch-corpus.ts",
+    "report": "bun src/report.ts",
+    "test": "bun test"
+  },
+  "devDependencies": {
+    "@typescript-eslint/parser": "^8.40.0",
+    "eslint": "^9.33.0",
+    "opentui-lint": "workspace:*",
+    "typescript": "^5.9.2"
+  }
+}

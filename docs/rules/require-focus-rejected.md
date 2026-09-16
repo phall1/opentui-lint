@@ -8,8 +8,8 @@ positives on keymap-driven apps."*
 This rule was not built. The premise it rests on is false for the default
 configuration of every OpenTUI app, not just keymap-driven ones, and a
 file-local AST rule has no way to see the information that would make it
-true or false for a given file. That is not a tuning problem; it is the
-inputs the rule would need not existing in the file it inspects.
+true or false for a given file. Tuning cannot fix that: the inputs the rule
+would need do not exist in the file it inspects.
 
 ## What was verified, and how
 
@@ -65,13 +65,13 @@ if (this.autoFocus && event.type === "down" && event.button === MouseButton.LEFT
 `autoFocus` defaults to `true` (`this.autoFocus = config.autoFocus ?? true`,
 `renderer.ts:1222`), and mouse handling itself (`useMouse`) also defaults to
 `true` (`renderer.ts:1221`). Both are constructor options passed to
-`createCliRenderer`/the renderer config — not JSX props, and not
-necessarily even in the same file as the `<input>`. An app has to actively
+`createCliRenderer`/the renderer config, not JSX props, and not necessarily
+even in the same file as the `<input>`. An app has to actively
 opt out of both defaults (`useMouse: false`, seen for real in
 `packages/examples/src/split-footer-streaming-demo.ts` and
 `split-footer-image-demo.ts`) for click-to-focus to stop working.
 
-So: **"no pointer to click it with" is false by default.** The rule's
+**"No pointer to click it with" is false by default.** The rule's
 premise only holds for the minority of apps that explicitly disable mouse
 handling, and that fact lives in a different file (the renderer setup) that
 the rule cannot see.
@@ -79,7 +79,7 @@ the rule cannot see.
 ### (b) No built-in keyboard focus traversal exists
 
 Searched `packages/core/src` for `focusNext`, `focusPrevious`,
-`nextFocusable`, `tabIndex` — none exist. `"tab"` only appears as a parsed
+`nextFocusable` and `tabIndex`: none exist. `"tab"` only appears as a parsed
 key name (`parse.keypress.ts`) and as an `EditorCapture` enum value used
 *inside* a single edit buffer (tab-vs-navigate inside one textarea), not as
 cross-renderable focus movement. Verified by dispatching a real Tab
@@ -111,11 +111,11 @@ unfocused input unless the app builds one.
 `InputRenderable extends TextareaRenderable extends EditBufferRenderable`,
 which declares `protected _focusable: boolean = true`. `SelectRenderable`
 also declares `_focusable = true`. So `<input>`, `<select>`, and
-`<textarea>` are focusable out of the box — `focusable` is not something an
-author has to opt into, which is exactly what makes (a) universal rather
-than conditional. `focused` starts `false` and only flips on `.focus()`
-(from a click, a ref, an effect, or a keymap handler) — confirmed by the
-same test run above (`focused=false` before any interaction).
+`<textarea>` are focusable out of the box: `focusable` is not something an
+author has to opt into, which is what makes (a) universal rather than
+conditional. `focused` starts `false` and only flips on `.focus()` (from a
+click, a ref, an effect, or a keymap handler), confirmed by the same test run
+above (`focused=false` before any interaction).
 
 ### (d) `@opentui/keymap` never establishes focus itself
 
@@ -129,8 +129,8 @@ return focused
 
 There is no `focusNext`/tab-cycle addon anywhere under
 `packages/keymap/src/addons`. A keymap-driven "next field" binding has to
-call `someRenderable.focus()` itself, in a command handler — which is
-exactly the same invisible-to-AST call as a ref or an effect (see (e)).
+call `someRenderable.focus()` itself, in a command handler, which is the same
+invisible-to-AST call as a ref or an effect (see (e)).
 Keymap does not add a new failure mode here so much as confirm that focus
 in this library is *always* established by an imperative `.focus()` call
 somewhere, whether that call is reachable by mouse (automatic), by an
@@ -152,13 +152,13 @@ rule stays quiet").
 
 ## Why no narrower version is safe either
 
-The obvious fallback — report only when a file has *zero* mention of
-`focused`, `focus(`, `useFocus`, `keymap`, or a ref anywhere — is maximum
+The obvious fallback is to report only when a file has *zero* mention of
+`focused`, `focus(`, `useFocus`, `keymap`, or a ref anywhere. That is maximum
 evidence of absence, and it is still unsound, for one reason that doesn't
 shrink with more heuristics: **reachability by mouse click is the default,
 and mouse click requires no code in the file at all.**
 
-A completely bare, no-frills:
+A bare component:
 
 ```tsx
 const App = () => (
@@ -169,9 +169,9 @@ const App = () => (
 ```
 
 is fully reachable today, in the default OpenTUI configuration, by a plain
-left click — with zero mentions of `focused`, `focus(`, `useFocus`,
-`keymap`, or a ref anywhere in the file or the project. This is not a
-keymap-app edge case; it is the common case, and it is a false positive
+left click, with zero mentions of `focused`, `focus(`, `useFocus`, `keymap`,
+or a ref anywhere in the file or the project. That is the common case, not a
+keymap-app edge case, and it is a false positive
 under any version of this rule that reports on absence-of-evidence,
 because the evidence that matters (whether the *renderer* was constructed
 with `useMouse: false`/`autoFocus: false`) does not live in the JSX file at
@@ -184,7 +184,7 @@ file passed `useMouse: false` or `autoFocus: false`, and the file also has
 no focus-establishing code" was considered and rejected too: it would
 almost never fire (renderer config and input JSX are rarely co-located),
 and on the rare file where it did fire, keyboard traversal absence (see (b))
-still doesn't make the element definitely unreachable — a keymap handler
+still doesn't make the element definitely unreachable: a keymap handler
 elsewhere in the project could call `.focus()` on it, which is (e) again.
 
 There is no version of this rule, from "report broadly" to "report only on
@@ -197,11 +197,11 @@ as broken.
 
 - OpenTUI would need to expose, statically or at least per-render, whether
   the *renderer instance backing this file's component tree* has mouse
-  handling and autofocus disabled — today that's runtime renderer config,
+  handling and autofocus disabled. Today that is runtime renderer config,
   not discoverable from a single component file's AST.
 - Or OpenTUI would need an opt-in "strict focus" mode that throws/warns at
   runtime when a focusable renderable is unmounted having never been
-  focused and the renderer has no mouse handling — turning this into a
+  focused and the renderer has no mouse handling, turning this into a
   runtime check (which can see the actual renderer config and the actual
   focus history) rather than a static one. A runtime check does not have
   the false-positive problem above because it observes what actually
@@ -221,5 +221,5 @@ Do not build `require-focus`. The failure mode the roadmap worried about
 rule is wrong by default, for the majority configuration of every OpenTUI
 app, because mouse-click-to-focus needs no code at all to work. No amount
 of narrowing the trigger condition removes that, because the fact that
-would decide it — whether this renderer accepts mouse input — is not
+would decide it, whether this renderer accepts mouse input, is not
 observable from the file the rule inspects.

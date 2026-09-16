@@ -59,3 +59,19 @@ tester("solid").run("no-orphan-text-nodes (solid)", asRule(rule), {
     },
   ],
 })
+
+/** Same regression as `text-must-be-wrapped`: a component is not a renderable. */
+tester("solid").run("no-orphan-text-nodes (components are not renderables)", asRule(rule), {
+  valid: [
+    `const a = <text><Show when={x}><b>bold</b></Show></text>`,
+    `const a = <text><KeyLabel><b>ctrl</b></KeyLabel></text>`,
+    `const a = <box><KeyLabel><b>ctrl</b></KeyLabel></box>`,
+  ],
+  invalid: [
+    {
+      code: `const a = <box><Show when={x}><b>bold</b></Show></box>`,
+      output: `const a = <box><Show when={x}><text><b>bold</b></text></Show></box>`,
+      errors: 1,
+    },
+  ],
+})

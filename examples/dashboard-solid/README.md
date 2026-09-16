@@ -33,7 +33,7 @@ extend(); at render it throws "[Reconciler] Unknown component type: div" and
 there is no error boundary, so the render throws. Use <box>.
 ```
 
-And the cross-binding mistake runs the other way — this file's last line is the
+The cross-binding mistake runs the other way too: this file's last line is the
 React spelling in a Solid file:
 
 ```text
@@ -49,5 +49,5 @@ Every string quoted above is asserted against a real `@opentui/solid` render in
 
 Solid has no ErrorBoundary. In React a bad tag replaces your app with a stack
 trace; in Solid the render throws and takes the process with it. The crash is
-louder, which is arguably better — but it still happens at runtime, in a
+louder, which is arguably better, but it still happens at runtime, in a
 terminal, with no file or line number.

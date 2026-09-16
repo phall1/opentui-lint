@@ -20,16 +20,17 @@ OpenTUI's own agent skill opens with this instruction:
 
 Models trained on web UI do not follow it, and prose in a skill file cannot
 enforce it. `padding={4}` reads as a comfortable 16px in Tailwind muscle memory.
-Here it is four whole rows and four whole columns — on the 80x24 terminal that
+Here it is four whole rows and four whole columns. On the 80x24 terminal that
 is still the safe assumption, one such box spends a sixth of the vertical space
 on nothing, and a page of them is unusable.
 
-Nothing about this is a runtime error, which is exactly why it needs a linter:
+Nothing about this is a runtime error, which is why it needs a linter:
 the app works, it just looks like a web page that wandered into a terminal, and
 the reviewer notices long after the agent has moved on.
 
-This is the design-system half of `opentui-lint` — the part that corresponds to
-`@shadcn/lint`'s `no-restyle`. See [the roadmap](../roadmap.md) for the rest.
+This is the spacing half of the design-system rules. See
+[`no-restyle`](no-restyle.md) for the flagship one, and [the
+roadmap](../roadmap.md) for the rest.
 
 ## Examples
 
@@ -79,5 +80,5 @@ Use the density tokens from components/ui/theme.ts.
 
 `1` is deliberately tight. A full-screen app with one outer chrome box often
 wants `padding={1}` on that box and `0` everywhere inside. If your house style
-allows a roomier shell, raise the cap rather than disabling the rule — the value
+allows a roomier shell, raise the cap rather than disabling the rule: the value
 is in the cap existing at all.

@@ -229,7 +229,10 @@ export const WEB_ONLY_PROPS: Record<string, string> = {
   onBlur: "Use the `focused` prop, or the `useBlur` hook.",
   src: "Use `source` on <image>.",
   alt: "Terminals have no alt text.",
-  title: "On <box> this sets the border title; elsewhere it does nothing.",
+  // Real on <box> and <scrollbox>, where it sets the border title; the rule
+  // checks the element's own prop list before consulting this table, so this
+  // advice is only ever reached on an element that genuinely has no title.
+  title: "Only <box> and <scrollbox> have a title; it sets the border title.",
   hidden: "Use `visible={false}`.",
   disabled: "Not a core renderable prop; recipes implement it themselves.",
 }

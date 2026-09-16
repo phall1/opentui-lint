@@ -14,11 +14,11 @@ has "qr-code" after registerQRCode():                      true
 ```
 
 Forget the call and the render throws `Unknown component type: qr-code`, which
-the React binding's ErrorBoundary turns into a full-screen stack trace — taking
+the React binding's ErrorBoundary turns into a full-screen stack trace, taking
 the siblings that rendered fine with it.
 
-The failure is identical to an unknown element, but the fix is completely
-different: an import and a call, not a different tag. So it gets its own rule
+The failure is identical to an unknown element, but the fix is different: an
+import and a call, not a different tag. So it gets its own rule
 and its own message rather than being lumped in with typos.
 
 ## Examples
@@ -41,9 +41,9 @@ registerQRCode()
 const App = () => <qr-code content="https://example.com" />
 ```
 
-The call may appear anywhere in the file — nothing is reported until the whole
+The call may appear anywhere in the file: nothing is reported until the whole
 file has been walked, because putting the registration below the component is
-perfectly normal.
+normal.
 
 ## Element names differ by binding
 
@@ -61,8 +61,8 @@ functions add keybindings; `@opentui/three` has no JSX surface at all; and
 
 ## Options
 
-When registration happens somewhere this file cannot see — a shared bootstrap
-module, say:
+When registration happens somewhere this file cannot see, such as a shared
+bootstrap module:
 
 ```js
 "opentui/require-registration": ["error", { registered: ["qr-code"] }]

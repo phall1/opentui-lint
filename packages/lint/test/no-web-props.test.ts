@@ -161,3 +161,33 @@ undetectedTester().run("no-web-props (not an OpenTUI file)", asRule(rule), {
   valid: [`export const Page = () => <div className="grid" onClick={go} aria-label="x" />`],
   invalid: [],
 })
+
+/**
+ * Regression: an element's own catalogue outranks the advice table.
+ *
+ * Found by running the rules over OpenTUI's own examples, where
+ * `<box title="System Monitor">` — the documented way to set a border title —
+ * was reported as a dead prop 45 times. The advice text even described the
+ * correct behaviour while the rule contradicted it.
+ */
+tester().run("no-web-props (real props are not advice)", asRule(rule), {
+  valid: [
+    `const a = <box title="System Monitor" />`,
+    `const a = <box title="Logs" bottomTitle="tail -f" />`,
+    `const a = <scrollbox title="Output" />`,
+    `const a = <box title="x" titleAlignment="center" titleColor="#22c55e" />`,
+  ],
+  invalid: [
+    {
+      // …but an element with no title of its own still gets the advice.
+      code: `const a = <text title="tooltip">x</text>`,
+      output: null,
+      errors: [
+        {
+          message: /Only <box> and <scrollbox> have a title/,
+          suggestions: [{ desc: "Remove `title`", output: `const a = <text>x</text>` }],
+        },
+      ],
+    },
+  ],
+})

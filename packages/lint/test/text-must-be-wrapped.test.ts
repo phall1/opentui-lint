@@ -122,3 +122,36 @@ tester().run("text-must-be-wrapped (checkTypes, no type checker available)", asR
     { ...wrapped("const a = <box>Hello</box>", "Hello"), options: [{ checkTypes: true }] },
   ],
 })
+
+/**
+ * Regression: a component is not a renderable.
+ *
+ * Found by running the rules over OpenTUI's own examples, where
+ * `<text><Show when={x}>hello</Show></text>` — ordinary, correct Solid — was
+ * reported 19 times across both bindings. The walk treated the first enclosing
+ * JSXElement as the runtime parent without asking whether it was a host
+ * element at all.
+ *
+ * Framework control flow passes children through, so the walk continues past
+ * it. A component someone wrote themselves could render its children anywhere,
+ * so the answer there is unknowable and the rule stays quiet.
+ */
+tester("solid").run("text-must-be-wrapped (components are not renderables)", asRule(rule), {
+  valid: [
+    `const A = () => <text><Show when={x}>hello</Show></text>`,
+    `const A = () => <text><For each={xs}>{(i) => "row"}</For></text>`,
+    `const A = () => <text><Switch><Match when={x}>hi</Match></Switch></text>`,
+    // Unknowable: KeyLabel could render its children anywhere.
+    `const A = () => <text><KeyLabel>ctrl</KeyLabel></text>`,
+    `const A = () => <box><KeyLabel>ctrl</KeyLabel></box>`,
+  ],
+  invalid: [
+    {
+      // Control flow is transparent in both directions: the walk passes through
+      // it and finds the <box>, so this is still the crash it always was.
+      code: `const A = () => <box><Show when={x}>hello</Show></box>`,
+      output: `const A = () => <box><Show when={x}><text>hello</text></Show></box>`,
+      errors: [{ message: /renders as a text node/ }],
+    },
+  ],
+})

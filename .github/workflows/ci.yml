@@ -37,3 +37,7 @@ jobs:
       - run: bun run --filter opentui-lint-examples-conformance test
       - run: bun run --filter opentui-lint-conformance-oxlint test
       - run: bun run catalog:check
+      # Runs every rule over real, working OpenTUI/tuiparts source pinned in
+      # packages/corpus/src/pins.ts and fails if a live finding and the
+      # checked-in baseline.json disagree — see packages/corpus/README.md.
+      - run: bun run --filter opentui-lint-corpus test

@@ -21,18 +21,18 @@ in every consumer's devDependencies; anything added here is a cost every
 OpenTUI app pays for a dev tool.
 
 Effect is used in `scripts/sync-catalog.ts` and belongs in `devDependencies`
-only. Never import it from `src/` — not for convenience, not "just this once".
+only. Never import it from `src/`, not for convenience and not "just this once".
 Two reasons, both concrete:
 
 - ESLint's rule API is synchronous and callback-driven, with `context.report()`
   as the only output. There is no error channel, no concurrency and no resource
   to manage, so `Effect.runSync` at every visitor boundary would buy nothing.
-- The rules work unmodified as **oxlint** JS plugins precisely because they are
+- The rules work unmodified as **oxlint** JS plugins because they are
   plain objects with plain functions. That is a tested capability, not an
   accident.
 
-The generator is the opposite on every count — subprocesses, a temp directory
-that must survive Ctrl-C, four distinct failure modes — which is why it uses
+The generator is the opposite on every count (subprocesses, a temp directory
+that must survive Ctrl-C, four distinct failure modes), which is why it uses
 `Effect.acquireRelease`, a typed error channel and `BunRuntime.runMain`. That
 choice is load-bearing and measured: a plain `try/finally` **leaks the temp
 directory on SIGINT**; `acquireRelease` under `runMain` does not.
@@ -58,22 +58,22 @@ bun run --filter opentui-lint-conformance test
 
 **Never report something you cannot prove.** A false positive costs more than a
 missed case: the first thing a person does with a noisy linter is turn it off.
-When an AST cannot decide — `{label}` could be a string or an element, a text
-modifier returned from a component could be wrapped at the call site — the rule
+When an AST cannot decide (`{label}` could be a string or an element, a text
+modifier returned from a component could be wrapped at the call site), the rule
 stays quiet and the limitation gets documented in the rule's doc page.
 
 ## Autofix discipline
 
 A fix is applied only when there is exactly one correct answer: `<div>` → `<box>`,
 `rgb(34, 197, 94)` → `#22c55e`, `onMouseEnter` → `onMouseOver`. Anything that
-involves a judgement — which Tailwind shade `slate` meant, whether a dead prop
-should be deleted, whether `<button>` wants `onMouseDown` or a recipe — is a
+involves a judgement (which Tailwind shade `slate` meant, whether a dead prop
+should be deleted, whether `<button>` wants `onMouseDown` or a recipe) is a
 `suggest`, never a `fix`.
 
 Two traps that already bit once each:
 
 - **Fix the narrowest node.** `staticStrings` returns the node each string came
-  from precisely so a fix on `bg={active ? "indigo" : "transparent"}` rewrites
+  from so a fix on `bg={active ? "indigo" : "transparent"}` rewrites
   the branch and not the ternary. An autofix that deletes logic is worse than no
   autofix.
 - **Group text runs.** A box lays out as a column, so wrapping each stray child
@@ -90,8 +90,8 @@ Two traps that already bit once each:
    genuine defect rather than a style preference.
 3. Test it in `packages/lint/test/`, including a case under `undetectedTester()`
    proving it stays silent in a non-OpenTUI file.
-4. Add a conformance case in **both** bindings — `packages/conformance/cases.tsx`
-   for React and `packages/conformance-solid/conformance.test.tsx` for Solid —
+4. Add a conformance case in **both** bindings (`packages/conformance/cases.tsx`
+   for React, `packages/conformance-solid/conformance.test.tsx` for Solid),
    pairing the snippet with what OpenTUI really does with it. A rule with no
    conformance case is a claim nobody checked.
 5. Write `docs/rules/<name>.md`, including a "what it does not report" section.
@@ -112,4 +112,4 @@ reader searching the codebase for a string that is not there.
 
 The error is the product. An agent should be able to fix the code from the
 message alone, without opening the OpenTUI docs. Each one says what breaks, why
-the type checker was quiet, and what to write instead — in that order.
+the type checker was quiet, and what to write instead, in that order.

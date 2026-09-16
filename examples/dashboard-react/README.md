@@ -65,11 +65,11 @@ Seven of the fifteen are gone, automatically:
 +      <box borderColor="#64748b" border>
 ```
 
-Note what the fixer did *not* do. It changed only the `"indigo"` branch of the
-ternary, not the whole expression. It wrapped `<b>Deploys</b>` in one `<text>`
-rather than leaving it stranded. And it left `{services.length} services` alone
-— that run has an untypeable expression against it, so wrapping only the half we
-can prove would be half a fix, and it is offered as a suggestion instead.
+The fixer changed only the `"indigo"` branch of the ternary, not the whole
+expression. It wrapped `<b>Deploys</b>` in one `<text>` rather than leaving it
+stranded. It left `{services.length} services` alone: that run has an
+untypeable expression against it, so wrapping only the half we can prove would
+be half a fix, and it is offered as a suggestion instead.
 
 The eight that remain all need a human decision:
 
@@ -81,13 +81,15 @@ The eight that remain all need a human decision:
 | `text-must-be-wrapped` | 1 | the ambiguous run described above |
 
 `dashboard.fixed.tsx` is the same file after acting on all of them. Nothing in
-that diff needed the OpenTUI docs — each error named its own replacement.
+that diff needed the OpenTUI docs: each error named its own replacement.
 
 ## One honest note
 
-`{services.length} services` is reported, but only because of the literal text
-` services` sitting next to it. On its own, `<box>{services.length}</box>` would
+`{services.length} services` is reported, but only because of the literal text `
+services` sitting next to it. On its own, `<box>{services.length}</box>` would
 **not** be reported: a property access is not provably a string, and
 [`text-must-be-wrapped`](../../docs/rules/text-must-be-wrapped.md) reports only
-what it can prove. Catching that case needs type information, which is on
-[the roadmap](../../docs/roadmap.md) as an opt-in tier.
+what it can prove. Catching that case needs type information, which the rule's
+opt-in
+[`checkTypes`](../../docs/rules/text-must-be-wrapped.md#checktypes-closing-the-gap-with-type-information)
+tier adds.

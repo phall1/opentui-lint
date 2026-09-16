@@ -8,7 +8,7 @@ React and Solid.
 ## Why
 
 `parseColor()` accepts 28 names plus hex. Anything else it cannot read does not
-throw — it warns and returns opaque magenta:
+throw: it warns and returns opaque magenta:
 
 ```ts
 if (!/^[0-9A-Fa-f]{6}$/.test(hex) && !/^[0-9A-Fa-f]{8}$/.test(hex)) {
@@ -18,9 +18,9 @@ if (!/^[0-9A-Fa-f]{6}$/.test(hex) && !/^[0-9A-Fa-f]{8}$/.test(hex)) {
 ```
 
 Nothing else surfaces it. `ColorInput` is `string | RGBA`, so the type checker
-has no opinion; the app runs; the only symptom is a magenta panel. And the
-warning itself lands in the console overlay, not your scrollback — for an agent
-editing a TUI it never renders, the failure is completely invisible.
+has no opinion; the app runs; the only symptom is a magenta panel. The warning
+itself lands in the console overlay, not your scrollback. For an agent editing
+a TUI it never renders, the failure is invisible.
 
 The names that do work:
 
@@ -32,8 +32,8 @@ brightYellow  brightCyan  brightMagenta  brightWhite
 transparent
 ```
 
-Everything a web palette trains you to reach for — `slate`, `zinc`, `indigo`,
-`pink`, `emerald`, `lightgray` — is not on that list.
+Everything a web palette trains you to reach for is missing: `slate`, `zinc`,
+`indigo`, `pink`, `emerald`, `lightgray`.
 
 ## Examples
 
@@ -60,8 +60,8 @@ Correct:
 ## The blind spot it closes
 
 Excess-property checking only applies to fresh object literals, so hoisting a
-style into a `const` — exactly how shared styles get written — takes TypeScript
-out of the picture entirely. The rule follows `const` identifiers into their
+style into a `const` (exactly how shared styles get written) takes TypeScript
+out of the picture. The rule follows `const` identifiers into their
 object literal:
 
 ```tsx
@@ -69,7 +69,7 @@ const panel = { backgroundColor: "slate" }
 <box style={panel} />                     // reported
 ```
 
-## Scope
+## What it does not report
 
 Static strings only. A computed value is the `RGBA` path and out of reach of a
 syntactic check:
@@ -90,6 +90,6 @@ renderables with their own color props.
 
 ## Keeping the palette honest
 
-The accepted list is not transcribed from the docs — it is produced by probing
-the real `parseColor()` with a superset of CSS color names and keeping whatever
-does not fall back to magenta. See `packages/lint/scripts/sync-catalog.ts`.
+The accepted list comes from probing the real `parseColor()` with a superset of
+CSS color names and keeping whatever does not fall back to magenta. See
+`packages/lint/scripts/sync-catalog.ts`.

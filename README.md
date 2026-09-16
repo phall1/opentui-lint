@@ -7,18 +7,18 @@ terminal apps. It catches the class of bug that typechecks cleanly, runs without
 an error, and leaves you with a blank screen or a magenta panel.
 
 **React and Solid are equal first-class targets.** They are not the same program
-and they do not fail the same way, so the diagnostics differ — see
+and they do not fail the same way, so the diagnostics differ. See
 [Solid](#solid-is-not-react-with-different-spelling).
 
 It is to OpenTUI roughly what [`@shadcn/lint`](https://github.com/shadcn-ui/lint)
-is to Tailwind design systems — with one difference in emphasis. shadcn's rules
+is to Tailwind design systems, with one difference in emphasis. shadcn's rules
 mostly restate policies TypeScript *could* express, with better error messages.
 Most of the rules here cover things TypeScript **cannot express at all**.
 
 ## Why TypeScript doesn't catch this
 
 `JSX.IntrinsicElements` in both OpenTUI bindings carries a string index
-signature — it has to, so `extend()` can register custom renderables:
+signature. It has to, so `extend()` can register custom renderables:
 
 ```ts
 export interface OpenTUIComponents {
@@ -44,8 +44,8 @@ because OpenTUI's elements are not DOM elements:
 
 That config is repo hygiene for OpenTUI's own source, and it is the right call
 there. But it means the standard JSX lint rules have nothing to say about an app
-built on OpenTUI — the escape hatch is a blunt "off", and the whole space behind
-it is uncovered.
+built on OpenTUI. The escape hatch is a blunt "off", and the whole space
+behind it is uncovered.
 
 So this compiles:
 
@@ -58,7 +58,7 @@ So this compiles:
 and at runtime the reconciler throws `Unknown component type: div`, the binding's
 ErrorBoundary catches it, and your app is replaced by a red React stack trace.
 
-Here is the same measurement across 20 realistic mistakes, checked with
+The same measurement across 20 realistic mistakes, checked with
 `tsc --noEmit` against `@opentui/core@0.5.11`:
 
 | Mistake | `tsc` | Runtime |
@@ -82,14 +82,13 @@ Here is the same measurement across 20 realistic mistakes, checked with
 | `borderRadius={2}` inline | **caught** | — |
 | `overflow="auto"` | **caught** | — |
 
-Six of twenty. Every failure in the top half is invisible until someone looks at
-a running terminal — which, for an agent editing a TUI it never renders, is
-never.
+Six of twenty. Every failure in the top half is invisible until someone looks
+at a running terminal. An agent editing a TUI it never renders never looks.
 
 [`examples/dashboard-react`](examples/dashboard-react) and
 [`examples/dashboard-solid`](examples/dashboard-solid) are the same comparison on
 one realistic file: a deploy dashboard written with web reflexes. `tsc` reports a
-single error in each — `Property 'className' does not exist on type 'BoxProps'`,
+single error in each: `Property 'className' does not exist on type 'BoxProps'`,
 which does not even mention the dead `onClick` on the same element.
 `opentui-lint` reports fifteen and fourteen, six of which stop the render
 outright.
@@ -97,7 +96,7 @@ outright.
 ## Solid is not React with different spelling
 
 Both bindings reject the same code, by different routes and with different
-errors. The linter quotes whichever one your file will actually hit.
+errors. The linter quotes whichever one your file will hit.
 
 | | React | Solid |
 | --- | --- | --- |
@@ -109,8 +108,8 @@ errors. The linter quotes whichever one your file will actually hit.
 | Events | `onMouseDown` | `onMouseDown`, plus `on:mousedown` |
 | DOM elements in JSX | inherited from `React.JSX.IntrinsicElements` | not inherited, but the index signature lets them through anyway |
 
-Writing `<div>` is the same mistake in both, so it gets the same answer —
-`Use <box>` — with a different explanation of why the checker stayed quiet.
+Writing `<div>` is the same mistake in both, so it gets the same answer,
+`Use <box>`, with a different explanation of why the checker stayed quiet.
 Copying a snippet between the two bindings is its own mistake, and
 `no-unknown-elements` names it in both directions.
 
@@ -154,7 +153,7 @@ After changing any TUI code, run `bun run lint` and fix every error.
 ## It only lints terminal code
 
 A repo with an OpenTUI CLI *and* a web dashboard is the normal case, and `<div>`
-is correct in one and fatal in the other. Every rule stays completely silent
+is correct in one and fatal in the other. Every rule stays silent
 unless the file gives positive evidence that its JSX compiles to a terminal:
 
 1. `settings.opentui.framework`, if you set it
@@ -194,17 +193,17 @@ The three that need a theme go quiet on their own in a project without one, so
 
 Three of the correctness rules come from values the types actively bless.
 `position="static"` is in `PositionTypeString` but `isPositionTypeType` rejects
-it, so it silently becomes `"relative"` — and on a *change* the setter returns
-early, so a renderable toggled from `"absolute"` to `"static"` **stays
-absolute**. `minWidth="auto"` is in the option type and dropped by `isSizeType`.
+it, so it silently becomes `"relative"`. On a *change* the setter returns early,
+so a renderable toggled from `"absolute"` to `"static"` **stays absolute**.
+`minWidth="auto"` is in the option type and dropped by `isSizeType`.
 `alignItems="space-between"` typechecks and lays out identically to
 `"flex-end"`. All three confirmed by rendering them against a control tree.
 
-## `{label}` — the opt-in type-aware tier
+## `{label}`: the opt-in type-aware tier
 
 `text-must-be-wrapped` reports text it can *prove* is text. `<box>{label}</box>`
 is the most common real crash and syntax alone cannot judge it: `label` could
-just as easily be an element. Turn on the type checker and it can.
+equally be an element. Turn on the type checker and it can.
 
 ```js
 "opentui/text-must-be-wrapped": ["error", { checkTypes: true }]
@@ -214,19 +213,11 @@ It decides on TypeScript's type flags, never a printed name: a union is text
 only if every non-nullish member is a string/number/literal type. So
 `string | undefined` reports and `ReactNode` does not. With no
 `parserOptions.project` configured it degrades to the syntactic result rather
-than throwing — trying the option before wiring a tsconfig is the obvious first
+than throwing. Trying the option before wiring a tsconfig is the obvious first
 move and must not explode.
 
 It costs no dependency. The checker is reached structurally through the parser
 services, so the package still installs nothing.
-
-Three of those come from values the types actively bless. `position="static"` is
-in `PositionTypeString` but `isPositionTypeType` rejects it, so it silently
-becomes `"relative"` — and on a *change* the setter returns early, so a
-renderable toggled from `"absolute"` to `"static"` **stays absolute**.
-`minWidth="auto"` is in the option type and dropped by `isSizeType`.
-`alignItems="space-between"` typechecks and lays out identically to
-`"flex-end"`. All three were confirmed by rendering them against a control tree.
 
 ## What the errors look like
 
@@ -252,8 +243,8 @@ less, and separate panels with a border rather than empty space.
 ```
 
 Each one names the runtime failure, says why the type checker was quiet, and
-gives the replacement. That is the whole design brief: an agent should be able
-to fix the code from the error text alone, without opening the OpenTUI docs.
+gives the replacement. An agent should be able to fix the code from the error
+text alone, without opening the OpenTUI docs.
 
 ## Settings
 
@@ -275,8 +266,8 @@ when registration happens somewhere the linter cannot see.
 
 ## The catalog is generated, not transcribed
 
-Every fact the rules rely on — the element catalogue per binding, each element's
-prop list, the 28 color names `parseColor()` accepts — is read out of a real
+Every fact the rules rely on (the element catalogue per binding, each element's
+prop list, the 28 color names `parseColor()` accepts) is read out of a real
 OpenTUI install by [`scripts/sync-catalog.ts`](packages/lint/scripts/sync-catalog.ts):
 
 ```bash
@@ -288,13 +279,12 @@ It reads the JSX declarations with the TypeScript compiler API, asks each
 binding's `getComponentCatalogue()` which tags it will really construct, and
 probes the real `parseColor()` to find out which color names survive.
 
-That last pair matters: at 0.5.11 Solid's runtime renders `<diff>` and
-`<line_number>` that its own `.d.ts` never declares. A hand-written list would
-report both as errors.
+At 0.5.11 Solid's runtime renders `<diff>` and `<line_number>` that its own
+`.d.ts` never declares. A hand-written list would report both as errors.
 
 ## Conformance
 
-Two packages run every diagnostic against an actual OpenTUI renderer and assert
+Two packages run every diagnostic against a real OpenTUI renderer and assert
 both halves of each claim: that the rule reports the snippet, and that OpenTUI
 really does the thing the message describes.
 
@@ -302,16 +292,16 @@ really does the thing the message describes.
 bun run --filter 'opentui-lint-conformance*' test
 ```
 
-They are separate packages because the two JSX pipelines cannot share a process
-— `@opentui/solid` compiles JSX through its own Bun preload. The Solid suite
+They are separate packages because the two JSX pipelines cannot share a process:
+`@opentui/solid` compiles JSX through its own Bun preload. The Solid suite
 additionally asserts that no Solid diagnostic quotes React's wording, which is
 how the messages stay honest as the bindings drift apart.
 
 Two more suites guard the claims on this page. `packages/oxlint-conformance`
 runs every rule under the real oxlint binary and fails if a rule ships without
 an oxlint case. `packages/examples-conformance` pins the numbers the example
-READMEs quote — the totals, the per-rule breakdowns, what `--fix` resolves, and
-the verbatim diagnostics — so a rule change cannot quietly turn them into
+READMEs quote (the totals, the per-rule breakdowns, what `--fix` resolves, and
+the verbatim diagnostics), so a rule change cannot quietly turn them into
 fiction.
 
 If a future OpenTUI starts validating colors, or gives `<div>` a meaning, these
@@ -336,9 +326,8 @@ working-but-young; ESLint is the better-tested path today.
 ## Status
 
 Early. The rules and their messages are stable enough to use; the API may still
-move. See [docs/roadmap.md](docs/roadmap.md) for what is planned — chiefly the
-design-system half: `no-restyle` and theme-token rules for component libraries
-like [tuiparts](https://github.com/tuiparts/tuiparts).
+move. See [docs/roadmap.md](docs/roadmap.md) for what shipped, what was
+rejected, and what is left.
 
 Not affiliated with OpenTUI or shadcn.
 

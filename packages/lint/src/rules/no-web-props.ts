@@ -170,6 +170,13 @@ export default defineRule(
             continue
           }
 
+          // An element's own catalogue wins over the advice table. `title` is
+          // real on <box> and <scrollbox> — it sets the border title, which
+          // this rule's own advice text says — and reporting it as dead was
+          // the single largest source of false positives when the rules were
+          // first run over OpenTUI's own examples.
+          if (valid?.has(name)) continue
+
           if (PROP_RENAME[name] || advise(name) || (checkUnknownProps && valid && !valid.has(name))) {
             report(name, attribute, label, valid)
           }

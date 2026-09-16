@@ -62,15 +62,48 @@ export type TextContext =
  * takes the whole app down. A component boundary makes the answer unknowable,
  * and the caller must treat that as "do not report".
  */
+/**
+ * Components that render their children in place, contributing no renderable.
+ *
+ * A control-flow wrapper is not a runtime parent: `<text><Show when={x}>hi</Show></text>`
+ * puts "hi" inside the `<text>`, so the walk has to pass straight through it.
+ * Only the framework built-ins are listed, because only for those is the
+ * pass-through behaviour guaranteed — a component someone wrote themselves
+ * could render anything, and is handled as unknowable below.
+ */
+const TRANSPARENT_COMPONENTS = new Set([
+  // solid-js
+  "Show", "For", "Index", "Switch", "Match", "Suspense", "SuspenseList", "ErrorBoundary", "Portal", "Dynamic",
+  // react
+  "Fragment", "StrictMode", "Profiler",
+])
+
 export function textContext(node: Node, framework: Framework): TextContext {
   let current: Node | undefined = node.parent
 
   while (current) {
-    // The nearest enclosing element *is* the runtime parent, so it settles the
-    // question on its own — an outer `<text>` cannot re-establish text context
-    // through a `<box>` in between.
+    // The nearest enclosing *host* element is the runtime parent, so it settles
+    // the question on its own — an outer `<text>` cannot re-establish text
+    // context through a `<box>` in between.
     if (current.type === "JSXElement") {
       const name = elementName(current.openingElement)
+
+      if (name && !isHostElement(name)) {
+        // A capitalized tag is a component, not a renderable. Framework
+        // control flow passes children through and the walk continues; anything
+        // else could render them anywhere, so the answer is unknowable.
+        //
+        // Reporting these was the second-largest false positive when the rules
+        // were first run over OpenTUI's own examples — `<Show>` inside `<text>`
+        // is ordinary, correct Solid.
+        const base = name.split(".")[0]!
+        if (TRANSPARENT_COMPONENTS.has(base) || TRANSPARENT_COMPONENTS.has(name)) {
+          current = current.parent
+          continue
+        }
+        return { inside: false, boundary: undefined, crossedComponent: true }
+      }
+
       if (name && (name === "text" || isTextNodeElement(framework, name))) {
         return { inside: true, via: name }
       }

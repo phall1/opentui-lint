@@ -2,9 +2,9 @@
 
 A literal that equals a theme token should be the token.
 
-Not in `recommended`. It needs a design system to check against — see
-[Requires a design system](#requires-a-design-system) — and enable it directly,
-or use the `strict` preset.
+Not in `recommended`. It needs a design system to check against (see
+[Requires a design system](#requires-a-design-system)). Enable it directly, or
+use the `strict` preset.
 
 ## Why
 
@@ -20,9 +20,9 @@ for a theme change to re-read:
 ```
 
 Both lines render the same frame right now, if `tokens.density.paddingX` is
-`1`. Nothing about the second line is a runtime error or a type error —
+`1`. Nothing about the second line is a runtime error or a type error:
 `paddingX` is typed `number`, and `1` is a perfectly good `number`. That is
-exactly why it needs a linter instead of the type checker: the literal is
+why it needs a linter instead of the type checker: the literal is
 *pinned* to whatever the theme's value was when it was written, and stays
 that way through every theme switch and preset swap from then on.
 
@@ -66,14 +66,14 @@ Correct:
 - **Anything that isn't a static literal.** `tokens.density.paddingX`
   (React), `tokens().density.paddingX` (Solid's signal accessor), and
   `theme.get().density.paddingX` (Core) are all expressions rooted at the
-  theme, not literals, and none of them are reported — they are the
+  theme, not literals, and none of them are reported; they are the
   fix this rule asks for, not a violation of it. This is a real limitation
   of a rule with no type information: an expression that merely *looks*
   theme-shaped (`otherObject.density.paddingX`) is equally left alone,
   because there is no static way to tell it apart from the real thing.
 - **A value no token has.** `paddingX={7}` is reported only if some density
   token is `7`. If none is, the rule has nothing provable to say, so it says
-  nothing — this is not "close to" a token, it is compared for exact
+  nothing. This is not "close to" a token; it is compared for exact
   equality.
 - **`0`.** Even if a theme names a token `0` (a `density.none` for "no
   spacing", say), a literal `0` is never reported. It is the universal
@@ -82,7 +82,7 @@ Correct:
   thing to write.
 - **A prop this isn't about.** Density tokens are only compared against
   spacing props (`padding`, `paddingX`, `margin`, `gap`, and the rest of
-  OpenTUI's spacing surface) — `flexGrow={1}` is never compared to
+  OpenTUI's spacing surface). `flexGrow={1}` is never compared to
   `density.paddingX` even though the number matches, because the prop has
   nothing to do with spacing. The same restriction applies to `borderStyle`
   and `content`: only those props are checked against `borders.style` and

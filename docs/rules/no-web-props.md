@@ -17,7 +17,7 @@ wrong. `onClick` is worse: the handler is stored, never wired to an event, and
 the button does nothing forever.
 
 TypeScript does catch most of these when they are written directly on an
-element — and this rule still earns its place there by replacing
+element, and this rule still earns its place there by replacing
 `Property 'className' does not exist on type 'BoxProps'` with the prop you
 actually want. But TypeScript stops catching them the moment the props go
 through a style object held in a variable, which is how shared styles are
@@ -101,6 +101,6 @@ prop path.
 `checkUnknownProps` additionally reports any prop absent from the element's own
 generated type. It is **off by default** because a renderable added through
 `extend()` can legitimately accept anything, and because the prop lists come
-from a pinned OpenTUI version — a project on a newer release would see false
+from a pinned OpenTUI version: a project on a newer release would see false
 positives on new props. Turn it on when your OpenTUI version matches the
 catalog's and you want the stricter sweep.

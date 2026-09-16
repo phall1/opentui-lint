@@ -25,9 +25,9 @@ if (!components[type]) {
 }
 ```
 
-The binding wraps the tree in an ErrorBoundary, so the visible result is not a
-stack trace in your terminal's scrollback — it is your entire app replaced by a
-red React stack trace, with no file and no line number.
+The binding wraps the tree in an ErrorBoundary, so the failure never reaches
+your terminal's scrollback. Your entire app is replaced by a red React stack
+trace, with no file and no line number.
 
 ## Examples
 
@@ -52,7 +52,7 @@ Correct:
 
 The rule distinguishes the mistakes, because the fixes differ:
 
-- **An HTML element.** Reports the OpenTUI equivalent — `div` → `box`,
+- **An HTML element.** Reports the OpenTUI equivalent: `div` → `box`,
   `p` → `text`, `img` → `image`, `pre` → `code`.
 - **The other binding's spelling.** React hyphenates compound names
   (`ascii-font`, `tab-select`, `line-number`); Solid uses underscores
@@ -87,5 +87,5 @@ settings: { opentui: { extendedElements: ["sparkline"] } }
 ## When not to use it
 
 If your project registers elements dynamically from data the linter cannot read,
-prefer `allow` or `extendedElements` over disabling the rule — it is the only
+prefer `allow` or `extendedElements` over disabling the rule: it is the only
 thing standing between `<div>` and a blank terminal.

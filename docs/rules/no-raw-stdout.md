@@ -17,9 +17,9 @@ With the default `screenMode: "alternate-screen"`, `externalOutputMode` is
 AFTER createCliRenderer: process.stdout.write === baseline fn ? true
 ```
 
-So a raw write lands verbatim on the same fd as the frame — **outside** the
-synchronized-update block (`ESC[?2026h … ESC[?2026l`), with no cursor save or
-restore — wherever the last frame happened to leave the cursor. Raw pty bytes:
+So a raw write lands verbatim on the same fd as the frame, wherever the last
+frame happened to leave the cursor: **outside** the synchronized-update block
+(`ESC[?2026h … ESC[?2026l`), with no cursor save or restore. Raw pty bytes:
 
 ```text
 M1 -> M2  a real frame       : ESC[?2026h ESC[?25l ESC[1;1H … BBBB … ESC[?2026l
@@ -27,9 +27,9 @@ M2 -> M3  stdout.write("RAWZZZ") : RAWZZZ          ← bare, mid-frame
 M3 -> M4  two full render loops  : (0 bytes)
 ```
 
-Those zero bytes are the real problem. OpenTUI diffs against its own in-memory
-buffer, which the raw write never touched, so **it never repaints those cells**.
-The corruption is permanent, not a flicker.
+The zero bytes are why: OpenTUI diffs against its own in-memory buffer, which
+the raw write never touched, so **it never repaints those cells**. The
+corruption is permanent, not a flicker.
 
 ## Examples
 
@@ -62,7 +62,7 @@ supported way to print from inside a running app.
 ## The one safe configuration
 
 `screenMode: "split-footer"` with `externalOutputMode: "capture-stdout"` installs
-a real interceptor — verified: `stdout.write.name === "interceptStdoutWrite"`,
+a real interceptor. Verified: `stdout.write.name === "interceptStdoutWrite"`,
 and writes become `EXTERNAL_OUTPUT` events instead of bytes. That is not the
 default, and requesting it in any other screen mode throws:
 

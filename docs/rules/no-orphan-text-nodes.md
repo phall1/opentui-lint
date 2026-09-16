@@ -26,12 +26,13 @@ Orphan text error: "" must have a <text> as a parent: box-3 above renderable-13
 React's ErrorBoundary turns that into a stack trace over your app; Solid has no
 boundary and the render throws. The diagnostic quotes the one your file will hit.
 
-The names overlap with HTML, which is the trap. `<span className="badge">` gets
-a type error on the prop and no warning at all about placement, and a bare
-`<b>Total</b>` typechecks perfectly before taking down the render.
+The names overlap with HTML. `<span className="badge">` gets a type error on
+the prop and no warning at all about placement, and a bare `<b>Total</b>`
+typechecks before taking down the render.
 
 Unlike [`text-must-be-wrapped`](text-must-be-wrapped.md), this check is fully
-decidable — element names are static — so it reports every case it can see.
+decidable, because element names are static, so it reports every case it can
+see.
 
 ## Examples
 
