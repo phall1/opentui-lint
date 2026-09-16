@@ -1,3 +1,4 @@
+import { mkdirSync, rmSync, writeFileSync } from "node:fs"
 import { join } from "node:path"
 import { RuleTester } from "eslint"
 import tsParser from "@typescript-eslint/parser"
@@ -12,14 +13,32 @@ import { asRule } from "./helpers.js"
  * stand-ins for what `@opentui/react` / `@opentui/solid` consumers actually
  * see (see that file for why this doesn't import the real packages).
  *
- * `App.tsx` exists on disk only so the tsconfig's `include` glob covers it;
- * @typescript-eslint/parser uses each case's `code` as that file's content,
- * the same way it would use an editor's unsaved buffer — confirmed by running
- * the parser with on-disk content that disagreed with the `code` passed in
- * and checking which one the resolved type came from.
+ * Each case is written to a real file whose content *is* the code under test.
+ *
+ * The parser is documented to use RuleTester's `code` as the file's content,
+ * the way an editor's unsaved buffer overrides disk, and it does — until a
+ * fresh checkout, where the program served the on-disk placeholder instead and
+ * every type resolved from a file with none of the declarations in it. That
+ * failed only on CI, and it failed as an argument about message wording rather
+ * than as "the program is not seeing your code". Writing the file removes the
+ * disagreement instead of trusting it not to happen.
  */
 const FIXTURE = join(import.meta.dir, "fixtures", "typed-app")
-const file = join(FIXTURE, "src", "App.tsx")
+const CASES = join(FIXTURE, "src", "cases")
+
+// Generated, never committed: written here before any parse so the program
+// picks them up on its first build.
+rmSync(CASES, { recursive: true, force: true })
+mkdirSync(CASES, { recursive: true })
+
+let caseIndex = 0
+
+/** A case backed by a real file, so `code` and the program can never disagree. */
+function onDisk(code: string) {
+  const filename = join(CASES, `case-${(caseIndex += 1)}.tsx`)
+  writeFileSync(filename, code)
+  return { code, filename }
+}
 
 /**
  * Types the snippets need, written into the snippet itself.
@@ -58,9 +77,8 @@ function typedTester(framework: "react" | "solid" = "react"): RuleTester {
  */
 function reported(declareType: string, expr: string, resolvedAs: string) {
   return {
-    code: `${PRELUDE}declare const value: ${declareType}\nexport const App = () => <box>{${expr}}</box>`,
+    ...onDisk(`${PRELUDE}declare const value: ${declareType}\nexport const App = () => <box>{${expr}}</box>`),
     output: `${PRELUDE}declare const value: ${declareType}\nexport const App = () => <box><text>{${expr}}</text></box>`,
-    filename: file,
     options: [{ checkTypes: true }],
     errors: [{ message: new RegExp(`resolved this expression's type as \`${resolvedAs}\`, which cannot be anything but text`) }],
   }
@@ -68,8 +86,7 @@ function reported(declareType: string, expr: string, resolvedAs: string) {
 
 function notReported(declareType: string, expr: string) {
   return {
-    code: `${PRELUDE}declare const value: ${declareType}\nexport const App = () => <box>{${expr}}</box>`,
-    filename: file,
+    ...onDisk(`${PRELUDE}declare const value: ${declareType}\nexport const App = () => <box>{${expr}}</box>`),
     options: [{ checkTypes: true }],
   }
 }
@@ -79,8 +96,7 @@ typedTester().run("text-must-be-wrapped (checkTypes)", asRule(rule), {
     // Off by default even with a real type checker sitting right there —
     // `value` here is unambiguously `string`, and it is still not reported.
     {
-      code: `${PRELUDE}declare const value: string\nexport const App = () => <box>{value}</box>`,
-      filename: file,
+      ...onDisk(`${PRELUDE}declare const value: string\nexport const App = () => <box>{value}</box>`),
     },
     // `ReactNode` is exactly the case the syntactic rule exists to leave
     // alone: it legitimately includes elements, so it must stay unreported
@@ -95,8 +111,7 @@ typedTester().run("text-must-be-wrapped (checkTypes)", asRule(rule), {
     // A generic constrained to `string` is still not *provably* `string` at
     // this call site — TypeScript itself keeps `T` opaque here.
     {
-      code: `function Row<T extends string>(value: T) { return <box>{value}</box> }`,
-      filename: file,
+      ...onDisk(`function Row<T extends string>(value: T) { return <box>{value}</box> }`),
       options: [{ checkTypes: true }],
     },
   ],
@@ -145,9 +160,8 @@ typedTester("solid").run("text-must-be-wrapped (checkTypes, solid)", asRule(rule
     {
       // Solid signals are accessors: `count()` returns `string`, not
       // `count` itself, so the call's return type is what has to be checked.
-      code: `${PRELUDE}declare const count: Accessor<string>\nexport const App = () => <box>{count()}</box>`,
+      ...onDisk(`${PRELUDE}declare const count: Accessor<string>\nexport const App = () => <box>{count()}</box>`),
       output: `${PRELUDE}declare const count: Accessor<string>\nexport const App = () => <box><text>{count()}</text></box>`,
-      filename: file,
       options: [{ checkTypes: true }],
       errors: [
         {
@@ -172,8 +186,7 @@ typedTester().run("text-must-be-wrapped (checkTypes unblocks a run)", asRule(rul
   valid: [],
   invalid: [
     {
-      code: `${PRELUDE}declare const items: string[]\nexport const App = () => <box>{items.length} items</box>`,
-      filename: file,
+      ...onDisk(`${PRELUDE}declare const items: string[]\nexport const App = () => <box>{items.length} items</box>`),
       options: [{ checkTypes: true }],
       output: `${PRELUDE}declare const items: string[]\nexport const App = () => <box><text>{items.length} items</text></box>`,
       errors: 2,
@@ -184,8 +197,7 @@ typedTester().run("text-must-be-wrapped (checkTypes unblocks a run)", asRule(rul
       // offered rather than applied. The offered edit splits the line, and that
       // is the honest thing to show: it is the best edit that can be justified
       // from syntax alone, and a person previewing it can see the cost.
-      code: `${PRELUDE}declare const items: string[]\nexport const App = () => <box>{items.length} items</box>`,
-      filename: file,
+      ...onDisk(`${PRELUDE}declare const items: string[]\nexport const App = () => <box>{items.length} items</box>`),
       output: null,
       errors: [
         {
@@ -218,8 +230,7 @@ typedTester().run("the typed fixture really is typed", asRule(rule), {
     {
       // If strictNullChecks were not in effect this type would collapse to
       // `string`, and the quoted type is the only place that shows.
-      code: `${PRELUDE}declare const value: string | undefined\nexport const App = () => <box>{value}</box>`,
-      filename: file,
+      ...onDisk(`${PRELUDE}declare const value: string | undefined\nexport const App = () => <box>{value}</box>`),
       options: [{ checkTypes: true }],
       output: `${PRELUDE}declare const value: string | undefined\nexport const App = () => <box><text>{value}</text></box>`,
       errors: [{ message: /resolved this expression's type as `string \| undefined`/ }],
