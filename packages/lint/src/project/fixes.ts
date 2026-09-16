@@ -32,10 +32,22 @@ export function replaceStringValue(valueNode: Node, next: string, fixer: Fixer):
   return fixer.replaceText(valueNode, JSON.stringify(next))
 }
 
+/**
+ * An extra source of proof that a child renders as text.
+ *
+ * Supplied by `text-must-be-wrapped` when `checkTypes` is on, so an expression
+ * the type checker proved is text counts here too. Without this the type-aware
+ * tier could report `<box>{label}</box>` but never fix it — and the cases only
+ * types can see are exactly the ones hardest to fix by hand.
+ */
+export type ExtraTextProof = (child: Node) => boolean
+
 /** True when a child becomes a text node rather than a renderable. */
-function isTextish(child: Node, framework: Framework): boolean {
+function isTextish(child: Node, framework: Framework, proven?: ExtraTextProof): boolean {
   if (child.type === "JSXText") return String(child.value ?? "").trim() !== ""
-  if (child.type === "JSXExpressionContainer") return isDefinitelyText(child.expression)
+  if (child.type === "JSXExpressionContainer") {
+    return isDefinitelyText(child.expression) || proven?.(child) === true
+  }
   if (child.type === "JSXElement") {
     const name = elementName(child.openingElement)
     return name !== undefined && isTextNodeElement(framework, name)
@@ -74,12 +86,19 @@ export interface TextRun {
  * its own line. Wrapping the run as a unit keeps it one line, which is what the
  * author wrote.
  */
-/** An expression whose runtime type cannot be pinned down from syntax alone. */
-function isAmbiguousExpression(child: Node | undefined): boolean {
-  return child?.type === "JSXExpressionContainer" && !isDefinitelyText(child.expression)
+/**
+ * An expression whose runtime type cannot be pinned down.
+ *
+ * With `checkTypes` on, an expression the checker resolved is no longer
+ * ambiguous — which is what lets `<box>{count.length} items</box>` become a
+ * real fix instead of a suggestion.
+ */
+function isAmbiguousExpression(child: Node | undefined, proven?: ExtraTextProof): boolean {
+  if (child?.type !== "JSXExpressionContainer") return false
+  return !isDefinitelyText(child.expression) && proven?.(child) !== true
 }
 
-export function textRuns(element: Node, framework: Framework): TextRun[] {
+export function textRuns(element: Node, framework: Framework, proven?: ExtraTextProof): TextRun[] {
   const children = (element.children ?? []) as Node[]
   const collected: Array<{ nodes: Node[]; start: number; end: number }> = []
   let current: Node[] = []
@@ -96,7 +115,7 @@ export function textRuns(element: Node, framework: Framework): TextRun[] {
   }
 
   children.forEach((child, index) => {
-    if (isTextish(child, framework)) {
+    if (isTextish(child, framework, proven)) {
       // Whitespace only joins a run once there is text on both sides of it.
       if (current.length > 0) current.push(...pendingWhitespace)
       pendingWhitespace = []
@@ -127,7 +146,8 @@ export function textRuns(element: Node, framework: Framework): TextRun[] {
     first: run.nodes[0]!,
     last: run.nodes[run.nodes.length - 1]!,
     ambiguousNeighbor:
-      isAmbiguousExpression(neighbour(run.start - 1, -1)) || isAmbiguousExpression(neighbour(run.end + 1, 1)),
+      isAmbiguousExpression(neighbour(run.start - 1, -1), proven) ||
+      isAmbiguousExpression(neighbour(run.end + 1, 1), proven),
   }))
 }
 

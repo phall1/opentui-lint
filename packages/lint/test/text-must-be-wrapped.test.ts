@@ -100,3 +100,25 @@ undetectedTester().run("text-must-be-wrapped (not an OpenTUI file)", asRule(rule
   valid: [`export const Page = () => <div>Hello</div>`],
   invalid: [],
 })
+
+/**
+ * `checkTypes` is opt-in and must not change anything about the default
+ * (syntactic-only) behavior above — including when it is turned on but there
+ * is nowhere to get type information from. `tester()` has no
+ * `parserOptions.project`, so this is exactly that "no type checker" case;
+ * see `test/type-aware.test.ts` for the full type-classification matrix
+ * against a real tsconfig.
+ */
+tester().run("text-must-be-wrapped (checkTypes, no type checker available)", asRule(rule), {
+  valid: [
+    // Off by default: unaffected by whether a type checker exists.
+    "const a = <box>{label}</box>",
+    // On, but nothing to check types with — must degrade to the syntactic
+    // result (not reported) rather than guess or throw.
+    { code: "const a = <box>{label}</box>", options: [{ checkTypes: true }] },
+  ],
+  invalid: [
+    // The syntactic half of the rule still fires normally with the option on.
+    { ...wrapped("const a = <box>Hello</box>", "Hello"), options: [{ checkTypes: true }] },
+  ],
+})

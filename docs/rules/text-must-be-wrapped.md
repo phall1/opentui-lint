@@ -91,8 +91,59 @@ literals, string concatenation, conditionals whose branches are all text,
 `&&` with a text right-hand side, and the string-returning methods
 (`toString`, `toFixed`, `join`, `padStart`, `trim`, …).
 
-If you want the stricter check, a typed lint pass (`@typescript-eslint` with
-type information) is the right tool — this rule stays in the zero-config lane.
+## `checkTypes`: closing the gap with type information
+
+```jsonc
+{ "opentui/text-must-be-wrapped": ["error", { "checkTypes": true }] }
+```
+
+Off by default. With it on, and only when your ESLint config already resolves
+types — `parserOptions.project` or `parserOptions.projectService` pointing at
+a real tsconfig — the rule also reports an expression whose *resolved type* is
+definitely text, even where the syntax alone could not prove it:
+
+```tsx
+declare const label: string
+declare const count: number
+declare const total: string | undefined
+
+<box>{label}</box>                     // reported — resolved type is `string`
+<box>{count}</box>                     // reported — resolved type is `number`
+<box>{total}</box>                     // reported — `undefined` renders nothing,
+                                        // but the `string` branch still crashes
+```
+
+It stays quiet on exactly the case the syntactic rule was built to leave
+alone — a value whose type genuinely could be an element:
+
+```tsx
+declare const child: ReactNode
+
+<box>{child}</box>                     // not reported — ReactNode includes elements
+```
+
+The rule for "definitely text" is a type, not its printed name: a union is
+text only when every member that isn't `undefined`/`null` is itself text
+(`string`, `number`, a string/number literal, or a template literal type).
+One element, object, `any`, or `unknown` member anywhere in the union aborts
+the whole check — that is what keeps `ReactNode` (and any union shaped like
+it) unreported.
+
+Solid signals work the same way despite being accessors rather than plain
+values: `<box>{count()}</box>` is checked against the *call's* return type,
+so `count: Accessor<string>` is reported and `count: Accessor<JSX.Element>`
+is not.
+
+If `checkTypes` is on but there is no type checker to ask — no `project` /
+`projectService` configured, a non-TypeScript parser, or oxlint, which has no
+type information at all — this tier does nothing. It never reports, and it
+never crashes; the rule simply behaves exactly as it does with the option off.
+
+One real gap: a diagnostic from this tier has no `<text>`-wrapping fix or
+suggestion attached, unlike the syntactic tier. Grouping stray children into
+one `<text>` run (so a fix does not silently split one line into several) is
+itself syntactic, so a catch that only type information could prove has no
+run to attach a fix to.
 
 ## How the context is decided
 
