@@ -1,17 +1,23 @@
 {
   "compilerOptions": {
     "strict": true,
-    // Spelled out as well as implied by `strict`. The type-aware tests
-    // distinguish `string` from `string | undefined`, and that distinction only
-    // exists with this flag on — if anything ever resolves this config
-    // differently, a silently non-strict program would make those tests fail
-    // with a confusing diff instead of an obvious one.
+    // Spelled out as well as implied by `strict`: the type-aware tests
+    // distinguish `string` from `string | undefined`, and that is the only
+    // place a silently non-strict program would show.
     "strictNullChecks": true,
+    // Named explicitly so a program built without them cannot resolve
+    // `string[]`'s members to an error type and look merely "unprovable".
+    "lib": ["ESNext"],
+    "types": [],
     "jsx": "preserve",
     "module": "esnext",
     "target": "esnext",
     "moduleResolution": "bundler",
     "skipLibCheck": true
   },
-  "include": ["src/**/*"]
+  // Both spellings: `files` pins the exact members regardless of how the glob
+  // is resolved relative to tsconfigRootDir, and `include` keeps new fixture
+  // files working without an edit here.
+  "files": ["src/App.tsx", "src/env.d.ts"],
+  "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"]
 }
