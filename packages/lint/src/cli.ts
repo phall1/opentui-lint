@@ -11,6 +11,7 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import { dirname, join, relative, resolve } from "node:path"
 import { CATALOG_VERSION } from "./catalog/index.js"
 import type { Framework } from "./catalog/index.js"
+import { readThemeTokens } from "./project/design-system.js"
 
 const CONFIG_FILE = "eslint.config.mjs"
 
@@ -22,6 +23,7 @@ interface Project {
   installedOpenTui: string | null
   hasConfig: boolean
   packageManager: "bun" | "pnpm" | "yarn" | "npm"
+  theme: { file: string; density: number; colors: number; glyphs: number } | null
 }
 
 function readJson(path: string): any | undefined {
@@ -88,7 +90,26 @@ function inspect(cwd: string): Project {
     installedOpenTui,
     hasConfig: existsSync(join(root, CONFIG_FILE)),
     packageManager: detectPackageManager(root),
+    theme: findTheme(root),
   }
+}
+
+/** Mirrors the discovery the design-system rules do, so `doctor` agrees with them. */
+function findTheme(root: string): Project["theme"] {
+  for (const dir of ["components/ui", "src/components/ui", "app/components/ui"]) {
+    for (const base of ["theme.ts", "theme.tsx"]) {
+      const file = join(root, dir, base)
+      if (!existsSync(file)) continue
+      const tokens = readThemeTokens(readFileSync(file, "utf8"))
+      return {
+        file: join(dir, base),
+        density: Object.keys(tokens.density).length,
+        colors: Object.keys(tokens.colors).length,
+        glyphs: Object.keys(tokens.glyphs).length,
+      }
+    }
+  }
+  return null
 }
 
 function configSource(framework: Framework | null): string {
@@ -205,6 +226,24 @@ function doctor(cwd: string): number {
 
   if (project.hasConfig) ok("config", CONFIG_FILE)
   else warn("config", `no ${CONFIG_FILE} — run \`npx opentui-lint init\``)
+
+  if (project.theme) {
+    ok(
+      "theme",
+      `${project.theme.file} — ${project.theme.density} density, ${project.theme.glyphs} glyph, ` +
+        `${project.theme.colors} literal color tokens`,
+    )
+    if (project.theme.colors === 0) {
+      // Not a fault: a default tuiparts theme is ANSI-indexed, and those values
+      // only exist once a terminal resolves its palette. But it does change what
+      // use-theme-tokens can say, so it should not come as a surprise later.
+      console.log(`        ${" ".repeat(14)} No literal colors, so the theme is terminal-palette based.`)
+      console.log(`        ${" ".repeat(14)} use-theme-tokens can flag raw colors but cannot name a token.`)
+    }
+  } else {
+    console.log(`  info  ${"theme".padEnd(14)} none found — the design-system rules stay silent`)
+    console.log(`        ${" ".repeat(14)} Only relevant if you use the \`strict\` preset.`)
+  }
 
   const pkg = readJson(join(project.root, "package.json"))
   if (pkg?.scripts?.lint) ok("lint script", pkg.scripts.lint)
