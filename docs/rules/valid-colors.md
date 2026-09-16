@@ -2,6 +2,9 @@
 
 Disallow color values OpenTUI silently renders as magenta.
 
+`parseColor()` lives in `@opentui/core`, so this rule behaves identically in
+React and Solid.
+
 ## Why
 
 `parseColor()` accepts 28 names plus hex. Anything else it cannot read does not

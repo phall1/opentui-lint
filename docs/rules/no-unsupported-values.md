@@ -2,6 +2,10 @@
 
 Disallow values OpenTUI's types accept but its runtime ignores or rejects.
 
+These are all `@opentui/core` behaviours, so they apply identically to React and
+Solid — only the negative-dimension message differs, because the two bindings
+surface a throw differently.
+
 ## Why
 
 OpenTUI's option interfaces are wider than the validators that gate the
@@ -63,7 +67,7 @@ Invalid width for Renderable box-3: -1
 
 In React that throw happens inside the reconciler's commit, so it never reaches
 your code — the ErrorBoundary catches it and paints a TypeError where your app
-should be.
+should be. Solid has no boundary, so the render throws.
 
 ## What it does not report
 

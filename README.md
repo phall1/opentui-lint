@@ -86,11 +86,13 @@ Six of twenty. Every failure in the top half is invisible until someone looks at
 a running terminal — which, for an agent editing a TUI it never renders, is
 never.
 
-[`examples/dashboard`](examples/dashboard) is the same comparison on one
-realistic file: a deploy dashboard written with web reflexes. `tsc` reports a
-single error — `Property 'className' does not exist on type 'BoxProps'`, which
-does not even mention the dead `onClick` on the same element. `opentui-lint`
-reports fifteen, six of which stop the render outright.
+[`examples/dashboard-react`](examples/dashboard-react) and
+[`examples/dashboard-solid`](examples/dashboard-solid) are the same comparison on
+one realistic file: a deploy dashboard written with web reflexes. `tsc` reports a
+single error in each — `Property 'className' does not exist on type 'BoxProps'`,
+which does not even mention the dead `onClick` on the same element.
+`opentui-lint` reports fifteen and fourteen, six of which stop the render
+outright.
 
 ## Solid is not React with different spelling
 
@@ -112,9 +114,9 @@ Writing `<div>` is the same mistake in both, so it gets the same answer —
 Copying a snippet between the two bindings is its own mistake, and
 `no-unknown-elements` names it in both directions.
 
-[`examples/dashboard`](examples/dashboard) and
+[`examples/dashboard-react`](examples/dashboard-react) and
 [`examples/dashboard-solid`](examples/dashboard-solid) are the same file in both
-bindings. `tsc` finds one error in each; the linter finds fifteen and fourteen.
+bindings, and neither is the "main" one.
 
 ## Install
 

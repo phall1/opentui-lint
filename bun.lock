@@ -10,8 +10,8 @@
         "typescript": "^5.9.2",
       },
     },
-    "examples/dashboard": {
-      "name": "opentui-lint-example-dashboard",
+    "examples/dashboard-react": {
+      "name": "opentui-lint-example-dashboard-react",
       "version": "0.0.0",
       "devDependencies": {
         "@opentui/core": "^0.5.11",
@@ -69,7 +69,10 @@
     },
     "packages/lint": {
       "name": "opentui-lint",
-      "version": "0.1.0",
+      "version": "0.2.0",
+      "bin": {
+        "opentui-lint": "./dist/cli.js",
+      },
       "devDependencies": {
         "@types/bun": "latest",
         "@types/eslint": "^9.6.1",
@@ -539,7 +542,7 @@
 
     "opentui-lint-conformance-solid": ["opentui-lint-conformance-solid@workspace:packages/conformance-solid"],
 
-    "opentui-lint-example-dashboard": ["opentui-lint-example-dashboard@workspace:examples/dashboard"],
+    "opentui-lint-example-dashboard-react": ["opentui-lint-example-dashboard-react@workspace:examples/dashboard-react"],
 
     "opentui-lint-example-dashboard-solid": ["opentui-lint-example-dashboard-solid@workspace:examples/dashboard-solid"],
 

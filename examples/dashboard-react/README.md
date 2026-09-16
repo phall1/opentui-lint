@@ -1,7 +1,11 @@
-# Example: a dashboard a model would write
+# Example: a dashboard a model would write (React)
 
 `dashboard.tsx` is an OpenTUI deploy dashboard written with web reflexes. It
 renders a red React stack trace where a dashboard should be.
+
+The Solid version of this same file is in
+[`../dashboard-solid`](../dashboard-solid); the two bindings are equal targets
+and fail differently.
 
 ```bash
 bun install

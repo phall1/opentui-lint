@@ -4,6 +4,9 @@ Keep padding, margin and gap within a terminal-sized budget.
 
 Not in `recommended`. Enable it directly, or use the `strict` preset.
 
+Terminal cells are terminal cells, so this rule behaves identically in React
+and Solid.
+
 ## Why
 
 OpenTUI's own agent skill opens with this instruction:

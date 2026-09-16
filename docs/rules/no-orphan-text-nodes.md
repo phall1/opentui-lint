@@ -6,13 +6,25 @@ Require text modifier elements to sit inside `<text>`.
 
 `span`, `b`, `strong`, `i`, `em`, `u`, `br` and `a` are not renderables. They
 build a `TextNodeRenderable`, which only a `TextRenderable` knows how to lay
-out, so the reconciler refuses them anywhere else:
+out, so neither binding will place one anywhere else.
+
+**React** refuses at construction, by name:
 
 ```ts
 if (textNodeKeys.includes(type) && !hostContext.isInsideText) {
   throw new Error(`Component of type "${type}" must be created inside of a text node`)
 }
 ```
+
+**Solid** builds it and then fails on insert, with the same message it uses for
+stray strings:
+
+```text
+Orphan text error: "" must have a <text> as a parent: box-3 above renderable-13
+```
+
+React's ErrorBoundary turns that into a stack trace over your app; Solid has no
+boundary and the render throws. The diagnostic quotes the one your file will hit.
 
 The names overlap with HTML, which is the trap. `<span className="badge">` gets
 a type error on the prop and no warning at all about placement, and a bare

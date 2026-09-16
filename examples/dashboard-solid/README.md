@@ -1,8 +1,8 @@
-# Example: the same dashboard in Solid
+# Example: the dashboard in Solid
 
 Solid is not React with different spelling, and the linter does not pretend it
-is. This directory is the Solid twin of [`../dashboard`](../dashboard), with the
-same web reflexes and a different set of runtime consequences.
+is. This is the same dashboard as [`../dashboard-react`](../dashboard-react),
+with the same web reflexes and a different set of runtime consequences.
 
 ```bash
 bun install
@@ -13,7 +13,7 @@ Note there is **no `settings.opentui.framework`** in `eslint.config.mjs`. The
 framework comes from this directory's `tsconfig.json`
 (`"jsxImportSource": "@opentui/solid"`), exactly as it would in a real project.
 
-## What differs from the React example
+## What differs between the bindings
 
 | | React | Solid |
 | --- | --- | --- |

@@ -2,6 +2,9 @@
 
 Disallow writing directly to stdout while a renderer owns the screen.
 
+This is a `@opentui/core` renderer behaviour, so it applies identically to
+React, Solid and plain Core apps.
+
 ## Why
 
 This was verified against a real pty, because the test renderer's stdout is a

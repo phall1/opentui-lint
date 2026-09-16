@@ -72,6 +72,23 @@ Correct:
 `textShadow`, `cursor` and `transform` have no equivalent: a terminal cell grid
 has no sub-cell geometry and the terminal owns the font.
 
+## Solid's `on:` syntax is left alone
+
+Solid's reconciler routes any `on:x` prop straight to `node.on("x", …)` on the
+renderable's event emitter:
+
+```ts
+if (name.startsWith("on:")) {
+  const eventName = name.slice(3)
+  if (value) node.on(eventName, value)
+  ...
+}
+```
+
+That is a real binding, not a dead prop, so the rule never reports it in a Solid
+file. In a React file `on:click` is not special and falls through to the unknown
+prop path.
+
 ## Options
 
 ```js

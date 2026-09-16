@@ -10,8 +10,10 @@ This is the most common way an OpenTUI app dies:
 <box>Hello</box>
 ```
 
-Every binding's `createTextInstance` refuses to build a text node outside a
-`<text>` subtree:
+Both bindings refuse it, by different routes.
+
+**React** checks the host context before building the node, in
+`createTextInstance`:
 
 ```ts
 createTextInstance(text, rootContainerInstance, hostContext) {
@@ -22,9 +24,24 @@ createTextInstance(text, rootContainerInstance, hostContext) {
 }
 ```
 
-TypeScript cannot help. `BoxProps["children"]` is `React.ReactNode`, and
-`ReactNode` includes `string` and `number` — as it must, since that is React's
-own contract.
+The binding's ErrorBoundary catches that and paints a stack trace over your app.
+
+**Solid** has no such check. `createTextNode` builds the node happily, and the
+failure surfaces later, on insert:
+
+```text
+Orphan text error: "Hello" must have a <text> as a parent: box-1 above text-node-1
+```
+
+There is no error boundary in the Solid binding, so the render throws outright.
+Louder, and arguably better — but still at runtime, in a terminal, with no file
+or line number.
+
+The diagnostic quotes whichever of these your file will actually hit.
+
+TypeScript cannot help with either. `children` is `React.ReactNode` /
+`JSX.Element`, both of which include `string` and `number` — as they must, since
+that is each framework's own contract.
 
 ## Examples
 
