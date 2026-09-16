@@ -8,10 +8,9 @@ component registry installed exactly the way tuiparts' own CLI would install
 it. Both are pinned to an exact revision (`packages/corpus/src/pins.ts`),
 cached locally, and re-fetched only when a pin changes.
 
-Full detail — the triage methodology, every classification, and the two real
-`packages/lint` bugs this found — lives in
-[`packages/corpus/README.md`](../packages/corpus/README.md). The short
-version:
+[`packages/corpus/README.md`](../packages/corpus/README.md) has the full
+detail: the triage methodology, every classification, and the two real
+`packages/lint` bugs this found. The short version:
 
 - **235 real files, 85 findings, checked into `packages/corpus/baseline.json`
   with a classification and a reason for every one.**
@@ -25,8 +24,8 @@ version:
   about.
 - **21 `acceptable`** — all `no-website-spacing` (`strict-only`), a real,
   intentional style choice in OpenTUI's own demos, not a rule bug.
-- **The entire tuiparts corpus — every installed recipe across Core, React
-  and Solid, plus its own smoke tests — is clean.** The design-system rules
+- **The entire tuiparts corpus is clean**, every installed recipe across
+  Core, React and Solid, plus its own smoke tests. The design-system rules
   (`no-restyle`, `use-theme-tokens`, `no-magic-density`) are silent
   throughout, which is the expected result: every installed file is
   `isDesignSystemSource`.
