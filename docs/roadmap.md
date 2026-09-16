@@ -43,21 +43,20 @@ confirmed by rendering them against a control tree.
 
 ## Open
 
-### `require-focus`
+### ~~`require-focus`~~ — rejected
 
-An `<input>`, `<select>` or `<textarea>` that nothing ever focuses is
-unreachable. Whether this is *shippable* depends on facts that have to be
-established by running OpenTUI, not by reading it: whether a mouse click
-focuses an input, whether any built-in key traverses focus, and whether
-`@opentui/keymap` can route focus with no `focused` prop anywhere in the file.
+Investigated and **not built**. The premise — an unfocused `<input>` is
+unreachable — is false by default: `useMouse` and `autoFocus` both default to
+`true`, and a plain mouse click walks up to the nearest focusable renderable
+and focuses it. Verified by clicking one in a test renderer, not by reading
+about it. Tab does nothing; there is no built-in focus traversal to fall back
+on either.
 
-If a pointer focuses inputs, the premise collapses for any app a user can click
-in. If focus can be established through a ref, an effect, a keymap or a
-parent's `focused`, a file-local rule cannot see any of it and every one is a
-false positive.
-
-Under active investigation. A written-up rejection is an acceptable outcome and
-would be more useful than a rule nobody can trust.
+The disqualifying part is not the false positive rate, it is *where the
+deciding fact lives*: `useMouse` is a `createCliRenderer()` option, usually in
+a different file from the JSX, so no file-local rule can know whether a given
+input is reachable. The full findings and what would have to change upstream
+are in [`rules/require-focus-rejected.md`](rules/require-focus-rejected.md).
 
 ### Measuring whether the messages actually help
 
