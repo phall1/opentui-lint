@@ -69,7 +69,7 @@
     },
     "packages/lint": {
       "name": "opentui-lint",
-      "version": "0.0.0",
+      "version": "0.1.0",
       "devDependencies": {
         "@types/bun": "latest",
         "@types/eslint": "^9.6.1",

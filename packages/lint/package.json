@@ -1,7 +1,20 @@
 {
   "name": "opentui-lint",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "An agent-first linter for OpenTUI terminal apps. Catches the crashes and silent no-ops TypeScript lets through.",
+  "author": {
+    "name": "Patrick Hall",
+    "url": "https://github.com/phall1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/phall1/opentui-lint.git",
+    "directory": "packages/lint"
+  },
+  "homepage": "https://github.com/phall1/opentui-lint#readme",
+  "bugs": {
+    "url": "https://github.com/phall1/opentui-lint/issues"
+  },
   "license": "MIT",
   "type": "module",
   "exports": {
@@ -12,7 +25,11 @@
     "./package.json": "./package.json"
   },
   "types": "./dist/index.d.ts",
-  "files": ["dist"],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
   "keywords": [
     "opentui",
     "lint",
@@ -28,13 +45,17 @@
     "test": "bun test",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "catalog:sync": "bun scripts/sync-catalog.ts",
-    "catalog:check": "bun scripts/sync-catalog.ts --check"
+    "catalog:check": "bun scripts/sync-catalog.ts --check",
+    "prepack": "bun scripts/prepack.ts",
+    "postpack": "bun scripts/postpack.ts"
   },
   "peerDependencies": {
     "eslint": ">=9.30.0"
   },
   "peerDependenciesMeta": {
-    "eslint": { "optional": true }
+    "eslint": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/bun": "latest",
@@ -43,5 +64,11 @@
     "eslint": "^9.33.0",
     "tsdown": "^0.12.0",
     "typescript": "^5.9.2"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.19"
   }
 }
