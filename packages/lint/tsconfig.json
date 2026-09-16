@@ -1,4 +1,8 @@
 {
   "extends": "../../tsconfig.json",
-  "include": ["src/**/*", "test/**/*", "scripts/**/*"]
+  "include": ["src/**/*", "test/**/*", "scripts/**/*"],
+  // Fixtures are specimens the tests lint — deliberately containing mistakes,
+  // unresolvable imports and JSX for a runtime that is not installed here.
+  // They are inputs, not code to compile.
+  "exclude": ["test/fixtures"]
 }
