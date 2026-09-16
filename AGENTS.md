@@ -113,3 +113,44 @@ reader searching the codebase for a string that is not there.
 The error is the product. An agent should be able to fix the code from the
 message alone, without opening the OpenTUI docs. Each one says what breaks, why
 the type checker was quiet, and what to write instead, in that order.
+
+## Releasing
+
+Releases are automated by `.github/workflows/publish.yml`. release-please and
+the `npm publish` job live in that one file because npm's trusted publishing
+validates the workflow *filename* carried in the OIDC token, and it does not
+follow `workflow_call` into a reusable workflow.
+
+Commit subjects decide the version, so they have to be conventional commits from
+here on. `feat:` bumps the minor, `fix:` bumps the patch, and a breaking change
+bumps the minor too while the package is pre-1.0. Anything else (`docs:`,
+`ci:`, `refactor:`, `chore:`) ships no release at all.
+
+What a release looks like:
+
+1. release-please keeps a release PR open against `main` carrying the version
+   bump, `packages/lint/CHANGELOG.md`, and `.release-please-manifest.json`.
+2. Merging that PR tags the commit `vX.Y.Z` and cuts the GitHub release.
+3. The publish job on the same workflow run builds, re-runs the package's tests
+   and `catalog:check` against the exact commit being shipped, and publishes.
+
+There is no npm token anywhere in the repo or in the Actions secrets. The
+publish job holds `id-token: write`, npm trades that OIDC token for a
+short-lived credential, and the tarball lands with a provenance attestation
+pointing back at the run. The npm side is a trusted publisher on the package
+naming this repository and `publish.yml`.
+
+Two things worth knowing when it misbehaves:
+
+- A release whose publish job failed is recoverable without a new commit. Run
+  the workflow by hand (`gh workflow run publish.yml`); it publishes whatever
+  version `packages/lint/package.json` is at, and npm rejects a version it
+  already has, so there is nothing to overwrite.
+- A release-please release cannot trigger a separate workflow. The tag and the
+  release are created with `GITHUB_TOKEN`, and GitHub suppresses the events that
+  token produces, which is why the publish job hangs off `needs` rather than a
+  `release: published` trigger.
+
+Before anything reaches the registry, the dependency boundary check still
+applies: `npm pack --dry-run --workspace opentui-lint`, expecting
+`dependencies: {}`.

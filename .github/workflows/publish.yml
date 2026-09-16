@@ -1,0 +1,72 @@
+name: Release
+
+# Two jobs, one file, on purpose. npm's trusted publishing validates the
+# workflow *filename* in the OIDC token, and it does not follow `workflow_call`
+# into a reusable workflow — the check sees the caller. So the job that runs
+# `npm publish` lives here, in the file named in npm's trusted publisher
+# settings, and release-please sits beside it rather than in a workflow of its
+# own.
+#
+# A release-please release also cannot trigger a second workflow: the tag and
+# the GitHub release are created with GITHUB_TOKEN, and GitHub suppresses the
+# events that token produces. `needs` is the only reliable handoff.
+
+on:
+  push:
+    branches: [main]
+  # Publishes whatever version packages/lint/package.json is at, for the case
+  # where a release exists but its publish job failed, and for the first run
+  # after trusted publishing is configured. npm rejects a version it already
+  # has, so this cannot overwrite anything.
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      release_created: ${{ steps.release.outputs.release_created }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        if: github.event_name == 'push'
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  publish:
+    needs: release-please
+    if: needs.release-please.outputs.release_created == 'true' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # The whole authentication story. No NPM_TOKEN anywhere: npm exchanges
+      # this OIDC token for a short-lived credential and attaches provenance.
+      id-token: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      # Trusted publishing needs npm 11.5.1 or newer; the runner's bundled npm
+      # is usually past that already, and pinning the floor makes the failure
+      # mode a clear version error rather than an opaque 401.
+      - run: npm install -g npm@^11.5.1
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      # The tests CI already ran on this commit, re-run against the artifact
+      # that is about to be published rather than trusting a green check on an
+      # earlier SHA.
+      - run: bun run --filter opentui-lint test
+      - run: bun run catalog:check
+      - run: npm publish
+        working-directory: packages/lint
