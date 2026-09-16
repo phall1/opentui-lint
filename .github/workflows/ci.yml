@@ -34,4 +34,6 @@ jobs:
       - run: bun run build
       - run: bun run --filter opentui-lint-conformance test
       - run: bun run --filter opentui-lint-conformance-solid test
+      - run: bun run --filter opentui-lint-examples-conformance test
+      - run: bun run --filter opentui-lint-conformance-oxlint test
       - run: bun run catalog:check
