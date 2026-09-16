@@ -167,19 +167,58 @@ No evidence, no diagnostics. The plugin never guesses from the presence of JSX.
 
 ## Rules
 
-| Rule | Catches | Fixes | In `recommended` |
-| --- | --- | --- | --- |
-| [`no-unknown-elements`](docs/rules/no-unknown-elements.md) | `<div>`, `<p>`, wrong-binding spellings, typos | ✅ | error |
-| [`text-must-be-wrapped`](docs/rules/text-must-be-wrapped.md) | strings and numbers outside `<text>` | ✅ | error |
-| [`no-orphan-text-nodes`](docs/rules/no-orphan-text-nodes.md) | `<b>`, `<span>`, `<a>` outside `<text>` | ✅ | error |
-| [`valid-colors`](docs/rules/valid-colors.md) | color values that render magenta | ✅ | error |
-| [`no-web-props`](docs/rules/no-web-props.md) | `className`, `onClick`, `boxShadow`, `data-*` | ✅ | error |
-| [`no-unsupported-values`](docs/rules/no-unsupported-values.md) | `position="static"`, `minWidth="auto"`, `width={-1}` | — | error |
-| [`require-registration`](docs/rules/require-registration.md) | `<qr-code>` without `registerQRCode()` | — | error |
-| [`no-raw-stdout`](docs/rules/no-raw-stdout.md) | `process.stdout.write` corrupting the frame | — | error |
-| [`no-website-spacing`](docs/rules/no-website-spacing.md) | web-sized padding, margin and gap | — | off (in `strict`) |
+**Correctness** — every one reports something a typecheck cannot see. All in `recommended`, all errors.
 
-`strict` is `recommended` plus `no-website-spacing`.
+| Rule | Catches | Fixes |
+| --- | --- | --- |
+| [`no-unknown-elements`](docs/rules/no-unknown-elements.md) | `<div>`, `<p>`, wrong-binding spellings, typos | ✅ |
+| [`text-must-be-wrapped`](docs/rules/text-must-be-wrapped.md) | strings and numbers outside `<text>` | ✅ |
+| [`no-orphan-text-nodes`](docs/rules/no-orphan-text-nodes.md) | `<b>`, `<span>`, `<a>` outside `<text>` | ✅ |
+| [`valid-colors`](docs/rules/valid-colors.md) | color values that render magenta | ✅ |
+| [`no-web-props`](docs/rules/no-web-props.md) | `className`, `onClick`, `boxShadow`, `data-*` | ✅ |
+| [`no-unsupported-values`](docs/rules/no-unsupported-values.md) | `position="static"`, `minWidth="auto"`, `width={-1}` | — |
+| [`require-registration`](docs/rules/require-registration.md) | `<qr-code>` without `registerQRCode()` | — |
+| [`no-raw-stdout`](docs/rules/no-raw-stdout.md) | `process.stdout.write` corrupting the frame | — |
+
+**Design system** — in `strict`, not `recommended`. Each reports code that *works*; they enforce where styling decisions live, which is a policy a project chooses rather than a defect.
+
+| Rule | Catches |
+| --- | --- |
+| [`no-restyle`](docs/rules/no-restyle.md) | a call site restyling a component its library owns |
+| [`use-theme-tokens`](docs/rules/use-theme-tokens.md) | a raw color where the theme owns colors |
+| [`no-magic-density`](docs/rules/no-magic-density.md) | a literal that is really `tokens.density.paddingX` |
+| [`no-website-spacing`](docs/rules/no-website-spacing.md) | web-sized padding, margin and gap |
+
+The three that need a theme go quiet on their own in a project without one, so
+`strict` costs nothing extra there.
+
+Three of the correctness rules come from values the types actively bless.
+`position="static"` is in `PositionTypeString` but `isPositionTypeType` rejects
+it, so it silently becomes `"relative"` — and on a *change* the setter returns
+early, so a renderable toggled from `"absolute"` to `"static"` **stays
+absolute**. `minWidth="auto"` is in the option type and dropped by `isSizeType`.
+`alignItems="space-between"` typechecks and lays out identically to
+`"flex-end"`. All three confirmed by rendering them against a control tree.
+
+## `{label}` — the opt-in type-aware tier
+
+`text-must-be-wrapped` reports text it can *prove* is text. `<box>{label}</box>`
+is the most common real crash and syntax alone cannot judge it: `label` could
+just as easily be an element. Turn on the type checker and it can.
+
+```js
+"opentui/text-must-be-wrapped": ["error", { checkTypes: true }]
+```
+
+It decides on TypeScript's type flags, never a printed name: a union is text
+only if every non-nullish member is a string/number/literal type. So
+`string | undefined` reports and `ReactNode` does not. With no
+`parserOptions.project` configured it degrades to the syntactic result rather
+than throwing — trying the option before wiring a tsconfig is the obvious first
+move and must not explode.
+
+It costs no dependency. The checker is reached structurally through the parser
+services, so the package still installs nothing.
 
 Three of those come from values the types actively bless. `position="static"` is
 in `PositionTypeString` but `isPositionTypeType` rejects it, so it silently
@@ -267,6 +306,13 @@ They are separate packages because the two JSX pipelines cannot share a process
 — `@opentui/solid` compiles JSX through its own Bun preload. The Solid suite
 additionally asserts that no Solid diagnostic quotes React's wording, which is
 how the messages stay honest as the bindings drift apart.
+
+Two more suites guard the claims on this page. `packages/oxlint-conformance`
+runs every rule under the real oxlint binary and fails if a rule ships without
+an oxlint case. `packages/examples-conformance` pins the numbers the example
+READMEs quote — the totals, the per-rule breakdowns, what `--fix` resolves, and
+the verbatim diagnostics — so a rule change cannot quietly turn them into
+fiction.
 
 If a future OpenTUI starts validating colors, or gives `<div>` a meaning, these
 tests fail instead of the linter quietly lying to people.

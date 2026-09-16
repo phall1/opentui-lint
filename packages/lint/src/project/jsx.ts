@@ -4,7 +4,14 @@ import type { Node, RuleContext, Scope } from "./types.js"
 
 /** `<box>` → "box", `<ascii-font>` → "ascii-font", `<Foo.Bar>` → "Foo.Bar". */
 export function elementName(node: Node): string | undefined {
-  const name = node.type === "JSXOpeningElement" || node.type === "JSXElement" ? (node.name ?? node.openingElement?.name) : node.name
+  // Accepts an element, an opening element, or a name node directly. The last
+  // case is what the member-expression branch below recurses with: passing a
+  // bare `JSXIdentifier` back in used to fall through to `node.name`, which on
+  // an identifier is the *string* rather than a node, so `<Dialog.Content>`
+  // resolved to "?.Content" instead of "Dialog.Content".
+  const isNameNode =
+    node.type === "JSXIdentifier" || node.type === "JSXMemberExpression" || node.type === "JSXNamespacedName"
+  const name = isNameNode ? node : (node.name ?? node.openingElement?.name)
   if (!name) return undefined
   if (name.type === "JSXIdentifier") return name.name as string
   if (name.type === "JSXNamespacedName") return `${name.namespace.name}:${name.name.name}`

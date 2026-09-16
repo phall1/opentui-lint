@@ -82,4 +82,36 @@ export const RULE_COVERAGE: Record<string, RuleCoverage> = {
     frameworkSensitive: false,
     react: { file: "react/no-website-spacing.tsx", expect: "spends 4 rows and columns" },
   },
+
+  // The three design-system rules need a theme in scope, so their fixtures live
+  // under `fixtures/design-system/`, which carries a components/ui/theme.ts.
+  // Unlike the stock tuiparts theme that one has literal colors, so the tier of
+  // use-theme-tokens that can actually name a token has something to match.
+  "no-magic-density": {
+    // The Solid spelling of a token read is an accessor call, and the message
+    // shows the spelling you would actually write.
+    frameworkSensitive: true,
+    react: {
+      file: "design-system/app/no-magic-density.tsx",
+      expect: "equals tokens.density.paddingX's current value",
+    },
+    solid: {
+      file: "design-system/app/no-magic-density.solid.tsx",
+      expect: "Write tokens().density.paddingX",
+    },
+  },
+  "use-theme-tokens": {
+    frameworkSensitive: false,
+    react: {
+      file: "design-system/app/use-theme-tokens.tsx",
+      expect: "is a raw color literal",
+    },
+  },
+  "no-restyle": {
+    frameworkSensitive: false,
+    react: {
+      file: "design-system/app/no-restyle.tsx",
+      expect: "theme.subscribe",
+    },
+  },
 }

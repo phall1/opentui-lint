@@ -168,11 +168,25 @@ typedTester().run("text-must-be-wrapped (checkTypes unblocks a run)", asRule(rul
       errors: 2,
     },
     {
-      // The same source without checkTypes: reported, but only offered.
+      // The same source without checkTypes. Only " items" is provable, so the
+      // run stops there and its neighbour is ambiguous — which is why this is
+      // offered rather than applied. The offered edit splits the line, and that
+      // is the honest thing to show: it is the best edit that can be justified
+      // from syntax alone, and a person previewing it can see the cost.
       code: `declare const items: string[]\nexport const App = () => <box>{items.length} items</box>`,
       filename: file,
       output: null,
-      errors: [{ message: /renders as a text node/, suggestions: 1 }],
+      errors: [
+        {
+          message: /renders as a text node/,
+          suggestions: [
+            {
+              desc: "Wrap the text in <text>",
+              output: `declare const items: string[]\nexport const App = () => <box>{items.length} <text>items</text></box>`,
+            },
+          ],
+        },
+      ],
     },
   ],
 })
