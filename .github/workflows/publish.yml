@@ -29,8 +29,14 @@ jobs:
       contents: write
       pull-requests: write
     outputs:
-      release_created: ${{ steps.release.outputs.release_created }}
-      tag_name: ${{ steps.release.outputs.tag_name }}
+      # `releases_created`, not `release_created`. The action only sets the
+      # unprefixed per-release outputs when a package's path is the repo root;
+      # for a path like packages/lint every one of them is written as
+      # `packages/lint--release_created`. The bare name is always empty here, so
+      # reading it skips the publish on a real release and says nothing about
+      # why. That happened once, to 0.4.0.
+      release_created: ${{ steps.release.outputs.releases_created }}
+      tag_name: ${{ steps.release.outputs['packages/lint--tag_name'] }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
@@ -38,6 +44,10 @@ jobs:
         with:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
+      # Cheap insurance against the same class of mistake: when a release does
+      # not publish, the outputs the decision was made on are in the log.
+      - if: github.event_name == 'push'
+        run: echo '${{ toJSON(steps.release.outputs) }}'
 
   publish:
     needs: release-please
