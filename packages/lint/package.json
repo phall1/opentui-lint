@@ -67,12 +67,8 @@
     "typescript": "^5.9.2"
   },
   "peerDependencies": {
+    "@typescript-eslint/parser": ">=8.40.0",
     "eslint": ">=9.30.0"
-  },
-  "peerDependenciesMeta": {
-    "eslint": {
-      "optional": true
-    }
   },
   "engines": {
     "node": ">=20.19"

@@ -1,0 +1,4 @@
+{
+  // No jsxImportSource on purpose: only the import in src/Import.tsx is evidence.
+  "compilerOptions": { "jsx": "preserve" }
+}

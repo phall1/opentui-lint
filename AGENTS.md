@@ -14,11 +14,25 @@ bun run lint        # oxlint over this repo's own source
 bun run build       # builds packages/lint
 ```
 
+The CLI is `packages/lint/src/cli.ts` with one module per command under
+`src/commands/`. `bun packages/lint/src/cli.ts --react <dir>` runs it from
+source; `packages/lint/test/cli.test.ts` runs it as a subprocess the way a
+user would, including the exit codes.
+
 ## The dependency boundary
 
 **The published package has zero runtime dependencies and keeps them.** It lands
 in every consumer's devDependencies; anything added here is a cost every
 OpenTUI app pays for a dev tool.
+
+`eslint` and `@typescript-eslint/parser` are **required peer dependencies**,
+not dependencies, and that distinction is what makes `bunx opentui-lint` work
+with nothing installed: bunx and npx install a package's non-optional peers
+beside it (checked against Bun 1.4.2 and npm 11), while a consumer's own
+install still records them as peers rather than paying for them twice.
+`src/commands/lint.ts` imports both lazily, so `init` and `doctor` run without
+them and a missing pair is reported with the command that fixes it. Do not
+mark them optional again; the one-shot run would fail with a module-not-found.
 
 Effect is used in `scripts/sync-catalog.ts` and belongs in `devDependencies`
 only. Never import it from `src/`, not for convenience and not "just this once".
@@ -40,7 +54,7 @@ directory on SIGINT**; `acquireRelease` under `runMain` does not.
 After touching the package manifest, confirm the boundary held:
 
 ```bash
-npm pack --dry-run --workspace opentui-lint   # expect ~35 kB, dependencies: {}
+npm pack --dry-run --workspace opentui-lint   # expect ~60 kB, dependencies: {}
 ```
 
 ## The two rules that matter
