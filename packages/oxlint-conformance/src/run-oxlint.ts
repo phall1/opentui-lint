@@ -1,5 +1,4 @@
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
 /**
@@ -41,8 +40,18 @@ interface OxlintReport {
  * what a consumer's own tooling would filter on too.
  */
 function ownDiagnostics(report: OxlintReport): OxlintDiagnostic[] {
-  return report.diagnostics.filter((d) => d.code.startsWith("opentui-lint("));
+  return report.diagnostics.filter((d) => OWN_PREFIXES.some((prefix) => d.code.startsWith(prefix)));
 }
+
+/**
+ * Two prefixes, because a config can pick the namespace. A plain string
+ * specifier reports under the plugin's own `meta.name`; the
+ * `{ name, specifier }` form reports under whatever `name` says, and the
+ * README's second block uses that to get the `opentui/` prefix the ESLint
+ * setup has. Neither collides with oxlint's own rules, which report under
+ * `eslint(…)` and friends.
+ */
+const OWN_PREFIXES = ["opentui-lint(", "opentui("];
 
 /**
  * Runs the real oxlint binary against `paths` under `configPath` and returns
@@ -87,7 +96,13 @@ export async function withOxlintConfig<T>(
   config: object,
   run: (configPath: string) => T | Promise<T>,
 ): Promise<T> {
-  const dir = mkdtempSync(join(tmpdir(), "oxlint-conformance-"));
+  // The scratch config lives inside this package rather than in the OS temp
+  // directory because oxlint resolves a plugin specifier relative to the
+  // config file, not the working directory. A bare `"opentui-lint"` written
+  // into /tmp cannot find anything; written here, it walks up to this
+  // package's own node_modules exactly as it would from a real project root.
+  // That is what lets the README test run the published snippet verbatim.
+  const dir = mkdtempSync(join(import.meta.dir, "..", ".oxlint-tmp-"));
   const configPath = join(dir, ".oxlintrc.json");
   writeFileSync(configPath, JSON.stringify(config, null, 2));
   try {

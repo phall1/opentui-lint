@@ -5,3 +5,4 @@ dist
 coverage
 .turbo
 packages/lint/test/fixtures/typed-app/src/cases/
+.oxlint-tmp-*

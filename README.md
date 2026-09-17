@@ -315,18 +315,39 @@ tests fail instead of the linter quietly lying to people.
 ## Oxlint
 
 The rule objects work unmodified as an Oxlint JS plugin, which matters because
-OpenTUI's own repo uses oxlint:
+OpenTUI's own repo uses oxlint. `.oxlintrc.json`:
 
 ```json
 {
-  "jsPlugins": ["./node_modules/opentui-lint/dist/index.js"],
-  "settings": { "opentui": { "framework": "react" } },
+  "jsPlugins": ["opentui-lint"],
   "rules": { "opentui-lint/no-unknown-elements": "error" }
 }
 ```
 
-Verified against oxlint 1.83. Its JS plugin API is still alpha, so treat this as
-working-but-young; ESLint is the better-tested path today.
+That is the whole install. No parser, no plugin import, no settings block: a
+file that imports `@opentui/react` or `@opentui/solid` identifies itself, and
+oxlint resolves the bare package name through `node_modules` the same way Node
+does.
+
+Rules report under the plugin's own name by default. To use the same `opentui/`
+prefix the ESLint setup uses, name it:
+
+```json
+{
+  "jsPlugins": [{ "name": "opentui", "specifier": "opentui-lint" }],
+  "rules": { "opentui/no-unknown-elements": "error" }
+}
+```
+
+Both blocks are run verbatim by a real oxlint process in
+`packages/oxlint-conformance`, bare specifier included.
+
+Two limits worth knowing. oxlint's `categories` do not reach JS plugin rules,
+so each rule is listed by name rather than switched on as a group, and the
+`recommended` and `strict` exports cannot be spread into an oxlint config
+because their keys carry the ESLint prefix. Verified against oxlint 1.83. Its
+JS plugin API is still alpha, so treat this as working-but-young; ESLint is the
+better-tested path today.
 
 ## Status
 

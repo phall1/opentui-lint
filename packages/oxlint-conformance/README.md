@@ -52,9 +52,11 @@ output. There is no mock of oxlint anywhere in this package.
   rewrites `<div>` to `<box>` in place; a suggestion-only diagnostic
   (`<boxx>` → did-you-mean `<box>`) is left alone by plain `--fix` and only
   applied by `--fix-suggestions`, matching ESLint's own fix/suggest split.
-- **`readme-example.test.ts`** — the exact JSON block from the root README's
-  Oxlint section (module path aside, see the file's own comment) reports
-  `<div>` the way the README says it will.
+- **`readme-example.test.ts`** — both JSON blocks from the root README's Oxlint
+  section, byte-for-byte as published, bare `"opentui-lint"` specifier and
+  absent `settings` block included. One proves the default namespace reports
+  `<div>` the way the README says; the other proves the
+  `{ name, specifier }` form renames it to `opentui`.
 
 ## What did _not_ work
 
@@ -68,15 +70,27 @@ Nothing. Every channel above worked identically to ESLint on the first attempt:
 survived the port, not just the one `no-unknown-elements` case that was
 hand-checked before this package existed.
 
-One portability nuance, not a bug. **oxlint's rule-id namespace is always the
-plugin's own `meta.name`** (`"opentui-lint"`), regardless of what key a
-config's `jsPlugins` array or an ESLint `plugins: {}` object gives it. The
-package's `recommended` and `strict` exports are keyed `"opentui/<rule>"`
-(the alias the ESLint README example happens to choose), so they cannot be
-spread directly into an oxlint config's `rules` block; every key has to be
-written `"opentui-lint/<rule>"` by hand, exactly as the root README's own
-example already does. `allRulesConfig()` in `src/run-oxlint.ts` builds oxlint
-rule keys this way for the same reason.
+Two portability nuances, neither a bug.
+
+**The rule-id namespace follows the specifier form.** A plain string in
+`jsPlugins` reports under the plugin's own `meta.name` (`"opentui-lint"`); the
+`{ "name": "opentui", "specifier": "opentui-lint" }` form reports under `name`,
+which is how an oxlint config gets the same `opentui/` prefix the ESLint setup
+uses. An earlier version of this file claimed the namespace was always
+`meta.name` regardless of config, which was wrong and is now pinned by a test
+in `readme-example.test.ts` rather than asserted here. `allRulesConfig()` in
+`src/run-oxlint.ts` uses the plain form and so writes `"opentui-lint/<rule>"`
+keys; the package's `recommended` and `strict` exports are keyed
+`"opentui/<rule>"` and still cannot be spread into an oxlint config, since the
+prefix has to match whichever form that config chose.
+
+**A plugin specifier resolves relative to the config file, not the working
+directory.** A bare `"opentui-lint"` is resolved through `node_modules` the way
+Node would, starting from the directory holding `.oxlintrc.json`. That is why
+`withOxlintConfig` writes its scratch config inside this package instead of the
+OS temp directory: from `/tmp` the bare name resolves to nothing, and the
+README test could only have run a rewritten config rather than the published
+one.
 
 ## Files
 
@@ -87,7 +101,9 @@ rule keys this way for the same reason.
 - `src/rule-fixtures.ts` — the rule → fixture → expected-substring table
   `coverage.test.ts` drives and drift-checks.
 - `fixtures/react/*.tsx`, `fixtures/solid/*.tsx` — one violation per rule.
-- `fixtures/channels/*` — the settings/options/filename/state cases.
+- `fixtures/channels/*` — the settings/options/filename/state cases, plus
+  `import-div.tsx`, whose `@opentui/react` import is the only framework
+  evidence the README's settings-free config gets.
 - `fixtures/fixes/*.tsx` — copied to a temp dir before `--fix` runs, so the
   checked-in fixtures are never mutated by the tests that exercise them.
 
