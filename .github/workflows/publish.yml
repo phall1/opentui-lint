@@ -29,14 +29,14 @@ jobs:
       contents: write
       pull-requests: write
     outputs:
-      # `releases_created`, not `release_created`. The action only sets the
-      # unprefixed per-release outputs when a package's path is the repo root;
-      # for a path like packages/lint every one of them is written as
-      # `packages/lint--release_created`. The bare name is always empty here, so
-      # reading it skips the publish on a real release and says nothing about
-      # why. That happened once, to 0.4.0.
+      # `releases_created` is set whatever the package's path is. The
+      # unprefixed per-release outputs below it exist only because that path is
+      # the repo root; under a path like `packages/lint` they are written
+      # `packages/lint--release_created` instead, the bare names read as empty,
+      # and the publish silently skips a real release. That happened once, to
+      # 0.4.0.
       release_created: ${{ steps.release.outputs.releases_created }}
-      tag_name: ${{ steps.release.outputs['packages/lint--tag_name'] }}
+      tag_name: ${{ steps.release.outputs.tag_name }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release

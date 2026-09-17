@@ -4,10 +4,21 @@
   "bump-minor-pre-major": true,
   "bump-patch-for-minor-pre-major": false,
   "packages": {
-    "packages/lint": {
+    ".": {
       "release-type": "node",
       "package-name": "opentui-lint",
-      "changelog-path": "CHANGELOG.md",
+      "changelog-path": "packages/lint/CHANGELOG.md",
+      "extra-files": [
+        { "type": "json", "path": "packages/lint/package.json", "jsonpath": "$.version" }
+      ],
+      "exclude-paths": [
+        "examples",
+        "packages/conformance",
+        "packages/conformance-solid",
+        "packages/corpus",
+        "packages/examples-conformance",
+        "packages/oxlint-conformance"
+      ],
       "changelog-sections": [
         { "type": "feat", "section": "Features" },
         { "type": "fix", "section": "Bug fixes" },
