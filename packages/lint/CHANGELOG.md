@@ -5,6 +5,13 @@ commits. The three entries below were written by hand after the fact, from the
 commits that bumped the version. 0.2.0 and 0.3.0 never reached npm, which is why
 0.1.0 sat on the registry while the repo moved on.
 
+## [0.4.0](https://github.com/phall1/opentui-lint/compare/v0.3.0...v0.4.0) (2026-09-17)
+
+
+### Features
+
+* catalog sync ([9081fe9](https://github.com/phall1/opentui-lint/commit/9081fe968ff67c02c665b1110a2ac7fb2f0a4210))
+
 ## [0.3.0](https://github.com/phall1/opentui-lint/releases/tag/v0.3.0) (2026-09-16)
 
 The design-system half. Twelve rules: eight correctness in `recommended`, four
