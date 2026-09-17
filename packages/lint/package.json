@@ -1,6 +1,6 @@
 {
   "name": "opentui-lint",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "An agent-first linter for OpenTUI terminal apps. Catches the crashes and silent no-ops TypeScript lets through.",
   "keywords": [
     "design-system",
