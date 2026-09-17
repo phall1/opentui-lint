@@ -1,9 +1,18 @@
-import { isColorProp, SPACING_PROPS } from "../catalog/index.js"
-import { compileContracts, ContractConfigError, type ContractInput, type RestyleCategory } from "../project/contracts.js"
-import { designSystemFor, designSystemImports, isDesignSystemSource } from "../project/design-system.js"
-import { attributeName, objectEntries, resolveObjectExpression } from "../project/jsx.js"
-import { defineRule } from "../project/rule.js"
-import type { Node } from "../project/types.js"
+import { isColorProp, SPACING_PROPS } from "../catalog/index.js";
+import {
+  compileContracts,
+  ContractConfigError,
+  type ContractInput,
+  type RestyleCategory,
+} from "../project/contracts.js";
+import {
+  designSystemFor,
+  designSystemImports,
+  isDesignSystemSource,
+} from "../project/design-system.js";
+import { attributeName, objectEntries, resolveObjectExpression } from "../project/jsx.js";
+import { defineRule } from "../project/rule.js";
+import type { Node } from "../project/types.js";
 
 /**
  * The flagship design-system rule, and the OpenTUI analogue of `@shadcn/lint`'s
@@ -31,14 +40,14 @@ import type { Node } from "../project/types.js"
  * the catalog's generated list is the source of truth for which prop names
  * carry a color, and duplicating that split by hand here would drift.
  */
-const BORDER_PROPS = new Set(["border", "borderStyle", "customBorderChars"])
+const BORDER_PROPS = new Set(["border", "borderStyle", "customBorderChars"]);
 
 /**
  * OpenTUI's typed prop surface has no font-weight/italic axis to speak of;
  * `font` (which ascii typeface renders) and `showUnderline` are what actually
  * exists. A sparse category beats an invented one.
  */
-const TYPOGRAPHY_PROPS = new Set(["font", "showUnderline"])
+const TYPOGRAPHY_PROPS = new Set(["font", "showUnderline"]);
 
 /**
  * `padding*` is the design system's box model; `margin*` is the call site's
@@ -47,7 +56,9 @@ const TYPOGRAPHY_PROPS = new Set(["font", "showUnderline"])
  * prop upstream is picked up automatically and a same-prefixed unrelated prop
  * never is.
  */
-const SPACING_PROPS_OWNED = new Set<string>(SPACING_PROPS.filter((prop) => prop.startsWith("padding")))
+const SPACING_PROPS_OWNED = new Set<string>(
+  SPACING_PROPS.filter((prop) => prop.startsWith("padding")),
+);
 
 /**
  * Flex/gap props that shape how a component arranges *its own* children.
@@ -62,7 +73,7 @@ const INTERNAL_LAYOUT_PROPS = new Set<string>([
   "alignItems",
   "justifyContent",
   "flexWrap",
-])
+]);
 
 /**
  * Which of the five owned categories a prop falls in, or `undefined` for
@@ -73,12 +84,12 @@ const INTERNAL_LAYOUT_PROPS = new Set<string>([
  * — there is no need to enumerate them.
  */
 function categoryOf(prop: string): RestyleCategory | undefined {
-  if (isColorProp(prop)) return "color"
-  if (BORDER_PROPS.has(prop)) return "border"
-  if (TYPOGRAPHY_PROPS.has(prop)) return "typography"
-  if (SPACING_PROPS_OWNED.has(prop)) return "spacing"
-  if (INTERNAL_LAYOUT_PROPS.has(prop)) return "internalLayout"
-  return undefined
+  if (isColorProp(prop)) return "color";
+  if (BORDER_PROPS.has(prop)) return "border";
+  if (TYPOGRAPHY_PROPS.has(prop)) return "typography";
+  if (SPACING_PROPS_OWNED.has(prop)) return "spacing";
+  if (INTERNAL_LAYOUT_PROPS.has(prop)) return "internalLayout";
+  return undefined;
 }
 
 function defaultMessage(component: string, prop: string, category: RestyleCategory): string {
@@ -89,7 +100,7 @@ function defaultMessage(component: string, prop: string, category: RestyleCatego
     `recipe lets you override an instance), so nothing here is broken — this is a stricter house policy on ` +
     `top of that. Prefer ${component}'s own variant, size, or intent prop if it exposes one, or allow ` +
     `"${category}" for ${component} in this rule's \`contracts\` option.`
-  )
+  );
 }
 
 /**
@@ -102,30 +113,30 @@ function defaultMessage(component: string, prop: string, category: RestyleCatego
  * hand and this is the narrower thing to say.
  */
 function jsxName(nameNode: Node | undefined): string | undefined {
-  if (!nameNode) return undefined
-  if (nameNode.type === "JSXIdentifier") return nameNode.name as string
+  if (!nameNode) return undefined;
+  if (nameNode.type === "JSXIdentifier") return nameNode.name as string;
   if (nameNode.type === "JSXMemberExpression") {
-    const object = jsxName(nameNode.object)
-    return object ? `${object}.${nameNode.property.name}` : undefined
+    const object = jsxName(nameNode.object);
+    return object ? `${object}.${nameNode.property.name}` : undefined;
   }
-  return undefined
+  return undefined;
 }
 
 /** `<Dialog.Content>` → "DialogContent", so one contract entry covers both spellings. */
 function flatten(name: string): string {
-  return name.replace(/\./g, "")
+  return name.replace(/\./g, "");
 }
 
 /** Whether the JSX name starts with an uppercase letter — a component, never a host element. */
 function isCapitalized(name: string): boolean {
-  const first = name[0]
-  return first !== undefined && first === first.toUpperCase() && first !== first.toLowerCase()
+  const first = name[0];
+  return first !== undefined && first === first.toUpperCase() && first !== first.toLowerCase();
 }
 
 // Matches `defineRule`'s own (unexported) `Handlers` type structurally, so the
 // early `return {}` below and the full handlers object at the end type-check
 // against the same shape instead of TypeScript inferring a union of the two.
-type Handlers = Record<string, (node: Node) => void>
+type Handlers = Record<string, (node: Node) => void>;
 
 export default defineRule(
   {
@@ -153,7 +164,10 @@ export default defineRule(
               additionalProperties: false,
             },
           },
-          message: { type: "string", description: "Fallback message for a contract that does not set its own." },
+          message: {
+            type: "string",
+            description: "Fallback message for a contract that does not set its own.",
+          },
         },
         additionalProperties: false,
       },
@@ -163,32 +177,32 @@ export default defineRule(
     // No project model, or this file *is* the design system: nothing to check.
     // Linting a recipe against its own rule would report every recipe in the
     // project, and there is nothing to compare an unconfigured project to.
-    const system = designSystemFor(context)
-    if (!system || isDesignSystemSource(context, system)) return {}
+    const system = designSystemFor(context);
+    if (!system || isDesignSystemSource(context, system)) return {};
 
-    const options = (context.options[0] ?? {}) as { contracts?: ContractInput[]; message?: string }
-    const fallbackMessage = options.message
+    const options = (context.options[0] ?? {}) as { contracts?: ContractInput[]; message?: string };
+    const fallbackMessage = options.message;
 
-    let contracts: ReturnType<typeof compileContracts> | undefined
-    let configError: string | undefined
+    let contracts: ReturnType<typeof compileContracts> | undefined;
+    let configError: string | undefined;
     try {
-      contracts = compileContracts(options.contracts)
+      contracts = compileContracts(options.contracts);
     } catch (error) {
-      if (!(error instanceof ContractConfigError)) throw error
-      configError = error.message
+      if (!(error instanceof ContractConfigError)) throw error;
+      configError = error.message;
     }
 
-    let owned = new Set<string>()
+    let owned = new Set<string>();
 
     function check(component: string, prop: string, reportNode: Node): void {
-      const category = categoryOf(prop)
-      if (!category || !contracts) return
-      const verdict = contracts.decide(component, category)
-      if (verdict.allowed) return
+      const category = categoryOf(prop);
+      if (!category || !contracts) return;
+      const verdict = contracts.decide(component, category);
+      if (verdict.allowed) return;
       context.report({
         node: reportNode,
         message: verdict.message ?? fallbackMessage ?? defaultMessage(component, prop, category),
-      })
+      });
     }
 
     return {
@@ -198,16 +212,16 @@ export default defineRule(
         // structurally — TypeScript's "weak type" check just cannot see that
         // through an index signature, so this is a real Program node, not an
         // unsafe cast.
-        owned = designSystemImports(node as unknown as { body?: unknown[] }, system.uiDir)
+        owned = designSystemImports(node as unknown as { body?: unknown[] }, system.uiDir);
         // A misconfigured policy is reported once, at the top of the file, and
         // nothing else fires for it — `check` above bails whenever `contracts`
         // is unset, so this is the only diagnostic the file can produce.
-        if (configError) context.report({ node, message: configError })
+        if (configError) context.report({ node, message: configError });
       },
 
       JSXOpeningElement(node) {
-        const name = jsxName(node.name)
-        if (!name || !isCapitalized(name)) return
+        const name = jsxName(node.name);
+        if (!name || !isCapitalized(name)) return;
 
         // Scope is decided by the import, not the spelling: a `Button` that
         // did not come from the ui directory — `<For>` from solid-js, the
@@ -215,27 +229,29 @@ export default defineRule(
         // the name looks. This misses a design-system component re-exported
         // through a barrel the import scan cannot see through, which is the
         // same limitation `designSystemImports` documents.
-        const owner = name.split(".")[0]!
-        if (!owned.has(owner)) return
+        const owner = name.split(".")[0]!;
+        if (!owned.has(owner)) return;
 
-        const component = flatten(name)
+        const component = flatten(name);
 
         for (const attribute of (node.attributes ?? []) as Node[]) {
-          const attrName = attributeName(attribute)
-          if (!attrName) continue // a spread attribute names no single prop
+          const attrName = attributeName(attribute);
+          if (!attrName) continue; // a spread attribute names no single prop
 
           if (attrName === "style") {
             const expression =
-              attribute.value?.type === "JSXExpressionContainer" ? attribute.value.expression : undefined
-            const object = resolveObjectExpression(context, expression)
-            if (!object) continue
-            for (const entry of objectEntries(object)) check(component, entry.key, entry.node)
-            continue
+              attribute.value?.type === "JSXExpressionContainer"
+                ? attribute.value.expression
+                : undefined;
+            const object = resolveObjectExpression(context, expression);
+            if (!object) continue;
+            for (const entry of objectEntries(object)) check(component, entry.key, entry.node);
+            continue;
           }
 
-          check(component, attrName, attribute)
+          check(component, attrName, attribute);
         }
       },
-    }
+    };
   },
-)
+);

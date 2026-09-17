@@ -15,14 +15,14 @@ framework comes from this directory's `tsconfig.json`
 
 ## What differs between the bindings
 
-| | React | Solid |
-| --- | --- | --- |
-| Unknown element | `Unknown component type: div` | `[Reconciler] Unknown component type: div` |
-| Text outside `<text>` | `Text must be created inside of a text node` | `Orphan text error: "…" must have a <text> as a parent` |
-| Where it fails | `createInstance` / `createTextInstance` | `createElement` / `insertNode` |
-| What you see | ErrorBoundary paints a red stack trace over your app | no boundary — the render throws |
-| Compound element names | `ascii-font`, `tab-select`, `line-number` | `ascii_font`, `tab_select`, `line_number` |
-| Event syntax | `onMouseDown={…}` | `onMouseDown={…}` and `on:mousedown={…}` |
+|                        | React                                                | Solid                                                   |
+| ---------------------- | ---------------------------------------------------- | ------------------------------------------------------- |
+| Unknown element        | `Unknown component type: div`                        | `[Reconciler] Unknown component type: div`              |
+| Text outside `<text>`  | `Text must be created inside of a text node`         | `Orphan text error: "…" must have a <text> as a parent` |
+| Where it fails         | `createInstance` / `createTextInstance`              | `createElement` / `insertNode`                          |
+| What you see           | ErrorBoundary paints a red stack trace over your app | no boundary — the render throws                         |
+| Compound element names | `ascii-font`, `tab-select`, `line-number`            | `ascii_font`, `tab_select`, `line_number`               |
+| Event syntax           | `onMouseDown={…}`                                    | `onMouseDown={…}` and `on:mousedown={…}`                |
 
 So the same `<div>` produces a different message here:
 

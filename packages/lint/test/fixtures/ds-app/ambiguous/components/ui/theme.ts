@@ -1,4 +1,4 @@
-import { RGBA } from "@opentui/core"
+import { RGBA } from "@opentui/core";
 
 /**
  * A second, independent design system nested under the main `ds-app`
@@ -11,13 +11,13 @@ import { RGBA } from "@opentui/core"
  * theme rather than the one at the fixture root.
  */
 export interface Tokens {
-  colors: { background: string }
-  glyphs: { check: string; radioFilled: string }
-  borders: { style: "single" | "rounded" }
-  density: { paddingX: number; gutter: number; none: number }
+  colors: { background: string };
+  glyphs: { check: string; radioFilled: string };
+  borders: { style: "single" | "rounded" };
+  density: { paddingX: number; gutter: number; none: number };
 }
 
-export declare function createThemeStore(config: { base: Tokens }): unknown
+export declare function createThemeStore(config: { base: Tokens }): unknown;
 
 export const terminal: Tokens = {
   colors: { background: RGBA.defaultBackground() },
@@ -28,6 +28,6 @@ export const terminal: Tokens = {
   // `gutter` and `paddingX` happen to agree at `1`; `none` is the express
   // "no spacing" token, deliberately `0`.
   density: { paddingX: 1, gutter: 1, none: 0 },
-}
+};
 
-export const theme = createThemeStore({ base: terminal })
+export const theme = createThemeStore({ base: terminal });

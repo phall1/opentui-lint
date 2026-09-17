@@ -15,8 +15,8 @@
  *   ]
  */
 
-export { plugin, plugin as default, recommended, rules, strict } from "./plugin.js"
-export type { RuleName } from "./plugin.js"
-export type { OpenTuiSettings } from "./project/framework.js"
-export { CATALOG_VERSION, NAMED_COLORS } from "./catalog/index.js"
-export type { Framework } from "./catalog/index.js"
+export { plugin, plugin as default, recommended, rules, strict } from "./plugin.js";
+export type { RuleName } from "./plugin.js";
+export type { OpenTuiSettings } from "./project/framework.js";
+export { CATALOG_VERSION, NAMED_COLORS } from "./catalog/index.js";
+export type { Framework } from "./catalog/index.js";

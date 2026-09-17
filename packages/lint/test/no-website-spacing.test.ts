@@ -1,5 +1,5 @@
-import rule from "../src/rules/no-website-spacing.js"
-import { asRule, tester, undetectedTester } from "./helpers.js"
+import rule from "../src/rules/no-website-spacing.js";
+import { asRule, tester, undetectedTester } from "./helpers.js";
 
 tester().run("no-website-spacing", asRule(rule), {
   valid: [
@@ -17,7 +17,12 @@ tester().run("no-website-spacing", asRule(rule), {
   invalid: [
     {
       code: `const a = <box padding={4} />`,
-      errors: [{ message: /spends 4 rows and columns of empty cells inside the box.*whole terminal cells, not pixels/s }],
+      errors: [
+        {
+          message:
+            /spends 4 rows and columns of empty cells inside the box.*whole terminal cells, not pixels/s,
+        },
+      ],
     },
     {
       code: `const a = <box marginTop={3} />`,
@@ -38,9 +43,9 @@ tester().run("no-website-spacing", asRule(rule), {
       errors: [{ message: "Use the density tokens from components/ui/theme.ts." }],
     },
   ],
-})
+});
 
 undetectedTester().run("no-website-spacing (not an OpenTUI file)", asRule(rule), {
   valid: [`export const Page = () => <div style={{ padding: 24, gap: 16 }} />`],
   invalid: [],
-})
+});

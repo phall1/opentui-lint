@@ -1,19 +1,19 @@
 // The same dashboard after the linter. Every change here was named by an error
 // message; none of it required opening the OpenTUI docs.
-import { useKeyboard } from "@opentui/react"
+import { useKeyboard } from "@opentui/react";
 
 interface Service {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
 // A terminal panel earns its separation from a border, not from empty cells.
-const card = { padding: 1, backgroundColor: "#1e293b", borderStyle: "rounded" } as const
+const card = { padding: 1, backgroundColor: "#1e293b", borderStyle: "rounded" } as const;
 
 export function Dashboard({ services, selected }: { services: Service[]; selected: string }) {
   useKeyboard((key) => {
-    if (key.name === "q") process.exit(0)
-  })
+    if (key.name === "q") process.exit(0);
+  });
 
   return (
     <box flexDirection="column">
@@ -46,5 +46,5 @@ export function Dashboard({ services, selected }: { services: Service[]; selecte
         </text>
       </box>
     </box>
-  )
+  );
 }

@@ -3,7 +3,7 @@
 // Run `bun run catalog:sync` after bumping the supported OpenTUI version.
 
 /** OpenTUI version these facts were read from. */
-export const CATALOG_VERSION = "0.5.11"
+export const CATALOG_VERSION = "0.5.11";
 
 /**
  * Color names `parseColor()` recognizes. Anything else resolves to opaque
@@ -39,8 +39,8 @@ export const NAMED_COLORS = [
   "teal",
   "transparent",
   "white",
-  "yellow"
-] as const
+  "yellow",
+] as const;
 
 /**
  * Props whose values flow through `parseColor()`.
@@ -82,8 +82,8 @@ export const COLOR_PROPS = [
   "selectionFg",
   "tabIndicatorColor",
   "textColor",
-  "titleColor"
-] as const
+  "titleColor",
+] as const;
 
 /**
  * Layout props measured in whole terminal cells, not pixels. Also derived, so
@@ -106,19 +106,19 @@ export const SPACING_PROPS = [
   "paddingTop",
   "paddingX",
   "paddingY",
-  "rowGap"
-] as const
+  "rowGap",
+] as const;
 
 export interface ElementFacts {
-  props: readonly string[]
-  textNode: boolean
-  typed: boolean
+  props: readonly string[];
+  textNode: boolean;
+  typed: boolean;
 }
 
 export interface FrameworkFacts {
-  elements: Readonly<Record<string, ElementFacts>>
-  domLeaks: readonly string[]
-  acceptsAnyElement: boolean
+  elements: Readonly<Record<string, ElementFacts>>;
+  domLeaks: readonly string[];
+  acceptsAnyElement: boolean;
 }
 
 /**
@@ -130,26 +130,15 @@ export interface FrameworkFacts {
  * string index signature that lets *any* lowercase tag through the checker.
  */
 export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
-  "react": {
-    "elements": {
-      "a": {
-        "props": [
-          "attributes",
-          "bg",
-          "children",
-          "fg",
-          "href",
-          "id",
-          "key",
-          "link",
-          "ref",
-          "style"
-        ],
-        "textNode": true,
-        "typed": true
+  react: {
+    elements: {
+      a: {
+        props: ["attributes", "bg", "children", "fg", "href", "id", "key", "link", "ref", "style"],
+        textNode: true,
+        typed: true,
       },
       "ascii-font": {
-        "props": [
+        props: [
           "alignItems",
           "alignSelf",
           "backgroundColor",
@@ -213,28 +202,18 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "text",
           "top",
           "visible",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "b": {
-        "props": [
-          "attributes",
-          "bg",
-          "children",
-          "fg",
-          "id",
-          "key",
-          "link",
-          "ref",
-          "style"
-        ],
-        "textNode": true,
-        "typed": true
+      b: {
+        props: ["attributes", "bg", "children", "fg", "id", "key", "link", "ref", "style"],
+        textNode: true,
+        typed: true,
       },
-      "box": {
-        "props": [
+      box: {
+        props: [
           "alignItems",
           "alignSelf",
           "backgroundColor",
@@ -311,20 +290,18 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "top",
           "visible",
           "width",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "br": {
-        "props": [
-          "id"
-        ],
-        "textNode": true,
-        "typed": true
+      br: {
+        props: ["id"],
+        textNode: true,
+        typed: true,
       },
-      "code": {
-        "props": [
+      code: {
+        props: [
           "alignItems",
           "alignSelf",
           "attributes",
@@ -404,13 +381,13 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "visible",
           "width",
           "wrapMode",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "diff": {
-        "props": [
+      diff: {
+        props: [
           "addedBg",
           "addedContentBg",
           "addedLineNumberBg",
@@ -493,43 +470,23 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "visible",
           "width",
           "wrapMode",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "em": {
-        "props": [
-          "attributes",
-          "bg",
-          "children",
-          "fg",
-          "id",
-          "key",
-          "link",
-          "ref",
-          "style"
-        ],
-        "textNode": true,
-        "typed": true
+      em: {
+        props: ["attributes", "bg", "children", "fg", "id", "key", "link", "ref", "style"],
+        textNode: true,
+        typed: true,
       },
-      "i": {
-        "props": [
-          "attributes",
-          "bg",
-          "children",
-          "fg",
-          "id",
-          "key",
-          "link",
-          "ref",
-          "style"
-        ],
-        "textNode": true,
-        "typed": true
+      i: {
+        props: ["attributes", "bg", "children", "fg", "id", "key", "link", "ref", "style"],
+        textNode: true,
+        typed: true,
       },
-      "image": {
-        "props": [
+      image: {
+        props: [
           "alignItems",
           "alignSelf",
           "bottom",
@@ -593,13 +550,13 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "top",
           "visible",
           "width",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "input": {
-        "props": [
+      input: {
+        props: [
           "alignItems",
           "alignSelf",
           "attributes",
@@ -686,13 +643,13 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "visible",
           "width",
           "wrapMode",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
       "line-number": {
-        "props": [
+        props: [
           "alignItems",
           "alignSelf",
           "bg",
@@ -762,13 +719,13 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "top",
           "visible",
           "width",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "markdown": {
-        "props": [
+      markdown: {
+        props: [
           "alignItems",
           "alignSelf",
           "bg",
@@ -838,13 +795,13 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "treeSitterClient",
           "visible",
           "width",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "scrollbox": {
-        "props": [
+      scrollbox: {
+        props: [
           "alignItems",
           "alignSelf",
           "backgroundColor",
@@ -934,13 +891,13 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "visible",
           "width",
           "wrapperOptions",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "select": {
-        "props": [
+      select: {
+        props: [
           "alignItems",
           "alignSelf",
           "backgroundColor",
@@ -1021,43 +978,23 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "visible",
           "width",
           "wrapSelection",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "span": {
-        "props": [
-          "attributes",
-          "bg",
-          "children",
-          "fg",
-          "id",
-          "key",
-          "link",
-          "ref",
-          "style"
-        ],
-        "textNode": true,
-        "typed": true
+      span: {
+        props: ["attributes", "bg", "children", "fg", "id", "key", "link", "ref", "style"],
+        textNode: true,
+        typed: true,
       },
-      "strong": {
-        "props": [
-          "attributes",
-          "bg",
-          "children",
-          "fg",
-          "id",
-          "key",
-          "link",
-          "ref",
-          "style"
-        ],
-        "textNode": true,
-        "typed": true
+      strong: {
+        props: ["attributes", "bg", "children", "fg", "id", "key", "link", "ref", "style"],
+        textNode: true,
+        typed: true,
       },
       "tab-select": {
-        "props": [
+        props: [
           "alignItems",
           "alignSelf",
           "backgroundColor",
@@ -1134,13 +1071,13 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "visible",
           "width",
           "wrapSelection",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "text": {
-        "props": [
+      text: {
+        props: [
           "alignItems",
           "alignSelf",
           "attributes",
@@ -1211,13 +1148,13 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "visible",
           "width",
           "wrapMode",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "textarea": {
-        "props": [
+      textarea: {
+        props: [
           "alignItems",
           "alignSelf",
           "attributes",
@@ -1303,33 +1240,23 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "visible",
           "width",
           "wrapMode",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
       "time-to-first-draw": {
-        "props": [],
-        "textNode": false,
-        "typed": false
+        props: [],
+        textNode: false,
+        typed: false,
       },
-      "u": {
-        "props": [
-          "attributes",
-          "bg",
-          "children",
-          "fg",
-          "id",
-          "key",
-          "link",
-          "ref",
-          "style"
-        ],
-        "textNode": true,
-        "typed": true
-      }
+      u: {
+        props: ["attributes", "bg", "children", "fg", "id", "key", "link", "ref", "style"],
+        textNode: true,
+        typed: true,
+      },
     },
-    "domLeaks": [
+    domLeaks: [
       "abbr",
       "address",
       "animate",
@@ -1493,24 +1420,19 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
       "video",
       "view",
       "wbr",
-      "webview"
+      "webview",
     ],
-    "acceptsAnyElement": true
+    acceptsAnyElement: true,
   },
-  "solid": {
-    "elements": {
-      "a": {
-        "props": [
-          "children",
-          "href",
-          "ref",
-          "style"
-        ],
-        "textNode": true,
-        "typed": true
+  solid: {
+    elements: {
+      a: {
+        props: ["children", "href", "ref", "style"],
+        textNode: true,
+        typed: true,
       },
-      "ascii_font": {
-        "props": [
+      ascii_font: {
+        props: [
           "alignItems",
           "alignSelf",
           "backgroundColor",
@@ -1573,22 +1495,18 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "text",
           "top",
           "visible",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "b": {
-        "props": [
-          "children",
-          "ref",
-          "style"
-        ],
-        "textNode": true,
-        "typed": true
+      b: {
+        props: ["children", "ref", "style"],
+        textNode: true,
+        typed: true,
       },
-      "box": {
-        "props": [
+      box: {
+        props: [
           "alignItems",
           "alignSelf",
           "backgroundColor",
@@ -1664,18 +1582,18 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "top",
           "visible",
           "width",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "br": {
-        "props": [],
-        "textNode": true,
-        "typed": true
+      br: {
+        props: [],
+        textNode: true,
+        typed: true,
       },
-      "code": {
-        "props": [
+      code: {
+        props: [
           "alignItems",
           "alignSelf",
           "attributes",
@@ -1754,36 +1672,28 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "visible",
           "width",
           "wrapMode",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "diff": {
-        "props": [],
-        "textNode": false,
-        "typed": false
+      diff: {
+        props: [],
+        textNode: false,
+        typed: false,
       },
-      "em": {
-        "props": [
-          "children",
-          "ref",
-          "style"
-        ],
-        "textNode": true,
-        "typed": true
+      em: {
+        props: ["children", "ref", "style"],
+        textNode: true,
+        typed: true,
       },
-      "i": {
-        "props": [
-          "children",
-          "ref",
-          "style"
-        ],
-        "textNode": true,
-        "typed": true
+      i: {
+        props: ["children", "ref", "style"],
+        textNode: true,
+        typed: true,
       },
-      "image": {
-        "props": [
+      image: {
+        props: [
           "alignItems",
           "alignSelf",
           "bottom",
@@ -1846,13 +1756,13 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "top",
           "visible",
           "width",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "input": {
-        "props": [
+      input: {
+        props: [
           "alignItems",
           "alignSelf",
           "attributes",
@@ -1938,18 +1848,18 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "visible",
           "width",
           "wrapMode",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "line_number": {
-        "props": [],
-        "textNode": false,
-        "typed": false
+      line_number: {
+        props: [],
+        textNode: false,
+        typed: false,
       },
-      "markdown": {
-        "props": [
+      markdown: {
+        props: [
           "alignItems",
           "alignSelf",
           "bg",
@@ -2018,13 +1928,13 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "treeSitterClient",
           "visible",
           "width",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "scrollbox": {
-        "props": [
+      scrollbox: {
+        props: [
           "alignItems",
           "alignSelf",
           "backgroundColor",
@@ -2113,13 +2023,13 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "visible",
           "width",
           "wrapperOptions",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "select": {
-        "props": [
+      select: {
+        props: [
           "alignItems",
           "alignSelf",
           "backgroundColor",
@@ -2199,31 +2109,23 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "visible",
           "width",
           "wrapSelection",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "span": {
-        "props": [
-          "children",
-          "ref",
-          "style"
-        ],
-        "textNode": true,
-        "typed": true
+      span: {
+        props: ["children", "ref", "style"],
+        textNode: true,
+        typed: true,
       },
-      "strong": {
-        "props": [
-          "children",
-          "ref",
-          "style"
-        ],
-        "textNode": true,
-        "typed": true
+      strong: {
+        props: ["children", "ref", "style"],
+        textNode: true,
+        typed: true,
       },
-      "tab_select": {
-        "props": [
+      tab_select: {
+        props: [
           "alignItems",
           "alignSelf",
           "backgroundColor",
@@ -2299,13 +2201,13 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "visible",
           "width",
           "wrapSelection",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "text": {
-        "props": [
+      text: {
+        props: [
           "alignItems",
           "alignSelf",
           "attributes",
@@ -2375,13 +2277,13 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "visible",
           "width",
           "wrapMode",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "textarea": {
-        "props": [
+      textarea: {
+        props: [
           "alignItems",
           "alignSelf",
           "attributes",
@@ -2467,27 +2369,23 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = {
           "visible",
           "width",
           "wrapMode",
-          "zIndex"
+          "zIndex",
         ],
-        "textNode": false,
-        "typed": true
+        textNode: false,
+        typed: true,
       },
-      "time_to_first_draw": {
-        "props": [],
-        "textNode": false,
-        "typed": false
+      time_to_first_draw: {
+        props: [],
+        textNode: false,
+        typed: false,
       },
-      "u": {
-        "props": [
-          "children",
-          "ref",
-          "style"
-        ],
-        "textNode": true,
-        "typed": true
-      }
+      u: {
+        props: ["children", "ref", "style"],
+        textNode: true,
+        typed: true,
+      },
     },
-    "domLeaks": [],
-    "acceptsAnyElement": true
-  }
-}
+    domLeaks: [],
+    acceptsAnyElement: true,
+  },
+};

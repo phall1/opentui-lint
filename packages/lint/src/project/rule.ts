@@ -1,14 +1,14 @@
-import type { Framework } from "../catalog/index.js"
-import { detectFramework, readSettings } from "./framework.js"
-import type { Node, ReportDescriptor, RuleContext, RuleModule } from "./types.js"
+import type { Framework } from "../catalog/index.js";
+import { detectFramework, readSettings } from "./framework.js";
+import type { Node, ReportDescriptor, RuleContext, RuleModule } from "./types.js";
 
 export interface OpenTuiRuleContext extends RuleContext {
-  framework: Framework
+  framework: Framework;
   /** Element names the project registered with `extend()`. */
-  extendedElements: ReadonlySet<string>
+  extendedElements: ReadonlySet<string>;
 }
 
-type Handlers = Record<string, (node: Node) => void>
+type Handlers = Record<string, (node: Node) => void>;
 
 /**
  * Wraps a rule so it only ever runs on files that render to a terminal, and so
@@ -25,9 +25,9 @@ export function defineRule(
   return {
     meta,
     create(context) {
-      let framework: Framework | null = null
-      const extendedElements = new Set<string>()
-      const note = readSettings(context).note
+      let framework: Framework | null = null;
+      const extendedElements = new Set<string>();
+      const note = readSettings(context).note;
 
       // Delegation rather than a Proxy: ESLint hands rules a frozen context
       // with non-configurable properties, which a Proxy `get` trap is not
@@ -38,35 +38,37 @@ export function defineRule(
         extendedElements: { get: () => extendedElements, enumerable: true },
         report: {
           value: (descriptor: ReportDescriptor) => {
-            context.report(note ? { ...descriptor, message: `${descriptor.message} ${note}` } : descriptor)
+            context.report(
+              note ? { ...descriptor, message: `${descriptor.message} ${note}` } : descriptor,
+            );
           },
           enumerable: true,
         },
-      })
+      });
 
-      const handlers = create(ruleContext)
-      const gated: Handlers = {}
+      const handlers = create(ruleContext);
+      const gated: Handlers = {};
 
       for (const [selector, handler] of Object.entries(handlers)) {
         gated[selector] = (node) => {
-          if (framework === null) return
-          handler(node)
-        }
+          if (framework === null) return;
+          handler(node);
+        };
       }
 
       // Runs before any gated handler, so `framework` is resolved by the time
       // the first JSX node is visited.
-      const userProgram = handlers["Program"]
+      const userProgram = handlers["Program"];
       gated["Program"] = (node) => {
-        framework = detectFramework(context, node)
-        for (const name of readSettings(context).extendedElements ?? []) extendedElements.add(name)
-        collectExtendCalls(node, extendedElements)
-        if (framework !== null) userProgram?.(node)
-      }
+        framework = detectFramework(context, node);
+        for (const name of readSettings(context).extendedElements ?? []) extendedElements.add(name);
+        collectExtendCalls(node, extendedElements);
+        if (framework !== null) userProgram?.(node);
+      };
 
-      return gated
+      return gated;
     },
-  }
+  };
 }
 
 /**
@@ -78,34 +80,35 @@ export function defineRule(
  */
 function collectExtendCalls(program: Node, into: Set<string>): void {
   const visit = (node: Node | undefined): void => {
-    if (!node || typeof node.type !== "string") return
+    if (!node || typeof node.type !== "string") return;
 
     if (
       node.type === "CallExpression" &&
       ((node.callee?.type === "Identifier" && node.callee.name === "extend") ||
         (node.callee?.type === "MemberExpression" && node.callee.property?.name === "extend"))
     ) {
-      const argument = node.arguments?.[0]
+      const argument = node.arguments?.[0];
       if (argument?.type === "ObjectExpression") {
         for (const property of argument.properties as Node[]) {
-          if (property.type !== "Property" || property.computed) continue
+          if (property.type !== "Property" || property.computed) continue;
           const key =
             property.key?.type === "Identifier"
               ? property.key.name
               : property.key?.type === "Literal"
                 ? property.key.value
-                : undefined
-          if (typeof key === "string") into.add(key)
+                : undefined;
+          if (typeof key === "string") into.add(key);
         }
       }
     }
 
     for (const key of Object.keys(node)) {
-      if (key === "parent") continue
-      const child = node[key]
-      if (Array.isArray(child)) child.forEach((c) => visit(c as Node))
-      else if (child && typeof child === "object" && typeof (child as Node).type === "string") visit(child as Node)
+      if (key === "parent") continue;
+      const child = node[key];
+      if (Array.isArray(child)) child.forEach((c) => visit(c as Node));
+      else if (child && typeof child === "object" && typeof (child as Node).type === "string")
+        visit(child as Node);
     }
-  }
-  visit(program)
+  };
+  visit(program);
 }

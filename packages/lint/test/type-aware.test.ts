@@ -1,9 +1,9 @@
-import { mkdirSync, rmSync, writeFileSync } from "node:fs"
-import { join } from "node:path"
-import { RuleTester } from "eslint"
-import tsParser from "@typescript-eslint/parser"
-import rule from "../src/rules/text-must-be-wrapped.js"
-import { asRule } from "./helpers.js"
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { RuleTester } from "eslint";
+import tsParser from "@typescript-eslint/parser";
+import rule from "../src/rules/text-must-be-wrapped.js";
+import { asRule } from "./helpers.js";
 
 /**
  * `checkTypes` needs a real tsconfig and real files on disk — a type checker
@@ -23,21 +23,21 @@ import { asRule } from "./helpers.js"
  * than as "the program is not seeing your code". Writing the file removes the
  * disagreement instead of trusting it not to happen.
  */
-const FIXTURE = join(import.meta.dir, "fixtures", "typed-app")
-const CASES = join(FIXTURE, "src", "cases")
+const FIXTURE = join(import.meta.dir, "fixtures", "typed-app");
+const CASES = join(FIXTURE, "src", "cases");
 
 // Generated, never committed: written here before any parse so the program
 // picks them up on its first build.
-rmSync(CASES, { recursive: true, force: true })
-mkdirSync(CASES, { recursive: true })
+rmSync(CASES, { recursive: true, force: true });
+mkdirSync(CASES, { recursive: true });
 
-let caseIndex = 0
+let caseIndex = 0;
 
 /** A case backed by a real file, so `code` and the program can never disagree. */
 function onDisk(code: string) {
-  const filename = join(CASES, `case-${(caseIndex += 1)}.tsx`)
-  writeFileSync(filename, code)
-  return { code, filename }
+  const filename = join(CASES, `case-${(caseIndex += 1)}.tsx`);
+  writeFileSync(filename, code);
+  return { code, filename };
 }
 
 /**
@@ -49,7 +49,7 @@ function onDisk(code: string) {
  * diagnostic and a baffling diff rather than an obvious failure; a
  * self-contained snippet cannot do that.
  */
-const PRELUDE = "type Accessor<T> = () => T\n"
+const PRELUDE = "type Accessor<T> = () => T\n";
 
 function typedTester(framework: "react" | "solid" = "react"): RuleTester {
   return new RuleTester({
@@ -64,7 +64,7 @@ function typedTester(framework: "react" | "solid" = "react"): RuleTester {
       },
     },
     settings: { opentui: { framework } },
-  })
+  });
 }
 
 /**
@@ -77,18 +77,28 @@ function typedTester(framework: "react" | "solid" = "react"): RuleTester {
  */
 function reported(declareType: string, expr: string, resolvedAs: string) {
   return {
-    ...onDisk(`${PRELUDE}declare const value: ${declareType}\nexport const App = () => <box>{${expr}}</box>`),
+    ...onDisk(
+      `${PRELUDE}declare const value: ${declareType}\nexport const App = () => <box>{${expr}}</box>`,
+    ),
     output: `${PRELUDE}declare const value: ${declareType}\nexport const App = () => <box><text>{${expr}}</text></box>`,
     options: [{ checkTypes: true }],
-    errors: [{ message: new RegExp(`resolved this expression's type as \`${resolvedAs}\`, which cannot be anything but text`) }],
-  }
+    errors: [
+      {
+        message: new RegExp(
+          `resolved this expression's type as \`${resolvedAs}\`, which cannot be anything but text`,
+        ),
+      },
+    ],
+  };
 }
 
 function notReported(declareType: string, expr: string) {
   return {
-    ...onDisk(`${PRELUDE}declare const value: ${declareType}\nexport const App = () => <box>{${expr}}</box>`),
+    ...onDisk(
+      `${PRELUDE}declare const value: ${declareType}\nexport const App = () => <box>{${expr}}</box>`,
+    ),
     options: [{ checkTypes: true }],
-  }
+  };
 }
 
 typedTester().run("text-must-be-wrapped (checkTypes)", asRule(rule), {
@@ -96,7 +106,9 @@ typedTester().run("text-must-be-wrapped (checkTypes)", asRule(rule), {
     // Off by default even with a real type checker sitting right there —
     // `value` here is unambiguously `string`, and it is still not reported.
     {
-      ...onDisk(`${PRELUDE}declare const value: string\nexport const App = () => <box>{value}</box>`),
+      ...onDisk(
+        `${PRELUDE}declare const value: string\nexport const App = () => <box>{value}</box>`,
+      ),
     },
     // `ReactNode` is exactly the case the syntactic rule exists to leave
     // alone: it legitimately includes elements, so it must stay unreported
@@ -124,7 +136,7 @@ typedTester().run("text-must-be-wrapped (checkTypes)", asRule(rule), {
     // branch, which is exactly why this is still reported.
     reported("string | undefined", "value", "string | undefined"),
   ],
-})
+});
 
 /**
  * Without `parserOptions.project` there is no program and no checker — the
@@ -147,7 +159,7 @@ new RuleTester({
     { code: "const a = <box>{label}</box>", options: [{ checkTypes: true }] },
   ],
   invalid: [],
-})
+});
 
 typedTester("solid").run("text-must-be-wrapped (checkTypes, solid)", asRule(rule), {
   valid: [
@@ -160,7 +172,9 @@ typedTester("solid").run("text-must-be-wrapped (checkTypes, solid)", asRule(rule
     {
       // Solid signals are accessors: `count()` returns `string`, not
       // `count` itself, so the call's return type is what has to be checked.
-      ...onDisk(`${PRELUDE}declare const count: Accessor<string>\nexport const App = () => <box>{count()}</box>`),
+      ...onDisk(
+        `${PRELUDE}declare const count: Accessor<string>\nexport const App = () => <box>{count()}</box>`,
+      ),
       output: `${PRELUDE}declare const count: Accessor<string>\nexport const App = () => <box><text>{count()}</text></box>`,
       options: [{ checkTypes: true }],
       errors: [
@@ -171,7 +185,7 @@ typedTester("solid").run("text-must-be-wrapped (checkTypes, solid)", asRule(rule
       ],
     },
   ],
-})
+});
 
 /**
  * The payoff of teaching the fixer what the checker knows.
@@ -186,7 +200,9 @@ typedTester().run("text-must-be-wrapped (checkTypes unblocks a run)", asRule(rul
   valid: [],
   invalid: [
     {
-      ...onDisk(`${PRELUDE}declare const items: string[]\nexport const App = () => <box>{items.length} items</box>`),
+      ...onDisk(
+        `${PRELUDE}declare const items: string[]\nexport const App = () => <box>{items.length} items</box>`,
+      ),
       options: [{ checkTypes: true }],
       output: `${PRELUDE}declare const items: string[]\nexport const App = () => <box><text>{items.length} items</text></box>`,
       errors: 2,
@@ -197,7 +213,9 @@ typedTester().run("text-must-be-wrapped (checkTypes unblocks a run)", asRule(rul
       // offered rather than applied. The offered edit splits the line, and that
       // is the honest thing to show: it is the best edit that can be justified
       // from syntax alone, and a person previewing it can see the cost.
-      ...onDisk(`${PRELUDE}declare const items: string[]\nexport const App = () => <box>{items.length} items</box>`),
+      ...onDisk(
+        `${PRELUDE}declare const items: string[]\nexport const App = () => <box>{items.length} items</box>`,
+      ),
       output: null,
       errors: [
         {
@@ -212,7 +230,7 @@ typedTester().run("text-must-be-wrapped (checkTypes unblocks a run)", asRule(rul
       ],
     },
   ],
-})
+});
 
 /**
  * Proves the project program is really wired up, before any wording assertion
@@ -230,10 +248,12 @@ typedTester().run("the typed fixture really is typed", asRule(rule), {
     {
       // If strictNullChecks were not in effect this type would collapse to
       // `string`, and the quoted type is the only place that shows.
-      ...onDisk(`${PRELUDE}declare const value: string | undefined\nexport const App = () => <box>{value}</box>`),
+      ...onDisk(
+        `${PRELUDE}declare const value: string | undefined\nexport const App = () => <box>{value}</box>`,
+      ),
       options: [{ checkTypes: true }],
       output: `${PRELUDE}declare const value: string | undefined\nexport const App = () => <box><text>{value}</text></box>`,
       errors: [{ message: /resolved this expression's type as `string \| undefined`/ }],
     },
   ],
-})
+});

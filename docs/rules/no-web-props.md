@@ -51,22 +51,22 @@ Correct:
 
 ## The replacements it knows
 
-| Web | OpenTUI |
-| --- | --- |
-| `className` / `class` | the layout and color props directly |
-| `onClick` | `onMouseDown`, or `onSelect` on an interactive element |
-| `onMouseEnter` / `onMouseLeave` | `onMouseOver` / `onMouseOut` |
-| `onMouseWheel` | `onMouseScroll` |
-| `onFocus` / `onBlur` | the `focused` prop, `useFocus`, `useBlur` |
-| `hidden` | `visible={false}` |
-| `src` | `source` on `<image>` |
-| `tabIndex` | `focused` and the focus APIs |
-| `display` | `flexDirection`, or `visible={false}` |
-| `borderRadius` | `borderStyle="rounded"` |
-| `fontWeight` / `fontStyle` | `<b>` / `<i>` inside `<text>`, or `attributes` |
-| `whiteSpace` | `wrapMode` on `<text>` |
-| `gridTemplateColumns` | nested boxes with `flexDirection` |
-| `transition` | a timeline from `useTimeline` |
+| Web                             | OpenTUI                                                |
+| ------------------------------- | ------------------------------------------------------ |
+| `className` / `class`           | the layout and color props directly                    |
+| `onClick`                       | `onMouseDown`, or `onSelect` on an interactive element |
+| `onMouseEnter` / `onMouseLeave` | `onMouseOver` / `onMouseOut`                           |
+| `onMouseWheel`                  | `onMouseScroll`                                        |
+| `onFocus` / `onBlur`            | the `focused` prop, `useFocus`, `useBlur`              |
+| `hidden`                        | `visible={false}`                                      |
+| `src`                           | `source` on `<image>`                                  |
+| `tabIndex`                      | `focused` and the focus APIs                           |
+| `display`                       | `flexDirection`, or `visible={false}`                  |
+| `borderRadius`                  | `borderStyle="rounded"`                                |
+| `fontWeight` / `fontStyle`      | `<b>` / `<i>` inside `<text>`, or `attributes`         |
+| `whiteSpace`                    | `wrapMode` on `<text>`                                 |
+| `gridTemplateColumns`           | nested boxes with `flexDirection`                      |
+| `transition`                    | a timeline from `useTimeline`                          |
 
 `fontSize`, `fontFamily`, `letterSpacing`, `lineHeight`, `boxShadow`,
 `textShadow`, `cursor` and `transform` have no equivalent: a terminal cell grid

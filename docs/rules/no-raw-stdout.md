@@ -36,21 +36,23 @@ corruption is permanent, not a flicker.
 Incorrect:
 
 ```ts
-process.stdout.write(`\rprogress ${done}/${total}`)
-process.stderr.write("warning\n")
+process.stdout.write(`\rprogress ${done}/${total}`);
+process.stderr.write("warning\n");
 ```
 
 Correct:
 
 ```ts
 // OpenTUI replaces the global console and captures it into the debug overlay.
-console.log(`progress ${done}/${total}`)
+console.log(`progress ${done}/${total}`);
 ```
 
 or render it, which is the point of having a TUI:
 
 ```tsx
-<text>progress {done}/{total}</text>
+<text>
+  progress {done}/{total}
+</text>
 ```
 
 ## `console.log` is fine

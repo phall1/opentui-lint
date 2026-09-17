@@ -1,14 +1,14 @@
-import { NAMED_COLORS, checkColor, isColorProp, suggestColor } from "../catalog/index.js"
-import { convertColor } from "../catalog/css-colors.js"
-import { replaceStringValue } from "../project/fixes.js"
+import { NAMED_COLORS, checkColor, isColorProp, suggestColor } from "../catalog/index.js";
+import { convertColor } from "../catalog/css-colors.js";
+import { replaceStringValue } from "../project/fixes.js";
 import {
   attributeName,
   objectEntries,
   resolveObjectExpression,
   staticStrings,
-} from "../project/jsx.js"
-import { defineRule } from "../project/rule.js"
-import type { Node } from "../project/types.js"
+} from "../project/jsx.js";
+import { defineRule } from "../project/rule.js";
+import type { Node } from "../project/types.js";
 
 /**
  * OpenTUI's `parseColor()` understands 28 names plus hex. Everything else —
@@ -47,34 +47,34 @@ export default defineRule(
     ],
   },
   (context) => {
-    const extraProps = new Set<string>((context.options[0]?.props as string[]) ?? [])
-    const isColor = (name: string) => isColorProp(name) || extraProps.has(name)
+    const extraProps = new Set<string>((context.options[0]?.props as string[]) ?? []);
+    const isColor = (name: string) => isColorProp(name) || extraProps.has(name);
 
     function check(propName: string, value: string, node: Node): void {
-      const verdict = checkColor(value)
-      if (verdict.kind === "ok") return
+      const verdict = checkColor(value);
+      if (verdict.kind === "ok") return;
 
       const explanation =
         verdict.kind === "css-function"
           ? `parseColor() does not support CSS color functions, so \`${verdict.fn}(…)\` resolves to opaque magenta.`
           : verdict.kind === "malformed-hex"
             ? `"${value}" is not a valid hex color, so it resolves to opaque magenta.`
-            : `"${value}" is not one of OpenTUI's color names, so it resolves to opaque magenta.`
+            : `"${value}" is not one of OpenTUI's color names, so it resolves to opaque magenta.`;
 
       const lead =
         `${propName}="${value}" will render magenta. ${explanation} ` +
-        `This never fails typecheck — ColorInput is just \`string | RGBA\` — and at runtime it only warns. `
+        `This never fails typecheck — ColorInput is just \`string | RGBA\` — and at runtime it only warns. `;
 
       // An exact conversion is applied. `rgb(34, 197, 94)` *is* `#22c55e` and
       // CSS `indigo` *is* `#4b0082` — there is nothing to decide.
-      const converted = convertColor(value)
+      const converted = convertColor(value);
       if (converted?.exact) {
         context.report({
           node,
           message: `${lead}${converted.reason}, so use "${converted.hex}".`,
           fix: (fixer) => replaceStringValue(node, converted.hex, fixer),
-        })
-        return
+        });
+        return;
       }
 
       // A Tailwind palette name is a guess about which shade was meant, so it
@@ -89,11 +89,11 @@ export default defineRule(
               fix: (fixer) => replaceStringValue(node, converted.hex, fixer),
             },
           ],
-        })
-        return
+        });
+        return;
       }
 
-      const suggestion = suggestColor(value)
+      const suggestion = suggestColor(value);
       context.report({
         node,
         message:
@@ -111,34 +111,34 @@ export default defineRule(
               ],
             }
           : {}),
-      })
+      });
     }
 
     /** Walks a `style={{ … }}` object, including one hoisted into a const. */
     function checkStyleObject(expression: Node | undefined): void {
-      const object = resolveObjectExpression(context, expression)
-      if (!object) return
+      const object = resolveObjectExpression(context, expression);
+      if (!object) return;
       for (const entry of objectEntries(object)) {
-        if (!isColor(entry.key)) continue
-        for (const site of staticStrings(entry.valueNode)) check(entry.key, site.value, site.node)
+        if (!isColor(entry.key)) continue;
+        for (const site of staticStrings(entry.valueNode)) check(entry.key, site.value, site.node);
       }
     }
 
     return {
       JSXAttribute(node) {
-        const name = attributeName(node)
-        if (!name) return
+        const name = attributeName(node);
+        if (!name) return;
 
         if (name === "style") {
           const expression =
-            node.value?.type === "JSXExpressionContainer" ? node.value.expression : undefined
-          checkStyleObject(expression)
-          return
+            node.value?.type === "JSXExpressionContainer" ? node.value.expression : undefined;
+          checkStyleObject(expression);
+          return;
         }
 
-        if (!isColor(name)) return
-        for (const site of staticStrings(node.value)) check(name, site.value, site.node)
+        if (!isColor(name)) return;
+        for (const site of staticStrings(node.value)) check(name, site.value, site.node);
       },
-    }
+    };
   },
-)
+);

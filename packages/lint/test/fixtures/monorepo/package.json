@@ -1,1 +1,4 @@
-{"name":"mono-root","private":true}
+{
+  "name": "mono-root",
+  "private": true
+}

@@ -1,9 +1,9 @@
 {
   "name": "opentui-lint-example-dashboard-react",
-  "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "private": true,
   "description": "A TUI written the way a model tends to write one, in React, plus the config that catches it.",
+  "type": "module",
   "scripts": {
     "lint": "eslint ."
   },

@@ -1,8 +1,8 @@
-import { join } from "node:path"
-import rule from "../src/rules/use-theme-tokens.js"
-import { asRule, tester, undetectedTester } from "./helpers.js"
+import { join } from "node:path";
+import rule from "../src/rules/use-theme-tokens.js";
+import { asRule, tester, undetectedTester } from "./helpers.js";
 
-const FIXTURE = join(import.meta.dir, "fixtures", "ds-app")
+const FIXTURE = join(import.meta.dir, "fixtures", "ds-app");
 
 /**
  * `test/fixtures/ds-app/components/ui/theme.ts` is the fixture used by
@@ -14,8 +14,8 @@ const FIXTURE = join(import.meta.dir, "fixtures", "ds-app")
  * default, but a preset this rule can find and quote precisely once one
  * exists.
  */
-const consumer = (name: string) => join(FIXTURE, "app", name)
-const recipe = (name: string) => join(FIXTURE, "components", "ui", name)
+const consumer = (name: string) => join(FIXTURE, "app", name);
+const recipe = (name: string) => join(FIXTURE, "components", "ui", name);
 
 tester("react").run("use-theme-tokens (react)", asRule(rule), {
   valid: [
@@ -105,7 +105,9 @@ tester("react").run("use-theme-tokens (react)", asRule(rule), {
       // A named OpenTUI color is still a raw literal that bypasses the theme.
       code: `export const Panel = () => <box backgroundColor="red" />`,
       filename: consumer("Panel.tsx"),
-      errors: [{ message: /backgroundColor="red" is a raw color literal, but this project's theme/ }],
+      errors: [
+        { message: /backgroundColor="red" is a raw color literal, but this project's theme/ },
+      ],
     },
     // Tier 2: this exact hex is tokens.colors.surface in the gruvbox preset.
     {
@@ -113,7 +115,8 @@ tester("react").run("use-theme-tokens (react)", asRule(rule), {
       filename: consumer("Panel.tsx"),
       errors: [
         {
-          message: /backgroundColor="#3C3836" is a raw color literal, but #3C3836 is tokens\.colors\.surface under the gruvbox theme\./,
+          message:
+            /backgroundColor="#3C3836" is a raw color literal, but #3C3836 is tokens\.colors\.surface under the gruvbox theme\./,
         },
       ],
     },
@@ -147,7 +150,7 @@ tester("react").run("use-theme-tokens (react)", asRule(rule), {
       ],
     },
   ],
-})
+});
 
 tester("solid").run("use-theme-tokens (solid)", asRule(rule), {
   valid: [
@@ -174,7 +177,7 @@ tester("solid").run("use-theme-tokens (solid)", asRule(rule), {
       errors: [{ message: /is tokens\.colors\.surface under the gruvbox theme/ }],
     },
   ],
-})
+});
 
 undetectedTester().run("use-theme-tokens (framework detection)", asRule(rule), {
   valid: [
@@ -188,4 +191,4 @@ undetectedTester().run("use-theme-tokens (framework detection)", asRule(rule), {
     },
   ],
   invalid: [],
-})
+});

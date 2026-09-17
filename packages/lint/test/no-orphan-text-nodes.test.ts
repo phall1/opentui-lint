@@ -1,10 +1,10 @@
-import rule from "../src/rules/no-orphan-text-nodes.js"
-import { asRule, tester, undetectedTester } from "./helpers.js"
+import rule from "../src/rules/no-orphan-text-nodes.js";
+import { asRule, tester, undetectedTester } from "./helpers.js";
 
 tester().run("no-orphan-text-nodes", asRule(rule), {
   valid: [
     "const a = <text><b>Total</b></text>",
-    "const a = <text>Hi <span fg=\"gray\">there</span></text>",
+    'const a = <text>Hi <span fg="gray">there</span></text>',
     "const a = <text><b><i>nested</i></b></text>",
     "const a = <box><text><u>x</u></text></box>",
     `const a = <text><a href="https://example.com">docs</a></text>`,
@@ -22,7 +22,12 @@ tester().run("no-orphan-text-nodes", asRule(rule), {
     {
       code: "const a = <box><b>Total</b></box>",
       output: "const a = <box><text><b>Total</b></text></box>",
-      errors: [{ message: /<b> is a text modifier.*directly inside <box>.*must be created inside of a text node/s }],
+      errors: [
+        {
+          message:
+            /<b> is a text modifier.*directly inside <box>.*must be created inside of a text node/s,
+        },
+      ],
     },
     {
       code: "const a = <box><span>hi</span></box>",
@@ -42,12 +47,12 @@ tester().run("no-orphan-text-nodes", asRule(rule), {
       errors: 2,
     },
   ],
-})
+});
 
 undetectedTester().run("no-orphan-text-nodes (not an OpenTUI file)", asRule(rule), {
   valid: [`export const Page = () => <div><span>hi</span><b>x</b></div>`],
   invalid: [],
-})
+});
 
 tester("solid").run("no-orphan-text-nodes (solid)", asRule(rule), {
   valid: ["const a = <text><b>Total</b></text>"],
@@ -58,7 +63,7 @@ tester("solid").run("no-orphan-text-nodes (solid)", asRule(rule), {
       errors: [{ message: /Orphan text error.*must have a <text> as a parent/s }],
     },
   ],
-})
+});
 
 /** Same regression as `text-must-be-wrapped`: a component is not a renderable. */
 tester("solid").run("no-orphan-text-nodes (components are not renderables)", asRule(rule), {
@@ -74,4 +79,4 @@ tester("solid").run("no-orphan-text-nodes (components are not renderables)", asR
       errors: 1,
     },
   ],
-})
+});

@@ -1,4 +1,4 @@
-import { isSpacingProp } from "../catalog/index.js"
+import { isSpacingProp } from "../catalog/index.js";
 import {
   attributeName,
   elementName,
@@ -6,9 +6,9 @@ import {
   objectEntries,
   resolveObjectExpression,
   staticNumber,
-} from "../project/jsx.js"
-import { defineRule } from "../project/rule.js"
-import type { Node } from "../project/types.js"
+} from "../project/jsx.js";
+import { defineRule } from "../project/rule.js";
+import type { Node } from "../project/types.js";
 
 /**
  * A spacing rule, because in a terminal spacing is not cosmetic.
@@ -30,25 +30,25 @@ import type { Node } from "../project/types.js"
  */
 
 interface Budget {
-  padding: number
-  margin: number
-  gap: number
+  padding: number;
+  margin: number;
+  gap: number;
 }
 
-const DEFAULT_BUDGET: Budget = { padding: 1, margin: 1, gap: 1 }
+const DEFAULT_BUDGET: Budget = { padding: 1, margin: 1, gap: 1 };
 
 function categoryOf(prop: string): keyof Budget | undefined {
-  if (prop.startsWith("padding")) return "padding"
-  if (prop.startsWith("margin")) return "margin"
-  if (prop === "gap" || prop === "rowGap" || prop === "columnGap") return "gap"
-  return undefined
+  if (prop.startsWith("padding")) return "padding";
+  if (prop.startsWith("margin")) return "margin";
+  if (prop === "gap" || prop === "rowGap" || prop === "columnGap") return "gap";
+  return undefined;
 }
 
 const AXIS_HINT: Record<keyof Budget, string> = {
   padding: "rows and columns of empty cells inside the box",
   margin: "rows and columns of empty cells around the box",
   gap: "empty cells between every pair of children",
-}
+};
 
 export default defineRule(
   {
@@ -71,24 +71,24 @@ export default defineRule(
     ],
   },
   (context) => {
-    const options = context.options[0] ?? {}
+    const options = context.options[0] ?? {};
     const budget: Budget = {
       padding: options.maxPadding ?? DEFAULT_BUDGET.padding,
       margin: options.maxMargin ?? DEFAULT_BUDGET.margin,
       gap: options.maxGap ?? DEFAULT_BUDGET.gap,
-    }
-    const custom = options.message as string | undefined
+    };
+    const custom = options.message as string | undefined;
 
     function check(prop: string, valueNode: Node, reportNode: Node, element: string): void {
-      const category = categoryOf(prop)
-      if (category === undefined || !isSpacingProp(prop)) return
+      const category = categoryOf(prop);
+      if (category === undefined || !isSpacingProp(prop)) return;
 
-      const value = staticNumber(valueNode)
-      if (value === undefined || value <= budget[category]) return
+      const value = staticNumber(valueNode);
+      if (value === undefined || value <= budget[category]) return;
 
       if (custom) {
-        context.report({ node: reportNode, message: custom })
-        return
+        context.report({ node: reportNode, message: custom });
+        return;
       }
 
       context.report({
@@ -99,32 +99,34 @@ export default defineRule(
           `${Math.round((value / 24) * 100)}% of the height. ` +
           `Terminal UIs are information-dense; keep ${category} at ${budget[category]} or less, ` +
           `and separate panels with a border rather than empty space.`,
-      })
+      });
     }
 
     return {
       JSXOpeningElement(node) {
-        const element = elementName(node)
-        if (!element || !isHostElement(element)) return
+        const element = elementName(node);
+        if (!element || !isHostElement(element)) return;
 
         for (const attribute of (node.attributes ?? []) as Node[]) {
-          const name = attributeName(attribute)
-          if (!name) continue
+          const name = attributeName(attribute);
+          if (!name) continue;
 
           if (name === "style") {
             const expression =
-              attribute.value?.type === "JSXExpressionContainer" ? attribute.value.expression : undefined
-            const object = resolveObjectExpression(context, expression)
-            if (!object) continue
+              attribute.value?.type === "JSXExpressionContainer"
+                ? attribute.value.expression
+                : undefined;
+            const object = resolveObjectExpression(context, expression);
+            if (!object) continue;
             for (const entry of objectEntries(object)) {
-              check(entry.key, entry.valueNode, entry.node, element)
+              check(entry.key, entry.valueNode, entry.node, element);
             }
-            continue
+            continue;
           }
 
-          if (attribute.value) check(name, attribute.value, attribute, element)
+          if (attribute.value) check(name, attribute.value, attribute, element);
         }
       },
-    }
+    };
   },
-)
+);

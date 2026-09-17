@@ -1,5 +1,5 @@
-import rule from "../src/rules/text-must-be-wrapped.js"
-import { asRule, tester, undetectedTester } from "./helpers.js"
+import rule from "../src/rules/text-must-be-wrapped.js";
+import { asRule, tester, undetectedTester } from "./helpers.js";
 
 /** An invalid case whose autofix wraps `child` where it stands. */
 function wrapped(before: string, child: string) {
@@ -7,7 +7,7 @@ function wrapped(before: string, child: string) {
     code: before,
     output: before.replace(child, `<text>${child}</text>`),
     errors: [{ message: /renders as a text node/ }],
-  }
+  };
 }
 
 tester().run("text-must-be-wrapped", asRule(rule), {
@@ -51,7 +51,7 @@ tester().run("text-must-be-wrapped", asRule(rule), {
     wrapped(`const a = <box>{ready && "online"}</box>`, `{ready && "online"}`),
     wrapped(`const a = <box>{parts.join(", ")}</box>`, `{parts.join(", ")}`),
   ],
-})
+});
 
 /**
  * The grouping behavior, which is the whole reason the fix works on runs.
@@ -83,7 +83,7 @@ tester().run("text-must-be-wrapped (run grouping)", asRule(rule), {
       errors: 4,
     },
   ],
-})
+});
 
 tester("solid").run("text-must-be-wrapped (solid)", asRule(rule), {
   valid: ["const a = <text>Hello</text>", "const a = <box><text>{count()}</text></box>"],
@@ -91,15 +91,17 @@ tester("solid").run("text-must-be-wrapped (solid)", asRule(rule), {
     {
       code: "const App = () => <box>Hello</box>",
       output: "const App = () => <box><text>Hello</text></box>",
-      errors: [{ message: /Orphan text error: "…" must have a <text> as a parent.*no error boundary/s }],
+      errors: [
+        { message: /Orphan text error: "…" must have a <text> as a parent.*no error boundary/s },
+      ],
     },
   ],
-})
+});
 
 undetectedTester().run("text-must-be-wrapped (not an OpenTUI file)", asRule(rule), {
   valid: [`export const Page = () => <div>Hello</div>`],
   invalid: [],
-})
+});
 
 /**
  * `checkTypes` is opt-in and must not change anything about the default
@@ -121,7 +123,7 @@ tester().run("text-must-be-wrapped (checkTypes, no type checker available)", asR
     // The syntactic half of the rule still fires normally with the option on.
     { ...wrapped("const a = <box>Hello</box>", "Hello"), options: [{ checkTypes: true }] },
   ],
-})
+});
 
 /**
  * Regression: a component is not a renderable.
@@ -154,4 +156,4 @@ tester("solid").run("text-must-be-wrapped (components are not renderables)", asR
       errors: [{ message: /renders as a text node/ }],
     },
   ],
-})
+});

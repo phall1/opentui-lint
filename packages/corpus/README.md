@@ -38,17 +38,17 @@ directory instead of re-cloning on every run.
 
 ## What each piece is
 
-| File | Purpose |
-| --- | --- |
-| `src/pins.ts` | The two pinned revisions, in one place. Bump these deliberately. |
-| `src/cache.ts` | Clones a pin into a keyed, persistent cache directory. |
+| File                          | Purpose                                                                                        |
+| ----------------------------- | ---------------------------------------------------------------------------------------------- |
+| `src/pins.ts`                 | The two pinned revisions, in one place. Bump these deliberately.                               |
+| `src/cache.ts`                | Clones a pin into a keyed, persistent cache directory.                                         |
 | `src/materialize-tuiparts.ts` | Installs the tuiparts registry into three consumer roots, from `registry.json`'s own manifest. |
-| `src/targets.ts` | The corpus itself — every directory this package lints, and why. |
-| `src/lint-target.ts` | Runs `opentui-lint`'s `strict` rule set (a superset of `recommended`) over one target. |
-| `src/baseline.ts` | Reads/keys `baseline.json`. |
-| `src/report.ts` | `bun run report` — prints every finding with its classification, for triage. |
-| `test/corpus.test.ts` | Asserts live findings and `baseline.json` are identical, target by target. |
-| `baseline.json` | Every finding this package has ever seen, classified. See below. |
+| `src/targets.ts`              | The corpus itself — every directory this package lints, and why.                               |
+| `src/lint-target.ts`          | Runs `opentui-lint`'s `strict` rule set (a superset of `recommended`) over one target.         |
+| `src/baseline.ts`             | Reads/keys `baseline.json`.                                                                    |
+| `src/report.ts`               | `bun run report` — prints every finding with its classification, for triage.                   |
+| `test/corpus.test.ts`         | Asserts live findings and `baseline.json` are identical, target by target.                     |
+| `baseline.json`               | Every finding this package has ever seen, classified. See below.                               |
 
 ## Why `strict` alone, reported as two numbers
 
@@ -69,7 +69,7 @@ check without re-deriving it:
 - **`true-positive`** — the corpus code is really wrong, and the rule caught
   a real bug. It means the rule is doing its job on code a human trusted
   enough to ship as an example or a package.
-- **`false-positive`** — the *rule* is wrong. This is the whole reason this
+- **`false-positive`** — the _rule_ is wrong. This is the whole reason this
   package exists. A false positive is never silently added to the baseline
   and left there as if that settled it: every one in `baseline.json` is
   also called out loudly below, because fixing it is a `packages/lint`
@@ -113,18 +113,18 @@ findings automatically would defeat the point of the exercise.
 
 Zero true positives. 235 real files, 85 findings, all triaged:
 
-| Classification | Count | Rules |
-| --- | --- | --- |
-| `true-positive` | **0** | — |
-| `false-positive` | 64 | `no-web-props` (45), `text-must-be-wrapped` (8), `no-orphan-text-nodes` (11) |
-| `acceptable` | 21 | `no-website-spacing` (21, all `strict-only`) |
+| Classification   | Count | Rules                                                                        |
+| ---------------- | ----- | ---------------------------------------------------------------------------- |
+| `true-positive`  | **0** | —                                                                            |
+| `false-positive` | 64    | `no-web-props` (45), `text-must-be-wrapped` (8), `no-orphan-text-nodes` (11) |
+| `acceptable`     | 21    | `no-website-spacing` (21, all `strict-only`)                                 |
 
 All 85 findings are in `packages/examples`/`packages/react/examples`/
 `packages/solid/examples`. **The entire tuiparts corpus produces zero
 findings**, under both `recommended` and `strict`: 108 installed recipe files
 across Core/React/Solid, plus 34 of tuiparts' own smoke tests.
 
-That result is about the design-system rules specifically. A theme *was*
+That result is about the design-system rules specifically. A theme _was_
 discovered, from the exact `components/ui/theme.ts` a real install produces,
 and the design-system rules correctly stayed silent on every file
 `isDesignSystemSource` says is theirs. That is verified, not a vacuous pass
@@ -167,7 +167,7 @@ Monitor">` is not a mistake, it is the documented way to put a title on a
 bordered box, used throughout OpenTUI's own examples.
 
 Root cause, in `packages/lint/src/rules/no-web-props.ts`'s `report()`: the
-`PROP_RENAME` branch checks `accepts.has(rename)` (whether the *target*
+`PROP_RENAME` branch checks `accepts.has(rename)` (whether the _target_
 element actually has the renamed prop) before firing. The `WEB_ONLY_PROPS`
 branch (which is what fires for `title`) has no equivalent check against
 `knownProps(element)`; it reports purely because `title` is a key in the
@@ -181,13 +181,13 @@ whether the current element's own catalog entry lists `title` as a real prop.
 
 ```tsx
 function KeyLabel({ children }: { children: ReactNode }) {
-  return <span style={{ fg: palette.key, attributes: TextAttributes.BOLD }}>{children}</span>
+  return <span style={{ fg: palette.key, attributes: TextAttributes.BOLD }}>{children}</span>;
 }
 // ...
 <text height={1}>
   <KeyLabel>j</KeyLabel>
   ...
-</text>
+</text>;
 ```
 
 and the Solid equivalent, a built-in control-flow component instead of a
@@ -213,20 +213,20 @@ Root cause, in `packages/lint/src/project/jsx.ts`'s `textContext()`: the
 function's own doc comment says "a component boundary makes the answer
 unknowable, and the caller must treat that as 'do not report'", and both
 calling rules correctly check for that (`no-orphan-text-nodes` even has a
-comment: *"Through a component boundary we cannot see the `<text>` that may
-well be wrapping this, so stay quiet rather than guess"*). But the walk only
+comment: _"Through a component boundary we cannot see the `<text>` that may
+well be wrapping this, so stay quiet rather than guess"_). But the walk only
 detects a component boundary when it reaches a `FunctionDeclaration` /
 `FunctionExpression` / `ArrowFunctionExpression` / `Program` node (that is,
-when walking *outward from inside* a component's own return statement). When the
-*immediate enclosing JSX element* is itself a custom component or a
+when walking _outward from inside_ a component's own return statement). When the
+_immediate enclosing JSX element_ is itself a custom component or a
 non-host control-flow component (`<KeyLabel>`, `<Show>`, presumably `<For>`
 and `<Switch>` too), the walk treats that element exactly like a host element
 that "settles the question on its own". It never calls `isHostElement()` to
 tell the two cases apart. So `<Show>` gets treated the same as `<box>` would:
 a definite non-text boundary, when in fact (like any custom component) it is
 exactly the unknowable case both rules already know to stay quiet about.
-This is the AGENTS.md example verbatim: *"a text modifier returned from a
-component could be wrapped at the call site."* One fix in `textContext()`
+This is the AGENTS.md example verbatim: _"a text modifier returned from a
+component could be wrapped at the call site."_ One fix in `textContext()`
 (check `isHostElement(name)` before deciding the walk is settled) would
 resolve both rules' false positives at once, since both call the same
 function.
@@ -236,7 +236,7 @@ function.
 All 21 are `no-website-spacing` (`strict-only`), on real `padding`/`margin`/
 `gap` values of 2 or 3 in OpenTUI's own interactive demos (`animation.tsx`,
 `scroll.tsx`, `keymap.tsx`, and their Solid equivalents). This rule enforces
-a house *policy*, not a defect; see `packages/lint/src/plugin.ts`'s own
+a house _policy_, not a defect; see `packages/lint/src/plugin.ts`'s own
 comment on why the design-system rules sit in `strict` and not
 `recommended`. OpenTUI's examples were written for readability, not to a
 1-cell spacing budget, and nothing about them is broken.
@@ -250,7 +250,7 @@ every recipe, the exact `target` path its own CLI writes: always
 (`core`, `react`, `solid`), plus five framework-agnostic theme presets under
 `themes/`. `src/materialize-tuiparts.ts` reads that manifest and copies each
 file to its declared target, once per framework it applies to. That is
-*exactly* what running the tuiparts CLI three times (once per framework)
+_exactly_ what running the tuiparts CLI three times (once per framework)
 against an empty project would produce, read from the manifest rather than
 guessed at.
 
@@ -264,7 +264,7 @@ instead of the default path would prove nothing about the default path.
 A throwaway file placed next to (not inside) `components/ui/` confirmed the
 theme really is discovered this way: that sibling file draws `paddingX={2}`
 (which equals the theme's `comfortablePaddingX` token) and a raw hex color
-matching a theme token, and *is* flagged by
+matching a theme token, and _is_ flagged by
 `no-magic-density`/`use-theme-tokens`/`no-restyle`. The rules are active and
 watching, not silent because nothing was found. Every file actually inside
 `components/ui/` triggers none of them.

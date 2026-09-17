@@ -19,11 +19,17 @@
  * restyles — they never reach this engine at all — so they are not part of
  * this vocabulary and can never appear in a contract's `allow`/`deny`.
  */
-export const RESTYLE_CATEGORIES = ["color", "border", "typography", "spacing", "internalLayout"] as const
+export const RESTYLE_CATEGORIES = [
+  "color",
+  "border",
+  "typography",
+  "spacing",
+  "internalLayout",
+] as const;
 
-export type RestyleCategory = (typeof RESTYLE_CATEGORIES)[number]
+export type RestyleCategory = (typeof RESTYLE_CATEGORIES)[number];
 
-const CATEGORY_SET: ReadonlySet<string> = new Set(RESTYLE_CATEGORIES)
+const CATEGORY_SET: ReadonlySet<string> = new Set(RESTYLE_CATEGORIES);
 
 export interface ContractInput {
   /**
@@ -32,16 +38,16 @@ export interface ContractInput {
    * both spellings with one entry. `Button` (no anchors) also matches
    * `IconButton`; `^Button$` matches only `Button`.
    */
-  pattern: string
-  allow?: string[]
-  deny?: string[]
-  message?: string
+  pattern: string;
+  allow?: string[];
+  deny?: string[];
+  message?: string;
 }
 
 export interface Verdict {
-  allowed: boolean
+  allowed: boolean;
   /** The matching contract's own message, when it set one. */
-  message: string | undefined
+  message: string | undefined;
 }
 
 /**
@@ -55,21 +61,27 @@ export class ContractConfigError extends Error {}
 
 function compilePattern(pattern: string): RegExp {
   try {
-    return new RegExp(pattern)
+    return new RegExp(pattern);
   } catch (error) {
-    if (!(error instanceof SyntaxError)) throw error
-    throw new ContractConfigError(`no-restyle: contract pattern "${pattern}" is not a valid regular expression.`)
+    if (!(error instanceof SyntaxError)) throw error;
+    throw new ContractConfigError(
+      `no-restyle: contract pattern "${pattern}" is not a valid regular expression.`,
+    );
   }
 }
 
 /** An entry that matches no known category is exactly as useless as a typo'd class name. */
-function checkEntries(entries: string[] | undefined, pattern: string, list: "allow" | "deny"): void {
+function checkEntries(
+  entries: string[] | undefined,
+  pattern: string,
+  list: "allow" | "deny",
+): void {
   for (const entry of entries ?? []) {
-    if (CATEGORY_SET.has(entry)) continue
+    if (CATEGORY_SET.has(entry)) continue;
     throw new ContractConfigError(
       `no-restyle: contract "${pattern}" names "${entry}" in ${list}, which is not a restyle category. ` +
         `Expected one of: ${RESTYLE_CATEGORIES.join(", ")}.`,
-    )
+    );
   }
 }
 
@@ -82,16 +94,16 @@ function checkEntries(entries: string[] | undefined, pattern: string, list: "all
  * contract says otherwise.
  */
 function allowSetOf(entry: { allow?: string[]; deny?: string[] }): ReadonlySet<string> | "*" {
-  if (entry.allow !== undefined) return new Set(entry.allow)
-  if (entry.deny !== undefined) return "*"
-  return new Set()
+  if (entry.allow !== undefined) return new Set(entry.allow);
+  if (entry.deny !== undefined) return "*";
+  return new Set();
 }
 
 interface CompiledContract {
-  pattern: RegExp
-  allow: ReadonlySet<string> | "*"
-  deny: ReadonlySet<string>
-  message: string | undefined
+  pattern: RegExp;
+  allow: ReadonlySet<string> | "*";
+  deny: ReadonlySet<string>;
+  message: string | undefined;
 }
 
 /** What an unmatched component gets: nothing allowed, nothing explicitly denied, everything reported. */
@@ -100,10 +112,10 @@ const BASELINE: CompiledContract = {
   allow: new Set(),
   deny: new Set(),
   message: undefined,
-}
+};
 
 export interface ContractSet {
-  decide(component: string, category: RestyleCategory): Verdict
+  decide(component: string, category: RestyleCategory): Verdict;
 }
 
 /**
@@ -117,29 +129,30 @@ export interface ContractSet {
  */
 export function compileContracts(inputs: ContractInput[] | undefined): ContractSet {
   const compiled: CompiledContract[] = (inputs ?? []).map((input) => {
-    checkEntries(input.allow, input.pattern, "allow")
-    checkEntries(input.deny, input.pattern, "deny")
+    checkEntries(input.allow, input.pattern, "allow");
+    checkEntries(input.deny, input.pattern, "deny");
     return {
       pattern: compilePattern(input.pattern),
       allow: allowSetOf(input),
       deny: new Set(input.deny ?? []),
       message: input.message,
-    }
-  })
+    };
+  });
 
   function policyFor(component: string): CompiledContract {
     for (let i = compiled.length - 1; i >= 0; i--) {
-      if (compiled[i]!.pattern.test(component)) return compiled[i]!
+      if (compiled[i]!.pattern.test(component)) return compiled[i]!;
     }
-    return BASELINE
+    return BASELINE;
   }
 
   return {
     decide(component, category) {
-      const policy = policyFor(component)
-      if (policy.deny.has(category)) return { allowed: false, message: policy.message }
-      if (policy.allow === "*" || policy.allow.has(category)) return { allowed: true, message: undefined }
-      return { allowed: false, message: policy.message }
+      const policy = policyFor(component);
+      if (policy.deny.has(category)) return { allowed: false, message: policy.message };
+      if (policy.allow === "*" || policy.allow.has(category))
+        return { allowed: true, message: undefined };
+      return { allowed: false, message: policy.message };
     },
-  }
+  };
 }

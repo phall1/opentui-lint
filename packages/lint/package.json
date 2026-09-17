@@ -2,6 +2,21 @@
   "name": "opentui-lint",
   "version": "0.3.0",
   "description": "An agent-first linter for OpenTUI terminal apps. Catches the crashes and silent no-ops TypeScript lets through.",
+  "keywords": [
+    "design-system",
+    "eslint",
+    "eslintplugin",
+    "lint",
+    "opentui",
+    "oxlint",
+    "terminal",
+    "tui"
+  ],
+  "homepage": "https://github.com/phall1/opentui-lint#readme",
+  "bugs": {
+    "url": "https://github.com/phall1/opentui-lint/issues"
+  },
+  "license": "MIT",
   "author": {
     "name": "Patrick Hall",
     "url": "https://github.com/phall1"
@@ -11,12 +26,17 @@
     "url": "git+https://github.com/phall1/opentui-lint.git",
     "directory": "packages/lint"
   },
-  "homepage": "https://github.com/phall1/opentui-lint#readme",
-  "bugs": {
-    "url": "https://github.com/phall1/opentui-lint/issues"
+  "bin": {
+    "opentui-lint": "dist/cli.js"
   },
-  "license": "MIT",
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "type": "module",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -24,26 +44,9 @@
     },
     "./package.json": "./package.json"
   },
-  "bin": {
-    "opentui-lint": "dist/cli.js"
+  "publishConfig": {
+    "access": "public"
   },
-  "types": "./dist/index.d.ts",
-  "files": [
-    "dist",
-    "README.md",
-    "CHANGELOG.md",
-    "LICENSE"
-  ],
-  "keywords": [
-    "opentui",
-    "lint",
-    "eslint",
-    "eslintplugin",
-    "oxlint",
-    "terminal",
-    "tui",
-    "design-system"
-  ],
   "scripts": {
     "build": "tsdown",
     "test": "bun test",
@@ -52,14 +55,6 @@
     "catalog:check": "bun scripts/sync-catalog.ts --check",
     "prepack": "bun scripts/prepack.ts",
     "postpack": "bun scripts/postpack.ts"
-  },
-  "peerDependencies": {
-    "eslint": ">=9.30.0"
-  },
-  "peerDependenciesMeta": {
-    "eslint": {
-      "optional": true
-    }
   },
   "devDependencies": {
     "@effect/platform-bun": "4.0.0-rc.115",
@@ -71,8 +66,13 @@
     "tsdown": "^0.12.0",
     "typescript": "^5.9.2"
   },
-  "publishConfig": {
-    "access": "public"
+  "peerDependencies": {
+    "eslint": ">=9.30.0"
+  },
+  "peerDependenciesMeta": {
+    "eslint": {
+      "optional": true
+    }
   },
   "engines": {
     "node": ">=20.19"

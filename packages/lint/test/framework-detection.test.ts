@@ -1,10 +1,10 @@
-import { describe, expect, test } from "bun:test"
-import { join } from "node:path"
-import rule from "../src/rules/no-unknown-elements.js"
-import { asRule, undetectedTester } from "./helpers.js"
+import { describe, expect, test } from "bun:test";
+import { join } from "node:path";
+import rule from "../src/rules/no-unknown-elements.js";
+import { asRule, undetectedTester } from "./helpers.js";
 
-const FIXTURES = join(import.meta.dir, "fixtures")
-const file = (app: string) => join(FIXTURES, app, "src", "App.tsx")
+const FIXTURES = join(import.meta.dir, "fixtures");
+const file = (app: string) => join(FIXTURES, app, "src", "App.tsx");
 
 /**
  * Detection is the plugin's safety boundary: a repo that ships an OpenTUI CLI
@@ -68,25 +68,28 @@ undetectedTester().run("framework detection", asRule(rule), {
       errors: [{ message: /is the @opentui\/react spelling/ }],
     },
   ],
-})
+});
 
 describe("settings", () => {
   test("an explicit framework overrides every other signal", async () => {
-    const { Linter } = await import("eslint")
-    const tsParser = (await import("@typescript-eslint/parser")).default
-    const linter = new Linter()
+    const { Linter } = await import("eslint");
+    const tsParser = (await import("@typescript-eslint/parser")).default;
+    const linter = new Linter();
     const messages = linter.verify(
       `export const App = () => <ascii-font text="hi" />`,
       {
         files: ["**/*.tsx"],
-        languageOptions: { parser: tsParser as any, parserOptions: { ecmaFeatures: { jsx: true } } },
+        languageOptions: {
+          parser: tsParser as any,
+          parserOptions: { ecmaFeatures: { jsx: true } },
+        },
         plugins: { opentui: { rules: { "no-unknown-elements": asRule(rule) } } },
         settings: { opentui: { framework: "solid" } },
         rules: { "opentui/no-unknown-elements": "error" },
       } as any,
       file("web-app"),
-    )
-    expect(messages).toHaveLength(1)
-    expect(messages[0]!.message).toMatch(/@opentui\/react spelling/)
-  })
-})
+    );
+    expect(messages).toHaveLength(1);
+    expect(messages[0]!.message).toMatch(/@opentui\/react spelling/);
+  });
+});

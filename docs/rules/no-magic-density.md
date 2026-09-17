@@ -23,7 +23,7 @@ Both lines render the same frame right now, if `tokens.density.paddingX` is
 `1`. Nothing about the second line is a runtime error or a type error:
 `paddingX` is typed `number`, and `1` is a perfectly good `number`. That is
 why it needs a linter instead of the type checker: the literal is
-*pinned* to whatever the theme's value was when it was written, and stays
+_pinned_ to whatever the theme's value was when it was written, and stays
 that way through every theme switch and preset swap from then on.
 
 The same gap exists for a border style that matches `tokens.borders.style`,
@@ -68,7 +68,7 @@ Correct:
   `theme.get().density.paddingX` (Core) are all expressions rooted at the
   theme, not literals, and none of them are reported; they are the
   fix this rule asks for, not a violation of it. This is a real limitation
-  of a rule with no type information: an expression that merely *looks*
+  of a rule with no type information: an expression that merely _looks_
   theme-shaped (`otherObject.density.paddingX`) is equally left alone,
   because there is no static way to tell it apart from the real thing.
 - **A value no token has.** `paddingX={7}` is reported only if some density
@@ -78,7 +78,7 @@ Correct:
 - **`0`.** Even if a theme names a token `0` (a `density.none` for "no
   spacing", say), a literal `0` is never reported. It is the universal
   "no spacing" value every terminal UI reaches for constantly; flagging it
-  would be pure noise for the one case where the literal *is* the right
+  would be pure noise for the one case where the literal _is_ the right
   thing to write.
 - **A prop this isn't about.** Density tokens are only compared against
   spacing props (`padding`, `paddingX`, `margin`, `gap`, and the rest of

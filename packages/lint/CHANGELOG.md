@@ -13,25 +13,25 @@ dependencies.
 
 ### Features
 
-* `no-restyle` reports a call site restyling a component its own library owns,
+- `no-restyle` reports a call site restyling a component its own library owns,
   on a contract engine ported from `@shadcn/lint`: last match wins with no
   merging, deny beats allow. A bad regex or a category that does not exist is
   reported at line 1 and the rule then enforces nothing for that file, rather
   than silently enforcing less than you asked for.
-* `use-theme-tokens` reports a literal color where the project's theme has a
+- `use-theme-tokens` reports a literal color where the project's theme has a
   token, exact match only. tuiparts' default theme resolves through the
   terminal palette, so there is often no hex to match against and nearest-color
   matching would be confidently wrong.
-* `no-magic-density` reports spacing that ignores the project's density scale.
-* A design-system project model that discovers recipes and the theme from the
+- `no-magic-density` reports spacing that ignores the project's density scale.
+- A design-system project model that discovers recipes and the theme from the
   filesystem, inside oxlint's plugin runtime as well as ESLint's.
-* An opt-in type-aware tier: `checkTypes: true` on `text-must-be-wrapped` uses
+- An opt-in type-aware tier: `checkTypes: true` on `text-must-be-wrapped` uses
   the TypeScript program to decide cases the AST alone cannot.
-* `opentui-lint doctor` reports what design system it found.
+- `opentui-lint doctor` reports what design system it found.
 
 ### Bug fixes
 
-* `elementName` resolved `<Dialog.Content>` to `?.Content`. The member
+- `elementName` resolved `<Dialog.Content>` to `?.Content`. The member
   expression branch recursed with a bare identifier. Nothing had caught it
   because no rule fired on capitalized JSX until `no-restyle`.
 
@@ -41,37 +41,37 @@ Autofix, three more correctness rules, and the CLI. Never published to npm.
 
 ### Features
 
-* Most diagnostics now fix themselves. Applied automatically where there is one
+- Most diagnostics now fix themselves. Applied automatically where there is one
   right answer: `<div>`/`<p>`/`<img>`/`<pre>` to their OpenTUI elements, the
   React/Solid spelling swap, text wrapping, `rgb()`/`rgba()`/`hsl()` and CSS
   color names to their exact hex, `onMouseEnter` to `onMouseOver`, `src` to
   `source`. Offered as suggestions where a judgement is involved: `<button>`,
   Tailwind palette names, removing dead props, typos.
-* Text wrapping groups runs rather than individual children, because a box lays
+- Text wrapping groups runs rather than individual children, because a box lays
   out as a column and wrapping each fragment alone would put `Total:` and `7` on
   different lines. A run with an untypeable expression beside it downgrades to a
   suggestion.
-* `no-unsupported-values` reports values that typecheck and are then dropped:
+- `no-unsupported-values` reports values that typecheck and are then dropped:
   `position="static"`, `min`/`max` of `"auto"`, `alignItems="space-between"`,
   negative dimensions.
-* `require-registration` reports `<qr-code>` before `registerQRCode()` has run.
-* `no-raw-stdout` reports `process.stdout.write` during a render, verified
+- `require-registration` reports `<qr-code>` before `registerQRCode()` has run.
+- `no-raw-stdout` reports `process.stdout.write` during a render, verified
   against a real pty. `console.log` is fine and deliberately not reported.
-* `opentui-lint init` writes the config, the lint script and the AGENTS.md line.
+- `opentui-lint init` writes the config, the lint script and the AGENTS.md line.
   `opentui-lint doctor` names the signal that identified the framework and warns
   when the installed OpenTUI is newer than the catalog.
 
 ### Bug fixes
 
-* `COLOR_PROPS` and `SPACING_PROPS` were hand-written inside the generator, the
+- `COLOR_PROPS` and `SPACING_PROPS` were hand-written inside the generator, the
   drift that generator exists to prevent. They missed `textColor` and 15 others,
   and carried a `scrollbarColor` that exists on no element. Both are derived
   now: 16 to 31.
-* `RuleTester` was running every case inline because it looks for
+- `RuleTester` was running every case inline because it looks for
   `describe`/`it` on `globalThis` and Bun exposes them as imports. The suite
   reported "Ran 0 tests" while still failing correctly. It is handed the hooks
   explicitly now.
-* `valid-colors` replaced whole ternaries instead of the matching branch.
+- `valid-colors` replaced whole ternaries instead of the matching branch.
 
 ## [0.1.0](https://github.com/phall1/opentui-lint/releases/tag/v0.1.0) (2026-09-16)
 

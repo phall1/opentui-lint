@@ -1,5 +1,5 @@
-import { defineRule } from "../project/rule.js"
-import type { Node } from "../project/types.js"
+import { defineRule } from "../project/rule.js";
+import type { Node } from "../project/types.js";
 
 /**
  * Writing to stdout yourself puts bytes inside the frame that never come out.
@@ -25,25 +25,31 @@ import type { Node } from "../project/types.js"
  * That is not the default, and requesting it in any other screen mode throws.
  */
 
-const STREAMS = new Set(["stdout", "stderr"])
-const WRITERS = new Set(["write"])
+const STREAMS = new Set(["stdout", "stderr"]);
+const WRITERS = new Set(["write"]);
 
 /** `process.stdout.write(…)` / `process.stderr.write(…)` and Bun's equivalents. */
 function isRawStreamWrite(node: Node): { stream: string } | undefined {
-  const callee = node.callee
-  if (callee?.type !== "MemberExpression") return undefined
-  if (callee.property?.type !== "Identifier" || !WRITERS.has(callee.property.name)) return undefined
+  const callee = node.callee;
+  if (callee?.type !== "MemberExpression") return undefined;
+  if (callee.property?.type !== "Identifier" || !WRITERS.has(callee.property.name))
+    return undefined;
 
-  const target = callee.object
-  if (target?.type !== "MemberExpression") return undefined
-  if (target.property?.type !== "Identifier" || !STREAMS.has(target.property.name)) return undefined
+  const target = callee.object;
+  if (target?.type !== "MemberExpression") return undefined;
+  if (target.property?.type !== "Identifier" || !STREAMS.has(target.property.name))
+    return undefined;
 
-  const root = target.object
+  const root = target.object;
   const rootName =
-    root?.type === "Identifier" ? root.name : root?.type === "MemberExpression" ? root.property?.name : undefined
-  if (rootName !== "process" && rootName !== "Bun") return undefined
+    root?.type === "Identifier"
+      ? root.name
+      : root?.type === "MemberExpression"
+        ? root.property?.name
+        : undefined;
+  if (rootName !== "process" && rootName !== "Bun") return undefined;
 
-  return { stream: target.property.name }
+  return { stream: target.property.name };
 }
 
 export default defineRule(
@@ -60,7 +66,8 @@ export default defineRule(
           allowInFiles: {
             type: "array",
             items: { type: "string" },
-            description: "Regex patterns for files that legitimately own stdout, such as a CLI entrypoint.",
+            description:
+              "Regex patterns for files that legitimately own stdout, such as a CLI entrypoint.",
           },
         },
         additionalProperties: false,
@@ -70,14 +77,14 @@ export default defineRule(
   (context) => {
     const allowPatterns = ((context.options[0]?.allowInFiles as string[]) ?? []).map(
       (pattern) => new RegExp(pattern),
-    )
-    const exempt = allowPatterns.some((pattern) => pattern.test(context.filename))
+    );
+    const exempt = allowPatterns.some((pattern) => pattern.test(context.filename));
 
     return {
       CallExpression(node) {
-        if (exempt) return
-        const match = isRawStreamWrite(node)
-        if (!match) return
+        if (exempt) return;
+        const match = isRawStreamWrite(node);
+        if (!match) return;
 
         context.report({
           node,
@@ -88,8 +95,8 @@ export default defineRule(
             `save or restore — wherever the last frame left the cursor. The renderer diffs against its own ` +
             `buffer, which this never touched, so it never repaints those cells and the damage is permanent. ` +
             `Use console.log, which OpenTUI captures into the debug overlay, or render the value into a <text>.`,
-        })
+        });
       },
-    }
+    };
   },
-)
+);

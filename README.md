@@ -17,7 +17,7 @@ and they do not fail the same way, so the diagnostics differ. See
 
 It is to OpenTUI roughly what [`@shadcn/lint`](https://github.com/shadcn-ui/lint)
 is to Tailwind design systems, with one difference in emphasis. shadcn's rules
-mostly restate policies TypeScript *could* express, with better error messages.
+mostly restate policies TypeScript _could_ express, with better error messages.
 Most of the rules here cover things TypeScript **cannot express at all**.
 
 ## Why TypeScript doesn't catch this
@@ -27,7 +27,7 @@ signature. It has to, so `extend()` can register custom renderables:
 
 ```ts
 export interface OpenTUIComponents {
-  [componentName: string]: RenderableConstructor
+  [componentName: string]: RenderableConstructor;
 }
 ```
 
@@ -66,26 +66,26 @@ ErrorBoundary catches it, and your app is replaced by a red React stack trace.
 The same measurement across 20 realistic mistakes, checked with
 `tsc --noEmit` against `@opentui/core@0.5.11`:
 
-| Mistake | `tsc` | Runtime |
-| --- | --- | --- |
-| `<div>hello</div>` | passes | throws `Unknown component type: div` |
-| `<box>Hello</box>` | passes | throws `Text must be created inside of a text node` |
-| `<box>{count}</box>` | passes | same throw |
-| `<box>{" "}</box>` | passes | same throw |
-| `<b>bold</b>` outside `<text>` | passes | throws `must be created inside of a text node` |
-| `<ascii_font>` in a React file | passes | throws `Unknown component type` |
-| `backgroundColor="slate"` | passes | **renders magenta** |
-| `backgroundColor="rgb(34,197,94)"` | passes | **renders magenta** |
-| `fg="#GGGGGG"` | passes | **renders magenta** |
-| `position="static"` | passes | silently ignored |
-| `style={hoistedObject}` with `borderRadius` | passes | silently ignored |
-| `padding={8} gap={4}` | passes | a third of an 80x24 screen on whitespace |
-| `className="flex-1"` | **caught** | — |
-| `onClick={…}` | **caught** | — |
-| `flexWrap="nowrap"` | **caught** (`"no-wrap"`) | — |
-| `width="100px"` | **caught** | — |
-| `borderRadius={2}` inline | **caught** | — |
-| `overflow="auto"` | **caught** | — |
+| Mistake                                     | `tsc`                    | Runtime                                             |
+| ------------------------------------------- | ------------------------ | --------------------------------------------------- |
+| `<div>hello</div>`                          | passes                   | throws `Unknown component type: div`                |
+| `<box>Hello</box>`                          | passes                   | throws `Text must be created inside of a text node` |
+| `<box>{count}</box>`                        | passes                   | same throw                                          |
+| `<box>{" "}</box>`                          | passes                   | same throw                                          |
+| `<b>bold</b>` outside `<text>`              | passes                   | throws `must be created inside of a text node`      |
+| `<ascii_font>` in a React file              | passes                   | throws `Unknown component type`                     |
+| `backgroundColor="slate"`                   | passes                   | **renders magenta**                                 |
+| `backgroundColor="rgb(34,197,94)"`          | passes                   | **renders magenta**                                 |
+| `fg="#GGGGGG"`                              | passes                   | **renders magenta**                                 |
+| `position="static"`                         | passes                   | silently ignored                                    |
+| `style={hoistedObject}` with `borderRadius` | passes                   | silently ignored                                    |
+| `padding={8} gap={4}`                       | passes                   | a third of an 80x24 screen on whitespace            |
+| `className="flex-1"`                        | **caught**               | —                                                   |
+| `onClick={…}`                               | **caught**               | —                                                   |
+| `flexWrap="nowrap"`                         | **caught** (`"no-wrap"`) | —                                                   |
+| `width="100px"`                             | **caught**               | —                                                   |
+| `borderRadius={2}` inline                   | **caught**               | —                                                   |
+| `overflow="auto"`                           | **caught**               | —                                                   |
 
 Six of twenty. Every failure in the top half is invisible until someone looks
 at a running terminal. An agent editing a TUI it never renders never looks.
@@ -103,15 +103,15 @@ outright.
 Both bindings reject the same code, by different routes and with different
 errors. The linter quotes whichever one your file will hit.
 
-| | React | Solid |
-| --- | --- | --- |
-| Unknown element | `Unknown component type: div` | `[Reconciler] Unknown component type: div` |
-| Text outside `<text>` | `Text must be created inside of a text node` | `Orphan text error: "…" must have a <text> as a parent` |
-| Where it fails | `createTextInstance`, before mount | `insertNode`, after the node is built |
-| What you see | ErrorBoundary paints a stack trace over your app | no boundary — the render throws |
-| Compound names | `ascii-font`, `tab-select`, `line-number` | `ascii_font`, `tab_select`, `line_number` |
-| Events | `onMouseDown` | `onMouseDown`, plus `on:mousedown` |
-| DOM elements in JSX | inherited from `React.JSX.IntrinsicElements` | not inherited, but the index signature lets them through anyway |
+|                       | React                                            | Solid                                                           |
+| --------------------- | ------------------------------------------------ | --------------------------------------------------------------- |
+| Unknown element       | `Unknown component type: div`                    | `[Reconciler] Unknown component type: div`                      |
+| Text outside `<text>` | `Text must be created inside of a text node`     | `Orphan text error: "…" must have a <text> as a parent`         |
+| Where it fails        | `createTextInstance`, before mount               | `insertNode`, after the node is built                           |
+| What you see          | ErrorBoundary paints a stack trace over your app | no boundary — the render throws                                 |
+| Compound names        | `ascii-font`, `tab-select`, `line-number`        | `ascii_font`, `tab_select`, `line_number`                       |
+| Events                | `onMouseDown`                                    | `onMouseDown`, plus `on:mousedown`                              |
+| DOM elements in JSX   | inherited from `React.JSX.IntrinsicElements`     | not inherited, but the index signature lets them through anyway |
 
 Writing `<div>` is the same mistake in both, so it gets the same answer,
 `Use <box>`, with a different explanation of why the checker stayed quiet.
@@ -133,8 +133,8 @@ bun add -d opentui-lint eslint @typescript-eslint/parser
 `eslint.config.mjs`:
 
 ```js
-import tsParser from "@typescript-eslint/parser"
-import { plugin as opentui, recommended } from "opentui-lint"
+import tsParser from "@typescript-eslint/parser";
+import { plugin as opentui, recommended } from "opentui-lint";
 
 export default [
   {
@@ -146,7 +146,7 @@ export default [
     plugins: { opentui },
     rules: recommended,
   },
-]
+];
 ```
 
 Then in `AGENTS.md`:
@@ -157,7 +157,7 @@ After changing any TUI code, run `bun run lint` and fix every error.
 
 ## It only lints terminal code
 
-A repo with an OpenTUI CLI *and* a web dashboard is the normal case, and `<div>`
+A repo with an OpenTUI CLI _and_ a web dashboard is the normal case, and `<div>`
 is correct in one and fatal in the other. Every rule stays silent
 unless the file gives positive evidence that its JSX compiles to a terminal:
 
@@ -173,32 +173,32 @@ No evidence, no diagnostics. The plugin never guesses from the presence of JSX.
 
 **Correctness** — every one reports something a typecheck cannot see. All in `recommended`, all errors.
 
-| Rule | Catches | Fixes |
-| --- | --- | --- |
-| [`no-unknown-elements`](docs/rules/no-unknown-elements.md) | `<div>`, `<p>`, wrong-binding spellings, typos | ✅ |
-| [`text-must-be-wrapped`](docs/rules/text-must-be-wrapped.md) | strings and numbers outside `<text>` | ✅ |
-| [`no-orphan-text-nodes`](docs/rules/no-orphan-text-nodes.md) | `<b>`, `<span>`, `<a>` outside `<text>` | ✅ |
-| [`valid-colors`](docs/rules/valid-colors.md) | color values that render magenta | ✅ |
-| [`no-web-props`](docs/rules/no-web-props.md) | `className`, `onClick`, `boxShadow`, `data-*` | ✅ |
-| [`no-unsupported-values`](docs/rules/no-unsupported-values.md) | `position="static"`, `minWidth="auto"`, `width={-1}` | — |
-| [`require-registration`](docs/rules/require-registration.md) | `<qr-code>` without `registerQRCode()` | — |
-| [`no-raw-stdout`](docs/rules/no-raw-stdout.md) | `process.stdout.write` corrupting the frame | — |
+| Rule                                                           | Catches                                              | Fixes |
+| -------------------------------------------------------------- | ---------------------------------------------------- | ----- |
+| [`no-unknown-elements`](docs/rules/no-unknown-elements.md)     | `<div>`, `<p>`, wrong-binding spellings, typos       | ✅    |
+| [`text-must-be-wrapped`](docs/rules/text-must-be-wrapped.md)   | strings and numbers outside `<text>`                 | ✅    |
+| [`no-orphan-text-nodes`](docs/rules/no-orphan-text-nodes.md)   | `<b>`, `<span>`, `<a>` outside `<text>`              | ✅    |
+| [`valid-colors`](docs/rules/valid-colors.md)                   | color values that render magenta                     | ✅    |
+| [`no-web-props`](docs/rules/no-web-props.md)                   | `className`, `onClick`, `boxShadow`, `data-*`        | ✅    |
+| [`no-unsupported-values`](docs/rules/no-unsupported-values.md) | `position="static"`, `minWidth="auto"`, `width={-1}` | —     |
+| [`require-registration`](docs/rules/require-registration.md)   | `<qr-code>` without `registerQRCode()`               | —     |
+| [`no-raw-stdout`](docs/rules/no-raw-stdout.md)                 | `process.stdout.write` corrupting the frame          | —     |
 
-**Design system** — in `strict`, not `recommended`. Each reports code that *works*; they enforce where styling decisions live, which is a policy a project chooses rather than a defect.
+**Design system** — in `strict`, not `recommended`. Each reports code that _works_; they enforce where styling decisions live, which is a policy a project chooses rather than a defect.
 
-| Rule | Catches |
-| --- | --- |
-| [`no-restyle`](docs/rules/no-restyle.md) | a call site restyling a component its library owns |
-| [`use-theme-tokens`](docs/rules/use-theme-tokens.md) | a raw color where the theme owns colors |
-| [`no-magic-density`](docs/rules/no-magic-density.md) | a literal that is really `tokens.density.paddingX` |
-| [`no-website-spacing`](docs/rules/no-website-spacing.md) | web-sized padding, margin and gap |
+| Rule                                                     | Catches                                            |
+| -------------------------------------------------------- | -------------------------------------------------- |
+| [`no-restyle`](docs/rules/no-restyle.md)                 | a call site restyling a component its library owns |
+| [`use-theme-tokens`](docs/rules/use-theme-tokens.md)     | a raw color where the theme owns colors            |
+| [`no-magic-density`](docs/rules/no-magic-density.md)     | a literal that is really `tokens.density.paddingX` |
+| [`no-website-spacing`](docs/rules/no-website-spacing.md) | web-sized padding, margin and gap                  |
 
 The three that need a theme go quiet on their own in a project without one, so
 `strict` costs nothing extra there.
 
 Three of the correctness rules come from values the types actively bless.
 `position="static"` is in `PositionTypeString` but `isPositionTypeType` rejects
-it, so it silently becomes `"relative"`. On a *change* the setter returns early,
+it, so it silently becomes `"relative"`. On a _change_ the setter returns early,
 so a renderable toggled from `"absolute"` to `"static"` **stays absolute**.
 `minWidth="auto"` is in the option type and dropped by `isSizeType`.
 `alignItems="space-between"` typechecks and lays out identically to
@@ -206,7 +206,7 @@ so a renderable toggled from `"absolute"` to `"static"` **stays absolute**.
 
 ## `{label}`: the opt-in type-aware tier
 
-`text-must-be-wrapped` reports text it can *prove* is text. `<box>{label}</box>`
+`text-must-be-wrapped` reports text it can _prove_ is text. `<box>{label}</box>`
 is the most common real crash and syntax alone cannot judge it: `label` could
 equally be an element. Turn on the type checker and it can.
 

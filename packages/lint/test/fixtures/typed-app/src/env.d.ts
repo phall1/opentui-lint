@@ -17,20 +17,27 @@
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      [name: string]: any
+      [name: string]: any;
     }
     interface Element {}
   }
 
   interface ElementLike {
-    $$typeof: symbol
+    $$typeof: symbol;
   }
 
   /** Shaped like React's `ReactNode`: the element member is what must stay unreported. */
-  type ReactNodeLike = ElementLike | string | number | Iterable<ReactNodeLike> | boolean | null | undefined
+  type ReactNodeLike =
+    | ElementLike
+    | string
+    | number
+    | Iterable<ReactNodeLike>
+    | boolean
+    | null
+    | undefined;
 
   /** Shaped like Solid's `Accessor<T>` — a signal read by calling it, not by its own (function) type. */
-  type Accessor<T> = () => T
+  type Accessor<T> = () => T;
 }
 
-export {}
+export {};

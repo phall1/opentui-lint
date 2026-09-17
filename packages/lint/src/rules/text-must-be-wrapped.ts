@@ -1,10 +1,10 @@
-import { failureText, failureVisible } from "../catalog/runtime.js"
-import { runContaining, textRuns, wrapRun } from "../project/fixes.js"
-import type { TextRun } from "../project/fixes.js"
-import { isDefinitelyText, textContext } from "../project/jsx.js"
-import { defineRule } from "../project/rule.js"
-import { typeChecking } from "../project/type-info.js"
-import type { Fixer, Node } from "../project/types.js"
+import { failureText, failureVisible } from "../catalog/runtime.js";
+import { runContaining, textRuns, wrapRun } from "../project/fixes.js";
+import type { TextRun } from "../project/fixes.js";
+import { isDefinitelyText, textContext } from "../project/jsx.js";
+import { defineRule } from "../project/rule.js";
+import { typeChecking } from "../project/type-info.js";
+import type { Fixer, Node } from "../project/types.js";
 
 /**
  * `<box>Hello</box>` is the single most common way an OpenTUI app dies.
@@ -59,7 +59,7 @@ export default defineRule(
     // the whole run. `undefined` here means either the option is off or there
     // is no type checker to use — both collapse to the same "syntactic only"
     // behavior below.
-    const types = context.options[0]?.checkTypes ? typeChecking(context) : undefined
+    const types = context.options[0]?.checkTypes ? typeChecking(context) : undefined;
 
     /**
      * Lets the fixer see what the type checker sees.
@@ -69,8 +69,9 @@ export default defineRule(
      */
     const provenText = types
       ? (child: Node) =>
-          child.type === "JSXExpressionContainer" && types.definitelyText(child.expression) !== undefined
-      : undefined
+          child.type === "JSXExpressionContainer" &&
+          types.definitelyText(child.expression) !== undefined
+      : undefined;
     /**
      * A certain fix is applied; an uncertain one is offered.
      *
@@ -87,7 +88,7 @@ export default defineRule(
               },
             ],
           }
-        : { fix: (fixer: Fixer) => wrapRun(context, run, fixer) }
+        : { fix: (fixer: Fixer) => wrapRun(context, run, fixer) };
 
     /**
      * Only the first offender in a run carries the fix.
@@ -96,16 +97,22 @@ export default defineRule(
      * produce a pile of overlapping edits for one range. It also keeps
      * `no-orphan-text-nodes` from fighting this rule over a shared run.
      */
-    const claimed = new WeakSet<Node>()
+    const claimed = new WeakSet<Node>();
 
-    const report = (node: Node, label: string, source: string, parent: string | undefined, typeText?: string) => {
-      const where = parent ? `<${parent}>` : "a non-text element"
-      const enclosing = node.parent
+    const report = (
+      node: Node,
+      label: string,
+      source: string,
+      parent: string | undefined,
+      typeText?: string,
+    ) => {
+      const where = parent ? `<${parent}>` : "a non-text element";
+      const enclosing = node.parent;
       const run = enclosing
         ? runContaining(textRuns(enclosing, context.framework, provenText), node)
-        : undefined
-      const owns = run !== undefined && !claimed.has(run.first)
-      if (run && owns) claimed.add(run.first)
+        : undefined;
+      const owns = run !== undefined && !claimed.has(run.first);
+      if (run && owns) claimed.add(run.first);
 
       context.report({
         node,
@@ -126,38 +133,38 @@ export default defineRule(
         // type-only catch has no run to attach a fix to and reports plain —
         // still correct, just without the <text> suggestion.
         ...(run && owns ? wrapAction(run) : {}),
-      })
-    }
+      });
+    };
 
     return {
       JSXText(node) {
         // JSX drops whitespace-only text between elements, so only real content
         // reaches the reconciler.
-        const content = String(node.value ?? "")
-        if (content.trim() === "") return
+        const content = String(node.value ?? "");
+        if (content.trim() === "") return;
 
-        const enclosing = textContext(node, context.framework)
-        if (enclosing.inside || enclosing.crossedComponent) return
+        const enclosing = textContext(node, context.framework);
+        if (enclosing.inside || enclosing.crossedComponent) return;
 
-        const trimmed = content.trim()
-        report(node, JSON.stringify(trimmed), trimmed, enclosing.boundary)
+        const trimmed = content.trim();
+        report(node, JSON.stringify(trimmed), trimmed, enclosing.boundary);
       },
 
       JSXExpressionContainer(node) {
-        if (node.parent?.type !== "JSXElement" && node.parent?.type !== "JSXFragment") return
+        if (node.parent?.type !== "JSXElement" && node.parent?.type !== "JSXFragment") return;
 
-        const syntactic = isDefinitelyText(node.expression)
+        const syntactic = isDefinitelyText(node.expression);
         // Syntactic proof first — it is free. Only ask the type checker (if
         // `checkTypes` gave us one) when the AST alone cannot decide.
-        const typed = syntactic ? undefined : types?.definitelyText(node.expression)
-        if (!syntactic && !typed) return
+        const typed = syntactic ? undefined : types?.definitelyText(node.expression);
+        if (!syntactic && !typed) return;
 
-        const enclosing = textContext(node, context.framework)
-        if (enclosing.inside || enclosing.crossedComponent) return
+        const enclosing = textContext(node, context.framework);
+        if (enclosing.inside || enclosing.crossedComponent) return;
 
-        const source = context.sourceCode.getText(node)
-        report(node, source, source, enclosing.boundary, typed?.typeText)
+        const source = context.sourceCode.getText(node);
+        report(node, source, source, enclosing.boundary, typed?.typeText);
       },
-    }
+    };
   },
-)
+);

@@ -1,6 +1,6 @@
 /** @jsxImportSource @opentui/react */
 
-import type { ReactNode } from "react"
+import type { ReactNode } from "react";
 
 /**
  * One conformance case: a snippet that opentui-lint reports, paired with the
@@ -11,20 +11,20 @@ import type { ReactNode } from "react"
  * itself without one of the two assertions failing.
  */
 export interface Case {
-  name: string
-  rule: string
+  name: string;
+  rule: string;
   /** The snippet, as the linter sees it. */
-  source: string
+  source: string;
   /** The same snippet, as the renderer sees it. */
-  element: ReactNode
+  element: ReactNode;
   /** What OpenTUI does with it at runtime. */
   outcome:
     | { kind: "error-boundary"; contains: string }
     | { kind: "magenta"; value: string }
-    | { kind: "inert-prop"; prop: string }
+    | { kind: "inert-prop"; prop: string };
 }
 
-const styleWithShadow = { boxShadow: "0 1px 2px" } as any
+const styleWithShadow = { boxShadow: "0 1px 2px" } as any;
 
 export const cases: Case[] = [
   {
@@ -63,7 +63,7 @@ export const cases: Case[] = [
     name: "an explicit JSX space outside <text> stops the render",
     rule: "text-must-be-wrapped",
     source: 'const App = () => <box>{" "}</box>',
-    element: <box>{" "}</box>,
+    element: <box> </box>,
     outcome: { kind: "error-boundary", contains: "Text must be created inside of a text node" },
   },
   {
@@ -82,7 +82,7 @@ export const cases: Case[] = [
         <b>Total</b>
       </box>
     ),
-    outcome: { kind: "error-boundary", contains: 'must be created inside of a text node' },
+    outcome: { kind: "error-boundary", contains: "must be created inside of a text node" },
   },
   {
     name: "an unknown color name renders magenta instead of failing",
@@ -120,4 +120,4 @@ const App = () => <box style={panel} />`,
     element: <box id="css-prop-case" style={styleWithShadow} />,
     outcome: { kind: "inert-prop", prop: "boxShadow" },
   },
-]
+];

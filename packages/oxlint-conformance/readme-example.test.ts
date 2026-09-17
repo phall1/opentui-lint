@@ -1,6 +1,6 @@
-import { describe, expect, test } from "bun:test"
-import { join } from "node:path"
-import { PLUGIN_ENTRY, runOxlint, withOxlintConfig } from "./src/run-oxlint.js"
+import { describe, expect, test } from "bun:test";
+import { join } from "node:path";
+import { PLUGIN_ENTRY, runOxlint, withOxlintConfig } from "./src/run-oxlint.js";
 
 /**
  * The exact JSON block from the root README's "Oxlint" section, reproduced
@@ -20,16 +20,18 @@ const README_CONFIG = {
   jsPlugins: [PLUGIN_ENTRY],
   settings: { opentui: { framework: "react" } },
   rules: { "opentui-lint/no-unknown-elements": "error" },
-}
+};
 
 describe("the README's Oxlint config block works verbatim", () => {
   test("reports <div> the same way the README claims", async () => {
     // No pragma, no @opentui/* import — settings.opentui.framework is doing
     // all the work here, exactly as the README's snippet implies it will.
-    const fixture = join(import.meta.dir, "fixtures", "channels", "no-pragma-div.tsx")
-    const diagnostics = await withOxlintConfig(README_CONFIG, (configPath) => runOxlint(configPath, [fixture]))
-    const own = diagnostics.filter((d) => d.code === "opentui-lint(no-unknown-elements)")
-    expect(own).toHaveLength(1)
-    expect(own[0]!.message).toContain("Unknown component type: div")
-  })
-})
+    const fixture = join(import.meta.dir, "fixtures", "channels", "no-pragma-div.tsx");
+    const diagnostics = await withOxlintConfig(README_CONFIG, (configPath) =>
+      runOxlint(configPath, [fixture]),
+    );
+    const own = diagnostics.filter((d) => d.code === "opentui-lint(no-unknown-elements)");
+    expect(own).toHaveLength(1);
+    expect(own[0]!.message).toContain("Unknown component type: div");
+  });
+});

@@ -1,9 +1,9 @@
 {
   "name": "opentui-lint-examples-conformance",
-  "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "private": true,
   "description": "Pins the exact lint, autofix, and tsc counts the example READMEs claim against real output.",
+  "type": "module",
   "scripts": {
     "test": "bun test"
   },

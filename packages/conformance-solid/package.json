@@ -1,9 +1,9 @@
 {
   "name": "opentui-lint-conformance-solid",
-  "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "private": true,
   "description": "Proves every Solid diagnostic against a real @opentui/solid render.",
+  "type": "module",
   "scripts": {
     "test": "bun test"
   },

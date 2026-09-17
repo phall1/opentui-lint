@@ -7,12 +7,12 @@ import {
   isInheritedDomElement,
   knowsElement,
   suggestElement,
-} from "../catalog/index.js"
-import { failureText, failureVisible, packageName } from "../catalog/runtime.js"
-import { renameElement } from "../project/fixes.js"
-import { elementName, isHostElement } from "../project/jsx.js"
-import { defineRule } from "../project/rule.js"
-import type { Fixer } from "../project/types.js"
+} from "../catalog/index.js";
+import { failureText, failureVisible, packageName } from "../catalog/runtime.js";
+import { renameElement } from "../project/fixes.js";
+import { elementName, isHostElement } from "../project/jsx.js";
+import { defineRule } from "../project/rule.js";
+import type { Fixer } from "../project/types.js";
 
 /**
  * The flagship rule.
@@ -53,22 +53,22 @@ export default defineRule(
     hasSuggestions: true,
   },
   (context) => {
-    const allow = new Set<string>((context.options[0]?.allow as string[]) ?? [])
+    const allow = new Set<string>((context.options[0]?.allow as string[]) ?? []);
 
     return {
       JSXOpeningElement(node) {
-        const name = elementName(node)
-        if (!name || !isHostElement(name)) return
-        if (allow.has(name) || context.extendedElements.has(name)) return
-        if (knowsElement(context.framework, name)) return
+        const name = elementName(node);
+        if (!name || !isHostElement(name)) return;
+        if (allow.has(name) || context.extendedElements.has(name)) return;
+        if (knowsElement(context.framework, name)) return;
 
-        const framework = context.framework
-        const other = framework === "react" ? "solid" : "react"
-        const throws = failureText(framework, "unknownElement", name)
+        const framework = context.framework;
+        const other = framework === "react" ? "solid" : "react";
+        const throws = failureText(framework, "unknownElement", name);
 
         // Ordered most-specific first: a wrong-binding spelling and an HTML tag
         // are different mistakes and deserve different instructions.
-        const renamed = crossFrameworkName(framework, name)
+        const renamed = crossFrameworkName(framework, name);
         if (renamed) {
           context.report({
             node,
@@ -79,35 +79,39 @@ export default defineRule(
             // The two bindings differ only in separator, so this is a pure
             // rename with exactly one right answer.
             fix: (fixer) => renameElement(node.parent ?? node, renamed, fixer),
-          })
-          return
+          });
+          return;
         }
 
         if (isDomElement(name)) {
-          const rename = domRename(name)
-          const replacement = domEquivalent(name)
+          const rename = domRename(name);
+          const replacement = domEquivalent(name);
           const why = isInheritedDomElement(framework, name)
             ? `It typechecks because ${packageName(framework)}'s JSX namespace extends React's DOM elements`
-            : `It typechecks because ${packageName(framework)}'s JSX namespace has a string index signature for extend()`
+            : `It typechecks because ${packageName(framework)}'s JSX namespace has a string index signature for extend()`;
           context.report({
             node,
             message:
               `<${name}> is an HTML element and OpenTUI has no renderable for it. ` +
               `${why}; at render it throws "${throws}" and ` +
               `${failureVisible(framework, "unknownElement")}. ` +
-              (replacement ? `Use ${replacement}.` : `Use <box> for layout and <text> for content.`),
+              (replacement
+                ? `Use ${replacement}.`
+                : `Use <box> for layout and <text> for content.`),
             // Only the unambiguous mappings are rewritten. <button> and
             // <canvas> need a decision, not a substitution.
-            ...(rename ? { fix: (fixer: Fixer) => renameElement(node.parent ?? node, rename, fixer) } : {}),
-          })
-          return
+            ...(rename
+              ? { fix: (fixer: Fixer) => renameElement(node.parent ?? node, rename, fixer) }
+              : {}),
+          });
+          return;
         }
 
-        const suggestion = suggestElement(framework, name)
-        const facts = elementsFor(framework)
+        const suggestion = suggestElement(framework, name);
+        const facts = elementsFor(framework);
         const catalogue = Object.keys(facts.elements)
           .filter((element) => !facts.elements[element]!.textNode)
-          .join(", ")
+          .join(", ");
 
         context.report({
           node,
@@ -130,8 +134,8 @@ export default defineRule(
                 ],
               }
             : {}),
-        })
+        });
       },
-    }
+    };
   },
-)
+);

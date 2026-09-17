@@ -11,42 +11,44 @@
  * distinction that cannot change the result.
  */
 
-import { ESLint, type Linter } from "eslint"
-import tsParser from "@typescript-eslint/parser"
-import { plugin as opentui, recommended, strict } from "opentui-lint"
-import type { OpenTuiSettings } from "opentui-lint"
+import { ESLint, type Linter } from "eslint";
+import tsParser from "@typescript-eslint/parser";
+import { plugin as opentui, recommended, strict } from "opentui-lint";
+import type { OpenTuiSettings } from "opentui-lint";
 
-const RECOMMENDED_RULES = new Set(Object.keys(recommended).map((id) => id.replace(/^opentui\//, "")))
+const RECOMMENDED_RULES = new Set(
+  Object.keys(recommended).map((id) => id.replace(/^opentui\//, "")),
+);
 
 export interface Finding {
-  ruleId: string
+  ruleId: string;
   /** Path relative to the target's own root — stable across machines and cache locations. */
-  file: string
-  line: number
-  column: number
-  message: string
+  file: string;
+  line: number;
+  column: number;
+  message: string;
   /** Whether `opentui/recommended` alone would also have reported this. */
-  inRecommended: boolean
+  inRecommended: boolean;
 }
 
 export interface LintTarget {
-  id: string
+  id: string;
   /** Absolute directory findings' `file` paths are made relative to. */
-  rootDir: string
+  rootDir: string;
   /** Absolute paths of every file to lint. */
-  files: string[]
+  files: string[];
   /** Rare escape hatch — only used where detection genuinely cannot resolve the framework; see README. */
-  settingsOverride?: OpenTuiSettings
+  settingsOverride?: OpenTuiSettings;
 }
 
 export interface LintOutcome {
-  findings: Finding[]
+  findings: Finding[];
   /** ESLint messages with no `ruleId` — a parse/config failure, never expected on real corpus source. */
-  toolingErrors: string[]
+  toolingErrors: string[];
 }
 
 export async function lintTarget(target: LintTarget): Promise<LintOutcome> {
-  if (target.files.length === 0) return { findings: [], toolingErrors: [] }
+  if (target.files.length === 0) return { findings: [], toolingErrors: [] };
 
   const config: Linter.Config = {
     files: ["**/*.ts", "**/*.tsx"],
@@ -57,30 +59,30 @@ export async function lintTarget(target: LintTarget): Promise<LintOutcome> {
     plugins: { opentui },
     rules: strict,
     ...(target.settingsOverride ? { settings: { opentui: target.settingsOverride } } : {}),
-  }
+  };
 
   const eslint = new ESLint({
     cwd: target.rootDir,
     overrideConfigFile: true,
     overrideConfig: config,
-  })
+  });
 
-  const results = await eslint.lintFiles(target.files)
+  const results = await eslint.lintFiles(target.files);
 
-  const findings: Finding[] = []
-  const toolingErrors: string[] = []
+  const findings: Finding[] = [];
+  const toolingErrors: string[] = [];
 
   for (const result of results) {
     const relFile = result.filePath.startsWith(target.rootDir)
       ? result.filePath.slice(target.rootDir.length).replace(/^\/+/, "")
-      : result.filePath
+      : result.filePath;
 
     for (const message of result.messages) {
       if (!message.ruleId) {
-        toolingErrors.push(`${relFile}:${message.line} — ${message.message}`)
-        continue
+        toolingErrors.push(`${relFile}:${message.line} — ${message.message}`);
+        continue;
       }
-      const bareRule = message.ruleId.replace(/^opentui\//, "")
+      const bareRule = message.ruleId.replace(/^opentui\//, "");
       findings.push({
         ruleId: bareRule,
         file: relFile,
@@ -88,10 +90,10 @@ export async function lintTarget(target: LintTarget): Promise<LintOutcome> {
         column: message.column,
         message: message.message,
         inRecommended: RECOMMENDED_RULES.has(bareRule),
-      })
+      });
     }
   }
 
-  findings.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line || a.column - b.column)
-  return { findings, toolingErrors }
+  findings.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line || a.column - b.column);
+  return { findings, toolingErrors };
 }

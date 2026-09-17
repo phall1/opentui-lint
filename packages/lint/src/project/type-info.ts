@@ -1,4 +1,4 @@
-import type { Node, RuleContext } from "./types.js"
+import type { Node, RuleContext } from "./types.js";
 
 /**
  * The slice of `@typescript-eslint/parser`'s `ParserServices` this module
@@ -14,22 +14,22 @@ import type { Node, RuleContext } from "./types.js"
  * shape works, not just one pinned version of one package.
  */
 interface TSTypeCheckerLike {
-  getTypeAtLocation(node: unknown): TSTypeLike
-  typeToString(type: TSTypeLike): string
+  getTypeAtLocation(node: unknown): TSTypeLike;
+  typeToString(type: TSTypeLike): string;
 }
 
 interface TSProgramLike {
-  getTypeChecker(): TSTypeCheckerLike
+  getTypeChecker(): TSTypeCheckerLike;
 }
 
 interface TSTypeLike {
-  flags: number
-  types?: TSTypeLike[]
+  flags: number;
+  types?: TSTypeLike[];
 }
 
 interface ParserServicesLike {
-  program: TSProgramLike | null | undefined
-  esTreeNodeToTSNodeMap?: { get(node: Node): unknown }
+  program: TSProgramLike | null | undefined;
+  esTreeNodeToTSNodeMap?: { get(node: Node): unknown };
 }
 
 /**
@@ -39,9 +39,9 @@ interface ParserServicesLike {
  * `RuleContext` in `types.ts` is meant to cover.
  */
 function parserServicesOf(context: RuleContext): ParserServicesLike | undefined {
-  const sourceCode = context.sourceCode as unknown as { parserServices?: ParserServicesLike }
-  const legacy = context as unknown as { parserServices?: ParserServicesLike }
-  return sourceCode?.parserServices ?? legacy?.parserServices
+  const sourceCode = context.sourceCode as unknown as { parserServices?: ParserServicesLike };
+  const legacy = context as unknown as { parserServices?: ParserServicesLike };
+  return sourceCode?.parserServices ?? legacy?.parserServices;
 }
 
 /**
@@ -64,17 +64,17 @@ const TS_TYPE_FLAGS = {
   Null: 1 << 16, // 65536
   Union: 1 << 20, // 1048576
   TemplateLiteral: 1 << 27, // 134217728
-} as const
+} as const;
 
 const TEXT_FLAGS =
   TS_TYPE_FLAGS.String |
   TS_TYPE_FLAGS.Number |
   TS_TYPE_FLAGS.StringLiteral |
   TS_TYPE_FLAGS.NumberLiteral |
-  TS_TYPE_FLAGS.TemplateLiteral
+  TS_TYPE_FLAGS.TemplateLiteral;
 
 /** `undefined`/`null` render as nothing, never as a text node — a union member the crash can skip over. */
-const SAFE_NULLISH_FLAGS = TS_TYPE_FLAGS.Undefined | TS_TYPE_FLAGS.Null
+const SAFE_NULLISH_FLAGS = TS_TYPE_FLAGS.Undefined | TS_TYPE_FLAGS.Null;
 
 /**
  * True when every branch of `type` that can render at all renders as text,
@@ -94,30 +94,30 @@ const SAFE_NULLISH_FLAGS = TS_TYPE_FLAGS.Undefined | TS_TYPE_FLAGS.Null
 function isTextType(type: TSTypeLike, seen: Set<TSTypeLike> = new Set()): boolean {
   // Guards against a pathological recursive alias walking forever; real
   // unions never revisit a member, so this never fires in practice.
-  if (seen.has(type)) return false
+  if (seen.has(type)) return false;
 
   if ((type.flags & TS_TYPE_FLAGS.Union) !== 0 && Array.isArray(type.types)) {
-    seen.add(type)
-    let sawText = false
+    seen.add(type);
+    let sawText = false;
     for (const member of type.types) {
-      if ((member.flags & SAFE_NULLISH_FLAGS) !== 0) continue
-      if (!isTextType(member, seen)) return false
-      sawText = true
+      if ((member.flags & SAFE_NULLISH_FLAGS) !== 0) continue;
+      if (!isTextType(member, seen)) return false;
+      sawText = true;
     }
-    return sawText
+    return sawText;
   }
 
-  return (type.flags & TEXT_FLAGS) !== 0
+  return (type.flags & TEXT_FLAGS) !== 0;
 }
 
 export interface TypeAwareProof {
   /** The resolved type, quoted in the diagnostic only — never used to decide. */
-  typeText: string
+  typeText: string;
 }
 
 export interface TypeChecking {
   /** `undefined` when the expression's type cannot be proven to be text. */
-  definitelyText(node: Node): TypeAwareProof | undefined
+  definitelyText(node: Node): TypeAwareProof | undefined;
 }
 
 /**
@@ -132,21 +132,21 @@ export interface TypeChecking {
  * `project` set and inspecting what it hands back before writing this check.
  */
 export function typeChecking(context: RuleContext): TypeChecking | undefined {
-  const services = parserServicesOf(context)
-  const program = services?.program
-  const nodeMap = services?.esTreeNodeToTSNodeMap
-  if (!program || !nodeMap) return undefined
-  const checker = program.getTypeChecker()
+  const services = parserServicesOf(context);
+  const program = services?.program;
+  const nodeMap = services?.esTreeNodeToTSNodeMap;
+  if (!program || !nodeMap) return undefined;
+  const checker = program.getTypeChecker();
 
   return {
     definitelyText(node) {
-      const tsNode = nodeMap.get(node)
+      const tsNode = nodeMap.get(node);
       // No mapping for this node is its own kind of "cannot prove it" — stay
       // quiet rather than risk querying the wrong node.
-      if (tsNode === undefined) return undefined
-      const type = checker.getTypeAtLocation(tsNode)
-      if (!isTextType(type)) return undefined
-      return { typeText: checker.typeToString(type) }
+      if (tsNode === undefined) return undefined;
+      const type = checker.getTypeAtLocation(tsNode);
+      if (!isTextType(type)) return undefined;
+      return { typeText: checker.typeToString(type) };
     },
-  }
+  };
 }

@@ -4,18 +4,18 @@
 
 The original roadmap was the design-system half plus four correctness rules.
 All of it is in, so the list below is what it became rather than what was
-planned, kept because the *reasons* are still the useful part.
+planned, kept because the _reasons_ are still the useful part.
 
-| Planned | Shipped as |
-| --- | --- |
-| `no-restyle` | [`no-restyle`](rules/no-restyle.md), on a contract engine ported from `@shadcn/lint` |
-| `use-theme-tokens` | [`use-theme-tokens`](rules/use-theme-tokens.md), in two tiers |
-| `no-magic-density` | [`no-magic-density`](rules/no-magic-density.md) |
-| `no-inert-values` | [`no-unsupported-values`](rules/no-unsupported-values.md), broader than planned |
-| `require-registration` | [`require-registration`](rules/require-registration.md) |
-| `no-raw-stdout` | [`no-raw-stdout`](rules/no-raw-stdout.md) |
-| Oxlint JS plugin entry | `packages/oxlint-conformance` runs every rule under the real binary |
-| Type-aware tier | `checkTypes: true` on `text-must-be-wrapped` |
+| Planned                | Shipped as                                                                           |
+| ---------------------- | ------------------------------------------------------------------------------------ |
+| `no-restyle`           | [`no-restyle`](rules/no-restyle.md), on a contract engine ported from `@shadcn/lint` |
+| `use-theme-tokens`     | [`use-theme-tokens`](rules/use-theme-tokens.md), in two tiers                        |
+| `no-magic-density`     | [`no-magic-density`](rules/no-magic-density.md)                                      |
+| `no-inert-values`      | [`no-unsupported-values`](rules/no-unsupported-values.md), broader than planned      |
+| `require-registration` | [`require-registration`](rules/require-registration.md)                              |
+| `no-raw-stdout`        | [`no-raw-stdout`](rules/no-raw-stdout.md)                                            |
+| Oxlint JS plugin entry | `packages/oxlint-conformance` runs every rule under the real binary                  |
+| Type-aware tier        | `checkTypes: true` on `text-must-be-wrapped`                                         |
 
 Three things the plan got wrong. The corrections cost real work:
 
@@ -28,7 +28,7 @@ matching against a terminal-resolved palette would produce confidently wrong
 messages. It ships exact-match-only, in two tiers, with the weaker tier naming
 the theme rather than a token.
 
-**`no-restyle` is a policy, not a defect.** tuiparts *deliberately* lets a call
+**`no-restyle` is a policy, not a defect.** tuiparts _deliberately_ lets a call
 site override a recipe's themed defaults; its Badge README says so outright.
 The rule cannot claim the code is broken, because it is not. What it claims
 instead is provable: the recipe re-reads its colors through `theme.subscribe`,
@@ -51,7 +51,7 @@ and focuses it. Verified by clicking one in a test renderer, not by reading
 about it. Tab does nothing; there is no built-in focus traversal to fall back
 on either.
 
-The disqualifying part is *where the deciding fact lives*: `useMouse` is a
+The disqualifying part is _where the deciding fact lives_: `useMouse` is a
 `createCliRenderer()` option, usually in a different file from the JSX, so no
 file-local rule can know whether a given input is reachable. The full findings
 and what would have to change upstream are in

@@ -21,38 +21,38 @@
  * consumer roots — a preset is equally valid source under any binding.
  */
 
-import { existsSync } from "node:fs"
-import { copyFile, mkdir, readFile } from "node:fs/promises"
-import { dirname, join } from "node:path"
+import { existsSync } from "node:fs";
+import { copyFile, mkdir, readFile } from "node:fs/promises";
+import { dirname, join } from "node:path";
 
-export type TuipartsFramework = "core" | "react" | "solid"
-const FRAMEWORKS: TuipartsFramework[] = ["core", "react", "solid"]
+export type TuipartsFramework = "core" | "react" | "solid";
+const FRAMEWORKS: TuipartsFramework[] = ["core", "react", "solid"];
 
 interface RegistryFile {
-  path: string
-  target: string
+  path: string;
+  target: string;
 }
 
 interface RegistryItem {
-  name: string
-  files: RegistryFile[]
-  meta: { framework: TuipartsFramework | "neutral" }
+  name: string;
+  files: RegistryFile[];
+  meta: { framework: TuipartsFramework | "neutral" };
 }
 
 interface RegistryManifest {
-  items: RegistryItem[]
+  items: RegistryItem[];
 }
 
 /** One materialized consumer root per framework, plus how many files landed in each. */
 export interface MaterializedTuiparts {
-  roots: Record<TuipartsFramework, string>
-  fileCounts: Record<TuipartsFramework, number>
+  roots: Record<TuipartsFramework, string>;
+  fileCounts: Record<TuipartsFramework, number>;
 }
 
 async function installInto(root: string, tuipartsRepo: string, file: RegistryFile): Promise<void> {
-  const destination = join(root, file.target)
-  await mkdir(dirname(destination), { recursive: true })
-  await copyFile(join(tuipartsRepo, file.path), destination)
+  const destination = join(root, file.target);
+  await mkdir(dirname(destination), { recursive: true });
+  await copyFile(join(tuipartsRepo, file.path), destination);
 }
 
 /**
@@ -64,36 +64,39 @@ export async function materializeTuiparts(
   tuipartsRepo: string,
   materializedBase: string,
 ): Promise<MaterializedTuiparts> {
-  const roots = Object.fromEntries(FRAMEWORKS.map((fw) => [fw, join(materializedBase, fw)])) as Record<
-    TuipartsFramework,
-    string
-  >
-  const fileCounts: Record<TuipartsFramework, number> = { core: 0, react: 0, solid: 0 }
+  const roots = Object.fromEntries(
+    FRAMEWORKS.map((fw) => [fw, join(materializedBase, fw)]),
+  ) as Record<TuipartsFramework, string>;
+  const fileCounts: Record<TuipartsFramework, number> = { core: 0, react: 0, solid: 0 };
 
-  const marker = join(materializedBase, ".corpus-materialized")
+  const marker = join(materializedBase, ".corpus-materialized");
   if (existsSync(marker)) {
     const manifest = JSON.parse(
       await readFile(join(tuipartsRepo, "registry.json"), "utf8"),
-    ) as RegistryManifest
+    ) as RegistryManifest;
     for (const item of manifest.items) {
-      const targets: TuipartsFramework[] = item.meta.framework === "neutral" ? FRAMEWORKS : [item.meta.framework]
-      for (const fw of targets) fileCounts[fw] += item.files.length
+      const targets: TuipartsFramework[] =
+        item.meta.framework === "neutral" ? FRAMEWORKS : [item.meta.framework];
+      for (const fw of targets) fileCounts[fw] += item.files.length;
     }
-    return { roots, fileCounts }
+    return { roots, fileCounts };
   }
 
-  const manifest = JSON.parse(await readFile(join(tuipartsRepo, "registry.json"), "utf8")) as RegistryManifest
+  const manifest = JSON.parse(
+    await readFile(join(tuipartsRepo, "registry.json"), "utf8"),
+  ) as RegistryManifest;
 
   for (const item of manifest.items) {
-    const targets: TuipartsFramework[] = item.meta.framework === "neutral" ? FRAMEWORKS : [item.meta.framework]
+    const targets: TuipartsFramework[] =
+      item.meta.framework === "neutral" ? FRAMEWORKS : [item.meta.framework];
     for (const fw of targets) {
       for (const file of item.files) {
-        await installInto(roots[fw], tuipartsRepo, file)
-        fileCounts[fw] += 1
+        await installInto(roots[fw], tuipartsRepo, file);
+        fileCounts[fw] += 1;
       }
     }
   }
 
-  await Bun.write(marker, `${new Date().toISOString()}\n`)
-  return { roots, fileCounts }
+  await Bun.write(marker, `${new Date().toISOString()}\n`);
+  return { roots, fileCounts };
 }

@@ -1,6 +1,6 @@
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs"
-import { tmpdir } from "node:os"
-import { dirname, join } from "node:path"
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
 
 /**
  * The whole point of this package: shell out to the real `oxlint` binary
@@ -14,22 +14,22 @@ import { dirname, join } from "node:path"
  * finds the binary whether bun hoisted `oxlint` to the workspace root (the
  * common case) or installed it locally in this package.
  */
-const OXLINT_PACKAGE_JSON = Bun.resolveSync("oxlint/package.json", import.meta.dir)
-export const OXLINT_BIN = join(dirname(OXLINT_PACKAGE_JSON), "bin", "oxlint")
+const OXLINT_PACKAGE_JSON = Bun.resolveSync("oxlint/package.json", import.meta.dir);
+export const OXLINT_BIN = join(dirname(OXLINT_PACKAGE_JSON), "bin", "oxlint");
 
 /** The plugin entry this whole package exists to exercise — see AGENTS.md. */
-export const PLUGIN_ENTRY = join(import.meta.dir, "..", "..", "lint", "dist", "index.js")
+export const PLUGIN_ENTRY = join(import.meta.dir, "..", "..", "lint", "dist", "index.js");
 
 export interface OxlintDiagnostic {
-  message: string
+  message: string;
   /** `"<plugin-name>(<rule-name>)"`, e.g. `"opentui-lint(no-unknown-elements)"`. */
-  code: string
-  severity: string
-  filename: string
+  code: string;
+  severity: string;
+  filename: string;
 }
 
 interface OxlintReport {
-  diagnostics: OxlintDiagnostic[]
+  diagnostics: OxlintDiagnostic[];
 }
 
 /**
@@ -41,7 +41,7 @@ interface OxlintReport {
  * what a consumer's own tooling would filter on too.
  */
 function ownDiagnostics(report: OxlintReport): OxlintDiagnostic[] {
-  return report.diagnostics.filter((d) => d.code.startsWith("opentui-lint("))
+  return report.diagnostics.filter((d) => d.code.startsWith("opentui-lint("));
 }
 
 /**
@@ -59,17 +59,22 @@ export async function runOxlint(
   const proc = Bun.spawn([OXLINT_BIN, "-c", configPath, "-f", "json", ...extraArgs, ...paths], {
     stdout: "pipe",
     stderr: "pipe",
-  })
-  const [stdout, stderr] = await Promise.all([new Response(proc.stdout).text(), new Response(proc.stderr).text()])
-  await proc.exited
+  });
+  const [stdout, stderr] = await Promise.all([
+    new Response(proc.stdout).text(),
+    new Response(proc.stderr).text(),
+  ]);
+  await proc.exited;
 
-  let report: OxlintReport
+  let report: OxlintReport;
   try {
-    report = JSON.parse(stdout) as OxlintReport
+    report = JSON.parse(stdout) as OxlintReport;
   } catch (cause) {
-    throw new Error(`oxlint did not print valid JSON.\nstdout:\n${stdout}\nstderr:\n${stderr}`, { cause })
+    throw new Error(`oxlint did not print valid JSON.\nstdout:\n${stdout}\nstderr:\n${stderr}`, {
+      cause,
+    });
   }
-  return ownDiagnostics(report)
+  return ownDiagnostics(report);
 }
 
 /**
@@ -78,27 +83,33 @@ export async function runOxlint(
  * A fresh temp dir per config — rather than one shared scratch file — means
  * parallel `bun test` workers never race each other writing the same path.
  */
-export async function withOxlintConfig<T>(config: object, run: (configPath: string) => T | Promise<T>): Promise<T> {
-  const dir = mkdtempSync(join(tmpdir(), "oxlint-conformance-"))
-  const configPath = join(dir, ".oxlintrc.json")
-  writeFileSync(configPath, JSON.stringify(config, null, 2))
+export async function withOxlintConfig<T>(
+  config: object,
+  run: (configPath: string) => T | Promise<T>,
+): Promise<T> {
+  const dir = mkdtempSync(join(tmpdir(), "oxlint-conformance-"));
+  const configPath = join(dir, ".oxlintrc.json");
+  writeFileSync(configPath, JSON.stringify(config, null, 2));
   try {
     // `run` spawns oxlint asynchronously, so the temp dir must survive until
     // that finishes — awaiting here (rather than returning the bare promise)
     // is what keeps `finally` from deleting the config out from under it.
-    return await run(configPath)
+    return await run(configPath);
   } finally {
-    rmSync(dir, { recursive: true, force: true })
+    rmSync(dir, { recursive: true, force: true });
   }
 }
 
 /** Config that turns on every rule the plugin currently exports, by name. */
-export function allRulesConfig(ruleNames: readonly string[], settings?: Record<string, unknown>): object {
-  const rules: Record<string, "error"> = {}
-  for (const name of ruleNames) rules[`opentui-lint/${name}`] = "error"
+export function allRulesConfig(
+  ruleNames: readonly string[],
+  settings?: Record<string, unknown>,
+): object {
+  const rules: Record<string, "error"> = {};
+  for (const name of ruleNames) rules[`opentui-lint/${name}`] = "error";
   return {
     jsPlugins: [PLUGIN_ENTRY],
     ...(settings ? { settings } : {}),
     rules,
-  }
+  };
 }

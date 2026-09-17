@@ -1,5 +1,5 @@
-import rule from "../src/rules/no-raw-stdout.js"
-import { asRule, tester, undetectedTester } from "./helpers.js"
+import rule from "../src/rules/no-raw-stdout.js";
+import { asRule, tester, undetectedTester } from "./helpers.js";
 
 tester().run("no-raw-stdout", asRule(rule), {
   valid: [
@@ -30,9 +30,9 @@ tester().run("no-raw-stdout", asRule(rule), {
       errors: [{ message: /process.stderr directly corrupts the frame/ }],
     },
   ],
-})
+});
 
 undetectedTester().run("no-raw-stdout (not an OpenTUI file)", asRule(rule), {
   valid: [`process.stdout.write("a normal CLI writing normally")`],
   invalid: [],
-})
+});

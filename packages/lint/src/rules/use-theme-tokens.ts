@@ -1,15 +1,20 @@
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs"
-import { basename, dirname, join, relative, resolve } from "node:path"
-import { checkColor, isColorProp } from "../catalog/index.js"
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { basename, dirname, join, relative, resolve } from "node:path";
+import { checkColor, isColorProp } from "../catalog/index.js";
 import {
   type DesignSystem,
   designSystemFor,
   isDesignSystemSource,
   readThemeTokens,
-} from "../project/design-system.js"
-import { attributeName, objectEntries, resolveObjectExpression, staticStrings } from "../project/jsx.js"
-import { defineRule } from "../project/rule.js"
-import type { Node, RuleContext } from "../project/types.js"
+} from "../project/design-system.js";
+import {
+  attributeName,
+  objectEntries,
+  resolveObjectExpression,
+  staticStrings,
+} from "../project/jsx.js";
+import { defineRule } from "../project/rule.js";
+import type { Node, RuleContext } from "../project/types.js";
 
 /**
  * A raw color literal on a color prop, in a project where a theme owns colors.
@@ -42,15 +47,15 @@ import type { Node, RuleContext } from "../project/types.js"
  * `tokens().colors.primary`, `theme.get().colors.primary` — is a token read,
  * whatever the receiver is called.
  */
-const TOKEN_SECTIONS = new Set(["colors", "density", "glyphs", "borders"])
+const TOKEN_SECTIONS = new Set(["colors", "density", "glyphs", "borders"]);
 
 function memberPropertyName(node: Node): string | undefined {
   if (node.computed) {
     return node.property?.type === "Literal" && typeof node.property.value === "string"
       ? node.property.value
-      : undefined
+      : undefined;
   }
-  return node.property?.type === "Identifier" ? (node.property.name as string) : undefined
+  return node.property?.type === "Identifier" ? (node.property.name as string) : undefined;
 }
 
 /**
@@ -66,19 +71,20 @@ function memberPropertyName(node: Node): string | undefined {
  * fallback is wrong, so it is left alone rather than reported.
  */
 function containsTokenReference(node: Node | undefined | null): boolean {
-  if (!node || typeof node.type !== "string") return false
-  if (node.type === "MemberExpression" && TOKEN_SECTIONS.has(memberPropertyName(node) ?? "")) return true
+  if (!node || typeof node.type !== "string") return false;
+  if (node.type === "MemberExpression" && TOKEN_SECTIONS.has(memberPropertyName(node) ?? ""))
+    return true;
 
   for (const key of Object.keys(node)) {
-    if (key === "parent") continue
-    const child = node[key]
+    if (key === "parent") continue;
+    const child = node[key];
     if (Array.isArray(child)) {
-      for (const entry of child) if (containsTokenReference(entry as Node)) return true
+      for (const entry of child) if (containsTokenReference(entry as Node)) return true;
     } else if (child && typeof child === "object" && typeof (child as Node).type === "string") {
-      if (containsTokenReference(child as Node)) return true
+      if (containsTokenReference(child as Node)) return true;
     }
   }
-  return false
+  return false;
 }
 
 /**
@@ -98,37 +104,37 @@ function containsTokenReference(node: Node | undefined | null): boolean {
  * fixed number of path segments, so there is no way to compute "project root"
  * from `uiDir` without walking for it.
  */
-const presetFileCache = new Map<string, string[]>()
+const presetFileCache = new Map<string, string[]>();
 
 function findPresetThemeFiles(system: DesignSystem): string[] {
-  const start = system.uiDir ?? dirname(system.themeFile)
-  const cached = presetFileCache.get(start)
-  if (cached) return cached
+  const start = system.uiDir ?? dirname(system.themeFile);
+  const cached = presetFileCache.get(start);
+  if (cached) return cached;
 
-  let dir = start
-  let found: string[] = []
+  let dir = start;
+  let found: string[] = [];
   for (;;) {
-    const candidate = join(dir, "themes")
+    const candidate = join(dir, "themes");
     if (existsSync(candidate) && statSync(candidate).isDirectory()) {
       found = readdirSync(candidate)
         .filter((name) => /\.tsx?$/.test(name))
         .map((name) => join(candidate, name))
-        .toSorted()
-      break
+        .toSorted();
+      break;
     }
-    const parent = dirname(dir)
-    if (parent === dir) break
-    dir = parent
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
   }
 
-  presetFileCache.set(start, found)
-  return found
+  presetFileCache.set(start, found);
+  return found;
 }
 
 interface TokenMatch {
-  tokenName: string
+  tokenName: string;
   /** Set only when the match came from a preset rather than the active theme. */
-  presetLabel?: string
+  presetLabel?: string;
 }
 
 /**
@@ -142,34 +148,34 @@ interface TokenMatch {
  * instead.
  */
 function matchTokens(system: DesignSystem, value: string): TokenMatch[] {
-  const normalized = value.trim().toLowerCase()
-  const hits: TokenMatch[] = []
+  const normalized = value.trim().toLowerCase();
+  const hits: TokenMatch[] = [];
 
   for (const [name, tokenValue] of Object.entries(system.tokens.colors)) {
-    if (tokenValue === normalized) hits.push({ tokenName: name })
+    if (tokenValue === normalized) hits.push({ tokenName: name });
   }
 
   for (const presetFile of findPresetThemeFiles(system)) {
-    if (resolve(presetFile) === resolve(system.themeFile)) continue // already checked above
-    const presetTokens = readThemeTokens(readFileSync(presetFile, "utf8"))
-    const presetLabel = basename(presetFile).replace(/\.tsx?$/, "")
+    if (resolve(presetFile) === resolve(system.themeFile)) continue; // already checked above
+    const presetTokens = readThemeTokens(readFileSync(presetFile, "utf8"));
+    const presetLabel = basename(presetFile).replace(/\.tsx?$/, "");
     for (const [name, tokenValue] of Object.entries(presetTokens.colors)) {
-      if (tokenValue === normalized) hits.push({ tokenName: name, presetLabel })
+      if (tokenValue === normalized) hits.push({ tokenName: name, presetLabel });
     }
   }
-  return hits
+  return hits;
 }
 
 function describeMatch(match: TokenMatch, themePath: string): string {
   return match.presetLabel
     ? `tokens.colors.${match.tokenName} under the ${match.presetLabel} theme`
-    : `tokens.colors.${match.tokenName} in ${themePath}`
+    : `tokens.colors.${match.tokenName} in ${themePath}`;
 }
 
 /** A theme-file path worth putting in a message, relative to the file being linted. */
 function relativeToFile(context: RuleContext, target: string): string {
-  const rel = relative(dirname(resolve(context.filename)), target)
-  return rel.startsWith(".") ? rel : `./${rel}`
+  const rel = relative(dirname(resolve(context.filename)), target);
+  return rel.startsWith(".") ? rel : `./${rel}`;
 }
 
 export default defineRule(
@@ -182,47 +188,47 @@ export default defineRule(
     schema: [],
   },
   (context) => {
-    let system: DesignSystem | null = null
-    let skip = true
+    let system: DesignSystem | null = null;
+    let skip = true;
 
     function report(propName: string, value: string, node: Node): void {
-      if (!system) return
+      if (!system) return;
 
       // Not our business: an unparseable value renders magenta and that is
       // `valid-colors`' diagnostic, not "bypasses the theme".
-      if (checkColor(value).kind !== "ok") return
+      if (checkColor(value).kind !== "ok") return;
       // Structural, not a color choice — recipes use it to mean "nothing here".
-      if (value.trim().toLowerCase() === "transparent") return
+      if (value.trim().toLowerCase() === "transparent") return;
 
-      const themePath = relativeToFile(context, system.themeFile)
+      const themePath = relativeToFile(context, system.themeFile);
       const typecheckBlind =
         "ColorInput is just `string | RGBA`, so a literal typechecks exactly like a token read " +
-        "and nothing catches the difference."
+        "and nothing catches the difference.";
       const pinned =
         "The theme re-reads its colors through `theme.subscribe` on every change; a literal here " +
-        "pins this instance so a theme switch never reaches it."
+        "pins this instance so a theme switch never reaches it.";
 
-      const matches = matchTokens(system, value)
+      const matches = matchTokens(system, value);
       if (matches.length === 1) {
-        const match = matches[0]!
+        const match = matches[0]!;
         context.report({
           node,
           message:
             `${propName}="${value}" is a raw color literal, but ${value} is ${describeMatch(match, themePath)}. ` +
             `${typecheckBlind} ${pinned} Use \`colors.${match.tokenName}\` from the theme instead of the literal.`,
-        })
-        return
+        });
+        return;
       }
       if (matches.length > 1) {
-        const names = matches.map((match) => describeMatch(match, themePath)).join(" and ")
+        const names = matches.map((match) => describeMatch(match, themePath)).join(" and ");
         context.report({
           node,
           message:
             `${propName}="${value}" is a raw color literal that equals more than one token — ${names} are ` +
             `all ${value}, and a literal does not distinguish which one was meant. ${typecheckBlind} ${pinned} ` +
             `Use whichever token matches this instance's role, instead of the literal.`,
-        })
-        return
+        });
+        return;
       }
 
       context.report({
@@ -230,46 +236,46 @@ export default defineRule(
         message:
           `${propName}="${value}" is a raw color literal, but this project's theme (${themePath}) owns colors. ` +
           `${typecheckBlind} ${pinned} Read the color from a token in the theme instead.`,
-      })
+      });
     }
 
     function checkValue(propName: string, valueNode: Node | undefined | null): void {
-      if (!valueNode || containsTokenReference(valueNode)) return
-      for (const site of staticStrings(valueNode)) report(propName, site.value, site.node)
+      if (!valueNode || containsTokenReference(valueNode)) return;
+      for (const site of staticStrings(valueNode)) report(propName, site.value, site.node);
     }
 
     function checkStyleObject(expression: Node | undefined): void {
-      const object = resolveObjectExpression(context, expression)
-      if (!object) return
+      const object = resolveObjectExpression(context, expression);
+      if (!object) return;
       for (const entry of objectEntries(object)) {
-        if (!isColorProp(entry.key)) continue
-        checkValue(entry.key, entry.valueNode)
+        if (!isColorProp(entry.key)) continue;
+        checkValue(entry.key, entry.valueNode);
       }
     }
 
     return {
       Program() {
-        system = designSystemFor(context)
+        system = designSystemFor(context);
         // No design system: nothing to enforce. Design-system source (a
         // recipe, the theme module itself): the code that legitimately reads
         // and assigns raw colors, so it must never be linted by this rule.
-        skip = !system || isDesignSystemSource(context, system)
+        skip = !system || isDesignSystemSource(context, system);
       },
       JSXAttribute(node) {
-        if (skip) return
-        const name = attributeName(node)
-        if (!name) return
+        if (skip) return;
+        const name = attributeName(node);
+        if (!name) return;
 
         if (name === "style") {
           const expression =
-            node.value?.type === "JSXExpressionContainer" ? node.value.expression : undefined
-          checkStyleObject(expression)
-          return
+            node.value?.type === "JSXExpressionContainer" ? node.value.expression : undefined;
+          checkStyleObject(expression);
+          return;
         }
 
-        if (!isColorProp(name)) return
-        checkValue(name, node.value)
+        if (!isColorProp(name)) return;
+        checkValue(name, node.value);
       },
-    }
+    };
   },
-)
+);

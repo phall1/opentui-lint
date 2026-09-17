@@ -11,7 +11,7 @@ This is the flagship design-system rule, the OpenTUI analogue of
 ## Why it is `strict`, not `recommended`
 
 [tuiparts](https://github.com/tuiparts/tuiparts) **deliberately permits
-instance overrides**. Most recipes spread `{...props}` *after* applying their
+instance overrides**. Most recipes spread `{...props}` _after_ applying their
 themed defaults, and the Badge recipe's own README says so outright:
 
 > Native root properties and `labelOptions` are applied after those defaults,
@@ -105,13 +105,13 @@ site's and is never classified at all: placement (`marginTop`, `width`,
 `flexGrow`/`flexShrink`/`flexBasis`, `min*`/`max*`) and behaviour (`onPress`
 and friends, `content`, `value`, `focused`, `id`, `ref`, `children`, …).
 
-| Category        | Props                                                                 |
-| ---------------- | ---------------------------------------------------------------------- |
+| Category         | Props                                                                                                                                      |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | `color`          | Every prop the catalog generates as color-carrying (`backgroundColor`, `bg`, `fg`, `color`, `borderColor`, `titleColor`, `selectionBg`, …) |
-| `border`         | `border`, `borderStyle`, `customBorderChars`                          |
-| `typography`     | `font`, `showUnderline`                                               |
-| `spacing`        | `padding`, `paddingX`/`paddingY`, `paddingTop`/`Right`/`Bottom`/`Left` |
-| `internalLayout` | `gap`, `rowGap`, `columnGap`, `flexDirection`, `alignItems`, `justifyContent`, `flexWrap` |
+| `border`         | `border`, `borderStyle`, `customBorderChars`                                                                                               |
+| `typography`     | `font`, `showUnderline`                                                                                                                    |
+| `spacing`        | `padding`, `paddingX`/`paddingY`, `paddingTop`/`Right`/`Bottom`/`Left`                                                                     |
+| `internalLayout` | `gap`, `rowGap`, `columnGap`, `flexDirection`, `alignItems`, `justifyContent`, `flexWrap`                                                  |
 
 `margin*` is placement, not `spacing`: it is the call site placing the
 component, not the component's own box model. `borderColor` is `color` rather
@@ -144,7 +144,7 @@ An ordered list of `{ pattern, allow, deny, message }`. Ported from
 only the vocabulary changes, from Tailwind class categories to the five prop
 categories above.
 
-- **`pattern`** is a regex tested against the *resolved* (dot-flattened)
+- **`pattern`** is a regex tested against the _resolved_ (dot-flattened)
   component name. `^Button$` matches only `Button`; `Button` (no anchors)
   also matches `IconButton`.
 - **`allow`/`deny`** are lists drawn from `color`, `border`, `typography`,
@@ -157,7 +157,7 @@ categories above.
   to the built-in baseline when none did):
   - neither `allow` nor `deny` → every owned category is reported. This is
     the rule's default posture for any component with no contract at all.
-  - `deny` alone → everything *except* what is denied is allowed
+  - `deny` alone → everything _except_ what is denied is allowed
     (deny-by-exception).
   - `allow` alone → only the listed categories are allowed.
 - **`message`** on a contract replaces the built-in explanation for
@@ -182,7 +182,7 @@ mode is invisible until someone goes looking for it.
 - Placement and behaviour props, on any component, always: they are never
   classified into a category in the first place.
 - A prop whose value cannot be reasoned about is still reported by presence,
-  not by value: `no-restyle` does not need to know *what* color
+  not by value: `no-restyle` does not need to know _what_ color
   `backgroundColor="red"` sets, only that the call site set it. There is no
   "if the value happens to match a token" carve-out: the design-system half
   of this package that resolves a raw value back to its token is

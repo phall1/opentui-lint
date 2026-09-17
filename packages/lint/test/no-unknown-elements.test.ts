@@ -1,5 +1,5 @@
-import rule from "../src/rules/no-unknown-elements.js"
-import { asRule, tester, undetectedTester } from "./helpers.js"
+import rule from "../src/rules/no-unknown-elements.js";
+import { asRule, tester, undetectedTester } from "./helpers.js";
 
 tester().run("no-unknown-elements", asRule(rule), {
   valid: [
@@ -62,7 +62,7 @@ tester().run("no-unknown-elements", asRule(rule), {
       ],
     },
   ],
-})
+});
 
 tester("solid").run("no-unknown-elements (solid)", asRule(rule), {
   valid: [
@@ -85,7 +85,8 @@ tester("solid").run("no-unknown-elements (solid)", asRule(rule), {
       output: `const a = <box><text>hi</text></box>`,
       errors: [
         {
-          message: /<div> is an HTML element.*string index signature for extend\(\).*\[Reconciler\] Unknown component type: div.*Use <box>/s,
+          message:
+            /<div> is an HTML element.*string index signature for extend\(\).*\[Reconciler\] Unknown component type: div.*Use <box>/s,
         },
       ],
     },
@@ -95,7 +96,7 @@ tester("solid").run("no-unknown-elements (solid)", asRule(rule), {
       errors: [{ message: /\[Reconciler\] Unknown component type: p/ }],
     },
   ],
-})
+});
 
 undetectedTester().run("no-unknown-elements (not an OpenTUI file)", asRule(rule), {
   // A plain React component in the same repo must never be touched.
@@ -104,4 +105,4 @@ undetectedTester().run("no-unknown-elements (not an OpenTUI file)", asRule(rule)
      export const Page = () => <div className="grid"><p>Hello</p></div>`,
   ],
   invalid: [],
-})
+});

@@ -1,9 +1,9 @@
-import { describe, expect, test } from "bun:test"
-import { parseColor, RGBA } from "@opentui/core"
-import { testRender } from "@opentui/solid"
-import { Linter } from "eslint"
-import tsParser from "@typescript-eslint/parser"
-import { plugin, recommended } from "opentui-lint"
+import { describe, expect, test } from "bun:test";
+import { parseColor, RGBA } from "@opentui/core";
+import { testRender } from "@opentui/solid";
+import { Linter } from "eslint";
+import tsParser from "@typescript-eslint/parser";
+import { plugin, recommended } from "opentui-lint";
 
 /**
  * The Solid half of conformance.
@@ -16,8 +16,8 @@ import { plugin, recommended } from "opentui-lint"
  * no message.
  */
 
-const MAGENTA = RGBA.fromValues(1, 0, 1, 1)
-const linter = new Linter()
+const MAGENTA = RGBA.fromValues(1, 0, 1, 1);
+const linter = new Linter();
 
 function lint(source: string): Linter.LintMessage[] {
   return linter.verify(
@@ -33,28 +33,28 @@ function lint(source: string): Linter.LintMessage[] {
       rules: recommended,
     } as never,
     "App.tsx",
-  )
+  );
 }
 
 /** Renders and returns the thrown message, or null when it rendered clean. */
 async function renderError(component: () => any): Promise<string | null> {
   try {
-    const setup = await testRender(component, { width: 60, height: 8 })
-    await setup.renderOnce()
-    setup.renderer.destroy()
-    return null
+    const setup = await testRender(component, { width: 60, height: 8 });
+    await setup.renderOnce();
+    setup.renderer.destroy();
+    return null;
   } catch (error) {
-    return (error as Error).message
+    return (error as Error).message;
   }
 }
 
 interface SolidCase {
-  name: string
-  rule: string
-  source: string
-  component: () => any
+  name: string;
+  rule: string;
+  source: string;
+  component: () => any;
   /** Substring the real Solid runtime error must contain. */
-  throws: string
+  throws: string;
 }
 
 const cases: SolidCase[] = [
@@ -101,57 +101,59 @@ const cases: SolidCase[] = [
     ),
     throws: "must have a <text> as a parent",
   },
-]
+];
 
 describe("every Solid diagnostic describes something @opentui/solid really does", () => {
   for (const testCase of cases) {
     describe(`${testCase.rule}: ${testCase.name}`, () => {
       test("the rule reports it", () => {
-        const messages = lint(testCase.source)
-        const reported = messages.filter((m) => m.ruleId === `opentui/${testCase.rule}`)
+        const messages = lint(testCase.source);
+        const reported = messages.filter((m) => m.ruleId === `opentui/${testCase.rule}`);
         expect(
           reported.length,
           `expected opentui/${testCase.rule} on:\n${testCase.source}\n` +
             `got: ${JSON.stringify(messages.map((m) => m.ruleId))}`,
-        ).toBeGreaterThan(0)
-      })
+        ).toBeGreaterThan(0);
+      });
 
       test("the message quotes the error Solid actually throws", async () => {
-        const thrown = await renderError(testCase.component)
-        expect(thrown, "Solid should have thrown").toBeTruthy()
-        expect(thrown).toContain(testCase.throws)
+        const thrown = await renderError(testCase.component);
+        expect(thrown, "Solid should have thrown").toBeTruthy();
+        expect(thrown).toContain(testCase.throws);
 
         // The diagnostic has to quote the real thing, not React's wording.
-        const message = lint(testCase.source).find((m) => m.ruleId === `opentui/${testCase.rule}`)!.message
+        const message = lint(testCase.source).find(
+          (m) => m.ruleId === `opentui/${testCase.rule}`,
+        )!.message;
         const quoted = testCase.throws.includes("Unknown component type")
           ? testCase.throws
-          : "must have a <text> as a parent"
-        expect(message).toContain(quoted)
-        expect(message).not.toContain("ErrorBoundary")
-      })
-    })
+          : "must have a <text> as a parent";
+        expect(message).toContain(quoted);
+        expect(message).not.toContain("ErrorBoundary");
+      });
+    });
   }
-})
+});
 
 describe("Solid shares the value-level failures with React", () => {
   test("an unknown color name still falls back to magenta", () => {
-    expect(parseColor("slate").equals(MAGENTA)).toBe(true)
-  })
+    expect(parseColor("slate").equals(MAGENTA)).toBe(true);
+  });
 
   test("a web prop is stored on the renderable and never read", async () => {
-    const captured: { node?: any } = {}
+    const captured: { node?: any } = {};
     const setup = await testRender(
       () => <box ref={(node: any) => (captured.node = node)} {...({ className: "row" } as any)} />,
       { width: 20, height: 3 },
-    )
-    await setup.renderOnce()
+    );
+    await setup.renderOnce();
     // Assigned onto the renderable, never read by anything.
-    expect(captured.node.className).toBe("row")
-    setup.renderer.destroy()
-  })
+    expect(captured.node.className).toBe("row");
+    setup.renderer.destroy();
+  });
 
   test("`on:` bindings are real, so the rule must leave them alone", () => {
-    const messages = lint(`const App = () => <box on:click={() => {}} />`)
-    expect(messages.filter((m) => m.ruleId === "opentui/no-web-props")).toHaveLength(0)
-  })
-})
+    const messages = lint(`const App = () => <box on:click={() => {}} />`);
+    expect(messages.filter((m) => m.ruleId === "opentui/no-web-props")).toHaveLength(0);
+  });
+});

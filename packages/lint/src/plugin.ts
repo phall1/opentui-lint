@@ -1,15 +1,15 @@
-import noMagicDensity from "./rules/no-magic-density.js"
-import noOrphanTextNodes from "./rules/no-orphan-text-nodes.js"
-import noRawStdout from "./rules/no-raw-stdout.js"
-import noUnknownElements from "./rules/no-unknown-elements.js"
-import noWebProps from "./rules/no-web-props.js"
-import noUnsupportedValues from "./rules/no-unsupported-values.js"
-import noWebsiteSpacing from "./rules/no-website-spacing.js"
-import noRestyle from "./rules/no-restyle.js"
-import requireRegistration from "./rules/require-registration.js"
-import useThemeTokens from "./rules/use-theme-tokens.js"
-import textMustBeWrapped from "./rules/text-must-be-wrapped.js"
-import validColors from "./rules/valid-colors.js"
+import noMagicDensity from "./rules/no-magic-density.js";
+import noOrphanTextNodes from "./rules/no-orphan-text-nodes.js";
+import noRawStdout from "./rules/no-raw-stdout.js";
+import noUnknownElements from "./rules/no-unknown-elements.js";
+import noWebProps from "./rules/no-web-props.js";
+import noUnsupportedValues from "./rules/no-unsupported-values.js";
+import noWebsiteSpacing from "./rules/no-website-spacing.js";
+import noRestyle from "./rules/no-restyle.js";
+import requireRegistration from "./rules/require-registration.js";
+import useThemeTokens from "./rules/use-theme-tokens.js";
+import textMustBeWrapped from "./rules/text-must-be-wrapped.js";
+import validColors from "./rules/valid-colors.js";
 
 export const rules = {
   "no-magic-density": noMagicDensity,
@@ -24,9 +24,9 @@ export const rules = {
   "text-must-be-wrapped": textMustBeWrapped,
   "use-theme-tokens": useThemeTokens,
   "valid-colors": validColors,
-}
+};
 
-export type RuleName = keyof typeof rules
+export type RuleName = keyof typeof rules;
 
 /**
  * Crashes and silently-wrong renders only. Every rule here reports something
@@ -42,7 +42,7 @@ export const recommended: Record<string, "error"> = {
   "opentui/no-unsupported-values": "error",
   "opentui/require-registration": "error",
   "opentui/no-raw-stdout": "error",
-}
+};
 
 /**
  * Everything in `recommended`, plus the design-system rules.
@@ -63,11 +63,11 @@ export const strict: Record<string, "error"> = {
   "opentui/no-restyle": "error",
   "opentui/use-theme-tokens": "error",
   "opentui/no-magic-density": "error",
-}
+};
 
 export const plugin = {
   meta: { name: "opentui-lint" },
   rules,
-}
+};
 
-export default plugin
+export default plugin;

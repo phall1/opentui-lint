@@ -2,19 +2,19 @@
 //
 // This file passes `tsc --noEmit` with `strict: true`. It also renders a red
 // React stack trace instead of a dashboard. Run `bun run lint` to see why.
-import { useKeyboard } from "@opentui/react"
+import { useKeyboard } from "@opentui/react";
 
 interface Service {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
-const card = { padding: 4, backgroundColor: "slate", borderRadius: 2 }
+const card = { padding: 4, backgroundColor: "slate", borderRadius: 2 };
 
 export function Dashboard({ services, selected }: { services: Service[]; selected: string }) {
   useKeyboard((key) => {
-    if (key.name === "q") process.exit(0)
-  })
+    if (key.name === "q") process.exit(0);
+  });
 
   return (
     <box flexDirection="column" gap={2}>
@@ -47,5 +47,5 @@ export function Dashboard({ services, selected }: { services: Service[]; selecte
         <text> to quit</text>
       </box>
     </box>
-  )
+  );
 }

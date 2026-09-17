@@ -118,7 +118,7 @@ the type checker was quiet, and what to write instead, in that order.
 
 Releases are automated by `.github/workflows/publish.yml`. release-please and
 the `npm publish` job live in that one file because npm's trusted publishing
-validates the workflow *filename* carried in the OIDC token, and it does not
+validates the workflow _filename_ carried in the OIDC token, and it does not
 follow `workflow_call` into a reusable workflow.
 
 Commit subjects decide the version, so they have to be conventional commits from

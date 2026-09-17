@@ -14,9 +14,9 @@
 
 export interface RuleFixture {
   /** Relative to `fixtures/`. */
-  file: string
+  file: string;
   /** A substring the rule's message must contain for this fixture. */
-  expect: string
+  expect: string;
 }
 
 export interface RuleCoverage {
@@ -26,9 +26,9 @@ export interface RuleCoverage {
    * rule has regardless). Only these need a Solid fixture: the other rules
    * report the same thing regardless of binding.
    */
-  frameworkSensitive: boolean
-  react: RuleFixture
-  solid?: RuleFixture
+  frameworkSensitive: boolean;
+  react: RuleFixture;
+  solid?: RuleFixture;
 }
 
 export const RULE_COVERAGE: Record<string, RuleCoverage> = {
@@ -41,12 +41,18 @@ export const RULE_COVERAGE: Record<string, RuleCoverage> = {
   },
   "text-must-be-wrapped": {
     frameworkSensitive: true,
-    react: { file: "react/text-must-be-wrapped.tsx", expect: "Text must be created inside of a text node" },
+    react: {
+      file: "react/text-must-be-wrapped.tsx",
+      expect: "Text must be created inside of a text node",
+    },
     solid: { file: "solid/text-must-be-wrapped.tsx", expect: "must have a <text> as a parent" },
   },
   "no-orphan-text-nodes": {
     frameworkSensitive: true,
-    react: { file: "react/no-orphan-text-nodes.tsx", expect: "is a text modifier, not a renderable" },
+    react: {
+      file: "react/no-orphan-text-nodes.tsx",
+      expect: "is a text modifier, not a renderable",
+    },
     solid: { file: "solid/no-orphan-text-nodes.tsx", expect: "must have a <text> as a parent" },
   },
   "valid-colors": {
@@ -114,4 +120,4 @@ export const RULE_COVERAGE: Record<string, RuleCoverage> = {
       expect: "theme.subscribe",
     },
   },
-}
+};

@@ -9,7 +9,7 @@ that `extend()` can add custom renderables:
 
 ```ts
 export interface OpenTUIComponents {
-  [componentName: string]: RenderableConstructor
+  [componentName: string]: RenderableConstructor;
 }
 ```
 
@@ -21,7 +21,7 @@ At render, the reconciler looks the tag up in its catalogue:
 
 ```ts
 if (!components[type]) {
-  throw new Error(`Unknown component type: ${type}`)
+  throw new Error(`Unknown component type: ${type}`);
 }
 ```
 
@@ -75,7 +75,11 @@ extend({ sparkline: SparklineRenderable })
 When registration happens elsewhere, list the names once:
 
 ```js
-settings: { opentui: { extendedElements: ["sparkline"] } }
+settings: {
+  opentui: {
+    extendedElements: ["sparkline"];
+  }
+}
 ```
 
 ## Options

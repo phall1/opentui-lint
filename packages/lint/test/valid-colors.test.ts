@@ -1,5 +1,5 @@
-import rule from "../src/rules/valid-colors.js"
-import { asRule, tester, undetectedTester } from "./helpers.js"
+import rule from "../src/rules/valid-colors.js";
+import { asRule, tester, undetectedTester } from "./helpers.js";
 
 tester().run("valid-colors", asRule(rule), {
   valid: [
@@ -55,7 +55,10 @@ tester().run("valid-colors", asRule(rule), {
         {
           message: /Tailwind palette name, not a color. #64748b is its 500 shade/,
           suggestions: [
-            { desc: `Replace with "#64748b" (slate-500)`, output: `const a = <box backgroundColor="#64748b" />` },
+            {
+              desc: `Replace with "#64748b" (slate-500)`,
+              output: `const a = <box backgroundColor="#64748b" />`,
+            },
           ],
         },
       ],
@@ -67,7 +70,10 @@ tester().run("valid-colors", asRule(rule), {
         {
           message: /Tailwind palette name/,
           suggestions: [
-            { desc: `Replace with "#10b981" (emerald-500)`, output: `const a = <box backgroundColor="#10b981" />` },
+            {
+              desc: `Replace with "#10b981" (emerald-500)`,
+              output: `const a = <box backgroundColor="#10b981" />`,
+            },
           ],
         },
       ],
@@ -80,7 +86,12 @@ tester().run("valid-colors", asRule(rule), {
       errors: [
         {
           message: /Tailwind palette name/,
-          suggestions: [{ desc: `Replace with "#64748b" (slate-500)`, output: `const a = <input textColor="#64748b" />` }],
+          suggestions: [
+            {
+              desc: `Replace with "#64748b" (slate-500)`,
+              output: `const a = <input textColor="#64748b" />`,
+            },
+          ],
         },
       ],
     },
@@ -95,7 +106,12 @@ tester().run("valid-colors", asRule(rule), {
       errors: [
         {
           message: /Tailwind palette name/,
-          suggestions: [{ desc: `Replace with "#10b981" (emerald-500)`, output: `const a = <diff addedBg="#10b981" />` }],
+          suggestions: [
+            {
+              desc: `Replace with "#10b981" (emerald-500)`,
+              output: `const a = <diff addedBg="#10b981" />`,
+            },
+          ],
         },
       ],
     },
@@ -115,7 +131,9 @@ tester().run("valid-colors", asRule(rule), {
       errors: [
         {
           message: /Did you mean "gray"\?/,
-          suggestions: [{ desc: `Replace with "gray"`, output: `const a = <box backgroundColor="gray" />` }],
+          suggestions: [
+            { desc: `Replace with "gray"`, output: `const a = <box backgroundColor="gray" />` },
+          ],
         },
       ],
     },
@@ -140,9 +158,9 @@ tester().run("valid-colors", asRule(rule), {
       errors: [{ message: /CSS "indigo" is exactly #4b0082/ }],
     },
   ],
-})
+});
 
 undetectedTester().run("valid-colors (not an OpenTUI file)", asRule(rule), {
   valid: [`export const Page = () => <div style={{ backgroundColor: "slate" }} />`],
   invalid: [],
-})
+});

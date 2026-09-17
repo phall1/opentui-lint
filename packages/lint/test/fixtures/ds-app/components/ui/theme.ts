@@ -1,20 +1,20 @@
-import { type ColorInput, RGBA, parseColor } from "@opentui/core"
+import { type ColorInput, RGBA, parseColor } from "@opentui/core";
 
 /** Semantic token contract shared by every installed recipe. Extend freely. */
 export interface Tokens {
   colors: {
-    background: ColorInput
-    surface: ColorInput
-    foreground: ColorInput
-    border: ColorInput
-    primary: ColorInput
-  }
-  glyphs: { check: string; radio: string }
-  borders: { style: "single" | "rounded" | "double" | "heavy" }
-  density: { paddingX: number; comfortablePaddingX: number }
+    background: ColorInput;
+    surface: ColorInput;
+    foreground: ColorInput;
+    border: ColorInput;
+    primary: ColorInput;
+  };
+  glyphs: { check: string; radio: string };
+  borders: { style: "single" | "rounded" | "double" | "heavy" };
+  density: { paddingX: number; comfortablePaddingX: number };
 }
 
-export declare function createThemeStore(config: { base: Tokens }): unknown
+export declare function createThemeStore(config: { base: Tokens }): unknown;
 
 /**
  * Default theme built from ANSI-indexed colors, so recipes inherit whatever
@@ -31,7 +31,7 @@ export const terminal: Tokens = {
   glyphs: { check: "✓", radio: "●" },
   borders: { style: "single" },
   density: { paddingX: 1, comfortablePaddingX: 2 },
-}
+};
 
-export const theme = createThemeStore({ base: terminal })
-export { parseColor }
+export const theme = createThemeStore({ base: terminal });
+export { parseColor };

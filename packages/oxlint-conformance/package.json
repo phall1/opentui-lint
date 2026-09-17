@@ -1,9 +1,9 @@
 {
   "name": "opentui-lint-conformance-oxlint",
-  "private": true,
   "version": "0.0.0",
-  "type": "module",
+  "private": true,
   "description": "Proves the built plugin reports correctly under real oxlint, not just ESLint.",
+  "type": "module",
   "scripts": {
     "test": "bun test"
   },

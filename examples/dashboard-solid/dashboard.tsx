@@ -5,17 +5,17 @@
 // `[Reconciler] Unknown component type: div` and
 // `Orphan text error: "…" must have a <text> as a parent`.
 // The linter quotes whichever one your file will actually hit.
-import { For, createSignal } from "solid-js"
+import { For, createSignal } from "solid-js";
 
 interface Service {
-  id: string
-  name: string
+  id: string;
+  name: string;
 }
 
-const card = { padding: 4, backgroundColor: "slate", borderRadius: 2 }
+const card = { padding: 4, backgroundColor: "slate", borderRadius: 2 };
 
 export function Dashboard(props: { services: Service[] }) {
-  const [selected, setSelected] = createSignal("")
+  const [selected, setSelected] = createSignal("");
 
   return (
     <box flexDirection="column" gap={2}>
@@ -46,5 +46,5 @@ export function Dashboard(props: { services: Service[] }) {
         <ascii-font text="q to quit" />
       </box>
     </box>
-  )
+  );
 }

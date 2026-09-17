@@ -13,7 +13,7 @@ assignments. `PositionTypeString` includes `"static"`, but:
 
 ```ts
 export function isPositionTypeType(value: any): value is PositionTypeString {
-  return value === "relative" || value === "absolute"   // "static" is missing
+  return value === "relative" || value === "absolute"; // "static" is missing
 }
 ```
 
@@ -26,7 +26,7 @@ against a control tree that differs in exactly one prop. See
 
 ## `position="static"`
 
-Silently becomes `"relative"` at construction. On a *change* the setter returns
+Silently becomes `"relative"` at construction. On a _change_ the setter returns
 early instead of assigning, so it is **sticky**:
 
 ```
@@ -40,9 +40,8 @@ absolute positioning. Use `"relative"`, or drop the prop.
 
 ## `"auto"` on `minWidth` / `minHeight` / `maxWidth` / `maxHeight`
 
-Typed as `number | "auto" | \`${number}%\``, but `isSizeType` rejects `"auto"`
-for these four, so the constraint is dropped entirely. Verified: the computed
-box is identical to omitting the prop, while `minWidth={12}` and `maxWidth={1}`
+Typed as `number | "auto" | \`${number}%\``, but `isSizeType`rejects`"auto"`for these four, so the constraint is dropped entirely. Verified: the computed
+box is identical to omitting the prop, while`minWidth={12}`and`maxWidth={1}`
 are both honored.
 
 Note `"auto"` **does** work on `width`, `height`, `margin*` and `flexBasis`:
@@ -74,7 +73,7 @@ should be. Solid has no boundary, so the render throws.
 Enum values that are outside the union entirely: `flexWrap="nowrap"`,
 `overflow="auto"`, `justifyContent="stretch"`. Those fall back silently at
 runtime too, but **TypeScript already rejects them**, on direct attributes,
-through a hoisted style object, *and* through a spread. (Excess *unknown* props
+through a hoisted style object, _and_ through a spread. (Excess _unknown_ props
 still slip through a hoisted object; that is a different mechanism, and
 [`no-web-props`](no-web-props.md) covers it.) Reporting what `tsc` already
 reports would be noise.

@@ -6,9 +6,9 @@ import {
   resolveObjectExpression,
   staticNumber,
   staticStrings,
-} from "../project/jsx.js"
-import { defineRule } from "../project/rule.js"
-import type { Node } from "../project/types.js"
+} from "../project/jsx.js";
+import { defineRule } from "../project/rule.js";
+import type { Node } from "../project/types.js";
 
 /**
  * Values the public types accept and the runtime does not honor.
@@ -28,17 +28,24 @@ import type { Node } from "../project/types.js"
  */
 
 interface Finding {
-  message: string
+  message: string;
 }
 
-const DIMENSION_PROPS = new Set(["width", "height", "minWidth", "minHeight", "maxWidth", "maxHeight"])
-const MIN_MAX_PROPS = new Set(["minWidth", "minHeight", "maxWidth", "maxHeight"])
+const DIMENSION_PROPS = new Set([
+  "width",
+  "height",
+  "minWidth",
+  "minHeight",
+  "maxWidth",
+  "maxHeight",
+]);
+const MIN_MAX_PROPS = new Set(["minWidth", "minHeight", "maxWidth", "maxHeight"]);
 
 /** `alignItems` accepts these, and they are not what they look like. */
-const ALIGN_SPACE_VALUES = new Set(["space-between", "space-around", "space-evenly"])
+const ALIGN_SPACE_VALUES = new Set(["space-between", "space-around", "space-evenly"]);
 
 function check(prop: string, value: Node, framework: "react" | "solid"): Finding | undefined {
-  const strings = staticStrings(value)
+  const strings = staticStrings(value);
 
   for (const site of strings) {
     if (prop === "position" && site.value === "static") {
@@ -50,7 +57,7 @@ function check(prop: string, value: Node, framework: "react" | "solid"): Finding
           `Worse, on a *change* the setter returns early instead of assigning — so switching a renderable to ` +
           `"static" leaves it at whatever it was before, including "absolute". ` +
           `Use "relative" if you meant normal flow, or drop the prop entirely.`,
-      }
+      };
     }
 
     if (MIN_MAX_PROPS.has(prop) && site.value === "auto") {
@@ -60,7 +67,7 @@ function check(prop: string, value: Node, framework: "react" | "solid"): Finding
           `The option is typed \`number | "auto" | \\\`\${number}%\\\`\`, but isSizeType rejects "auto" for the ` +
           `four min/max dimensions, so the value is dropped and no constraint is applied at all. ` +
           `Use a number of cells, a percentage such as "50%", or remove the prop — the default is already unset.`,
-      }
+      };
     }
 
     if (prop === "alignItems" && ALIGN_SPACE_VALUES.has(site.value)) {
@@ -70,12 +77,12 @@ function check(prop: string, value: Node, framework: "react" | "solid"): Finding
           `anything. alignItems positions children on the cross axis, where there is nothing to space out, ` +
           `so Yoga lays the child out flush to the end: the result is indistinguishable from "flex-end". ` +
           `Use justifyContent="${site.value}" for distribution along the main axis, or alignItems="center"/"flex-end".`,
-      }
+      };
     }
   }
 
   if (DIMENSION_PROPS.has(prop)) {
-    const numeric = staticNumber(value)
+    const numeric = staticNumber(value);
     if (numeric !== undefined && numeric < 0) {
       return {
         message:
@@ -86,11 +93,11 @@ function check(prop: string, value: Node, framework: "react" | "solid"): Finding
               `ErrorBoundary catches it and paints a TypeError where your app should be. `
             : `There is no error boundary, so the render throws. `) +
           `Terminal geometry is a count of cells and cannot be negative.`,
-      }
+      };
     }
   }
 
-  return undefined
+  return undefined;
 }
 
 export default defineRule(
@@ -104,33 +111,35 @@ export default defineRule(
   },
   (context) => {
     function inspect(prop: string, valueNode: Node, reportNode: Node): void {
-      const finding = check(prop, valueNode, context.framework)
-      if (finding) context.report({ node: reportNode, message: finding.message })
+      const finding = check(prop, valueNode, context.framework);
+      if (finding) context.report({ node: reportNode, message: finding.message });
     }
 
     return {
       JSXOpeningElement(node) {
-        const element = elementName(node)
-        if (!element || !isHostElement(element)) return
+        const element = elementName(node);
+        if (!element || !isHostElement(element)) return;
 
         for (const attribute of (node.attributes ?? []) as Node[]) {
-          const name = attributeName(attribute)
-          if (!name || !attribute.value) continue
+          const name = attributeName(attribute);
+          if (!name || !attribute.value) continue;
 
           if (name === "style") {
             const expression =
-              attribute.value.type === "JSXExpressionContainer" ? attribute.value.expression : undefined
-            const object = resolveObjectExpression(context, expression)
-            if (!object) continue
+              attribute.value.type === "JSXExpressionContainer"
+                ? attribute.value.expression
+                : undefined;
+            const object = resolveObjectExpression(context, expression);
+            if (!object) continue;
             for (const entry of objectEntries(object)) {
-              inspect(entry.key, entry.valueNode, entry.node)
+              inspect(entry.key, entry.valueNode, entry.node);
             }
-            continue
+            continue;
           }
 
-          inspect(name, attribute.value, attribute)
+          inspect(name, attribute.value, attribute);
         }
       },
-    }
+    };
   },
-)
+);

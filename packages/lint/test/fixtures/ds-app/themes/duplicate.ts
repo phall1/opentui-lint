@@ -1,4 +1,4 @@
-import type { ThemeDefinition } from "../components/ui/theme"
+import type { ThemeDefinition } from "../components/ui/theme";
 
 /**
  * A preset added for `use-theme-tokens.test.ts`: two tokens deliberately
@@ -10,4 +10,4 @@ export const duplicate: ThemeDefinition = {
   tokens: {
     colors: { accentA: "#112233", accentB: "#112233" },
   },
-}
+};

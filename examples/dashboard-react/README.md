@@ -27,14 +27,14 @@ write instead.
 
 **opentui-lint finds fifteen:**
 
-| Rule | Count | In this file |
-| --- | --- | --- |
-| `no-unknown-elements` | 2 | `<div>`, `<p>` — both throw `Unknown component type` |
-| `text-must-be-wrapped` | 2 | `services` and `All systems nominal` outside `<text>` |
-| `no-orphan-text-nodes` | 2 | two `<b>` outside `<text>` |
-| `valid-colors` | 3 | `slate`, `indigo`, `rgb(100, 116, 139)` — all render magenta |
-| `no-web-props` | 3 | `className`, `onClick`, `borderRadius` |
-| `no-website-spacing` | 3 | `gap={2}`, `padding={4}`, `padding={2}` |
+| Rule                   | Count | In this file                                                 |
+| ---------------------- | ----- | ------------------------------------------------------------ |
+| `no-unknown-elements`  | 2     | `<div>`, `<p>` — both throw `Unknown component type`         |
+| `text-must-be-wrapped` | 2     | `services` and `All systems nominal` outside `<text>`        |
+| `no-orphan-text-nodes` | 2     | two `<b>` outside `<text>`                                   |
+| `valid-colors`         | 3     | `slate`, `indigo`, `rgb(100, 116, 139)` — all render magenta |
+| `no-web-props`         | 3     | `className`, `onClick`, `borderRadius`                       |
+| `no-website-spacing`   | 3     | `gap={2}`, `padding={4}`, `padding={2}`                      |
 
 Six of those fifteen stop the render outright. Three more render the wrong
 color. Only one was visible to the type checker.
@@ -73,12 +73,12 @@ be half a fix, and it is offered as a suggestion instead.
 
 The eight that remain all need a human decision:
 
-| Rule | Count | Why not automatic |
-| --- | --- | --- |
-| `no-website-spacing` | 3 | clamping `padding={4}` to `1` is a design opinion |
-| `no-web-props` | 3 | `className`, `onClick`, `borderRadius` — deleting code is your call |
-| `valid-colors` | 1 | `slate` is a Tailwind name spanning ten shades; `#64748b` is offered |
-| `text-must-be-wrapped` | 1 | the ambiguous run described above |
+| Rule                   | Count | Why not automatic                                                    |
+| ---------------------- | ----- | -------------------------------------------------------------------- |
+| `no-website-spacing`   | 3     | clamping `padding={4}` to `1` is a design opinion                    |
+| `no-web-props`         | 3     | `className`, `onClick`, `borderRadius` — deleting code is your call  |
+| `valid-colors`         | 1     | `slate` is a Tailwind name spanning ten shades; `#64748b` is offered |
+| `text-must-be-wrapped` | 1     | the ambiguous run described above                                    |
 
 `dashboard.fixed.tsx` is the same file after acting on all of them. Nothing in
 that diff needed the OpenTUI docs: each error named its own replacement.

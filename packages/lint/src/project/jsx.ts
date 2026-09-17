@@ -1,6 +1,6 @@
-import type { Framework } from "../catalog/index.js"
-import { isTextNodeElement } from "../catalog/index.js"
-import type { Node, RuleContext, Scope } from "./types.js"
+import type { Framework } from "../catalog/index.js";
+import { isTextNodeElement } from "../catalog/index.js";
+import type { Node, RuleContext, Scope } from "./types.js";
 
 /** `<box>` → "box", `<ascii-font>` → "ascii-font", `<Foo.Bar>` → "Foo.Bar". */
 export function elementName(node: Node): string | undefined {
@@ -10,13 +10,16 @@ export function elementName(node: Node): string | undefined {
   // an identifier is the *string* rather than a node, so `<Dialog.Content>`
   // resolved to "?.Content" instead of "Dialog.Content".
   const isNameNode =
-    node.type === "JSXIdentifier" || node.type === "JSXMemberExpression" || node.type === "JSXNamespacedName"
-  const name = isNameNode ? node : (node.name ?? node.openingElement?.name)
-  if (!name) return undefined
-  if (name.type === "JSXIdentifier") return name.name as string
-  if (name.type === "JSXNamespacedName") return `${name.namespace.name}:${name.name.name}`
-  if (name.type === "JSXMemberExpression") return `${elementName(name.object) ?? "?"}.${name.property.name}`
-  return undefined
+    node.type === "JSXIdentifier" ||
+    node.type === "JSXMemberExpression" ||
+    node.type === "JSXNamespacedName";
+  const name = isNameNode ? node : (node.name ?? node.openingElement?.name);
+  if (!name) return undefined;
+  if (name.type === "JSXIdentifier") return name.name as string;
+  if (name.type === "JSXNamespacedName") return `${name.namespace.name}:${name.name.name}`;
+  if (name.type === "JSXMemberExpression")
+    return `${elementName(name.object) ?? "?"}.${name.property.name}`;
+  return undefined;
 }
 
 /**
@@ -27,15 +30,15 @@ export function elementName(node: Node): string | undefined {
  * be checked against OpenTUI's element catalogue.
  */
 export function isHostElement(name: string): boolean {
-  const first = name[0]
-  return first !== undefined && first === first.toLowerCase() && first !== first.toUpperCase()
+  const first = name[0];
+  return first !== undefined && first === first.toLowerCase() && first !== first.toUpperCase();
 }
 
 /** The JSX element that encloses `node`, if any. */
 export function parentElement(node: Node): Node | undefined {
-  let current: Node | undefined = node.parent
+  let current: Node | undefined = node.parent;
   while (current) {
-    if (current.type === "JSXElement") return current
+    if (current.type === "JSXElement") return current;
     // A component boundary ends the chain: we cannot see through
     // `<box>{renderRow()}</box>` to whatever `renderRow` returns.
     if (
@@ -43,16 +46,16 @@ export function parentElement(node: Node): Node | undefined {
       current.type === "FunctionExpression" ||
       current.type === "ArrowFunctionExpression"
     ) {
-      return undefined
+      return undefined;
     }
-    current = current.parent
+    current = current.parent;
   }
-  return undefined
+  return undefined;
 }
 
 export type TextContext =
   | { inside: true; via: string }
-  | { inside: false; boundary: string | undefined; crossedComponent: boolean }
+  | { inside: false; boundary: string | undefined; crossedComponent: boolean };
 
 /**
  * Walks outward looking for the `<text>` subtree the reconciler requires.
@@ -73,20 +76,31 @@ export type TextContext =
  */
 const TRANSPARENT_COMPONENTS = new Set([
   // solid-js
-  "Show", "For", "Index", "Switch", "Match", "Suspense", "SuspenseList", "ErrorBoundary", "Portal", "Dynamic",
+  "Show",
+  "For",
+  "Index",
+  "Switch",
+  "Match",
+  "Suspense",
+  "SuspenseList",
+  "ErrorBoundary",
+  "Portal",
+  "Dynamic",
   // react
-  "Fragment", "StrictMode", "Profiler",
-])
+  "Fragment",
+  "StrictMode",
+  "Profiler",
+]);
 
 export function textContext(node: Node, framework: Framework): TextContext {
-  let current: Node | undefined = node.parent
+  let current: Node | undefined = node.parent;
 
   while (current) {
     // The nearest enclosing *host* element is the runtime parent, so it settles
     // the question on its own — an outer `<text>` cannot re-establish text
     // context through a `<box>` in between.
     if (current.type === "JSXElement") {
-      const name = elementName(current.openingElement)
+      const name = elementName(current.openingElement);
 
       if (name && !isHostElement(name)) {
         // A capitalized tag is a component, not a renderable. Framework
@@ -96,24 +110,24 @@ export function textContext(node: Node, framework: Framework): TextContext {
         // Reporting these was the second-largest false positive when the rules
         // were first run over OpenTUI's own examples — `<Show>` inside `<text>`
         // is ordinary, correct Solid.
-        const base = name.split(".")[0]!
+        const base = name.split(".")[0]!;
         if (TRANSPARENT_COMPONENTS.has(base) || TRANSPARENT_COMPONENTS.has(name)) {
-          current = current.parent
-          continue
+          current = current.parent;
+          continue;
         }
-        return { inside: false, boundary: undefined, crossedComponent: true }
+        return { inside: false, boundary: undefined, crossedComponent: true };
       }
 
       if (name && (name === "text" || isTextNodeElement(framework, name))) {
-        return { inside: true, via: name }
+        return { inside: true, via: name };
       }
-      return { inside: false, boundary: name, crossedComponent: false }
+      return { inside: false, boundary: name, crossedComponent: false };
     }
 
     // Fragments are transparent: they contribute no renderable of their own.
     if (current.type === "JSXFragment") {
-      current = current.parent
-      continue
+      current = current.parent;
+      continue;
     }
 
     // Reaching a function without having found an element means this JSX is a
@@ -125,12 +139,12 @@ export function textContext(node: Node, framework: Framework): TextContext {
       current.type === "ArrowFunctionExpression" ||
       current.type === "Program"
     ) {
-      return { inside: false, boundary: undefined, crossedComponent: true }
+      return { inside: false, boundary: undefined, crossedComponent: true };
     }
 
-    current = current.parent
+    current = current.parent;
   }
-  return { inside: false, boundary: undefined, crossedComponent: true }
+  return { inside: false, boundary: undefined, crossedComponent: true };
 }
 
 /**
@@ -142,58 +156,65 @@ export function textContext(node: Node, framework: Framework): TextContext {
  * people turn off — so only statically evident text counts.
  */
 export function isDefinitelyText(node: Node | undefined | null): boolean {
-  if (!node) return false
+  if (!node) return false;
   switch (node.type) {
     case "Literal":
-      return typeof node.value === "string" || typeof node.value === "number"
+      return typeof node.value === "string" || typeof node.value === "number";
     case "TemplateLiteral":
-      return true
+      return true;
     case "BinaryExpression":
       // String concatenation; `1 + 2` is also text once rendered.
-      return node.operator === "+" && (isDefinitelyText(node.left) || isDefinitelyText(node.right))
+      return node.operator === "+" && (isDefinitelyText(node.left) || isDefinitelyText(node.right));
     case "ConditionalExpression":
-      return isDefinitelyText(node.consequent) && isDefinitelyText(node.alternate)
+      return isDefinitelyText(node.consequent) && isDefinitelyText(node.alternate);
     case "LogicalExpression":
       // `{flag && "on"}` renders "on" when truthy and nothing otherwise.
-      return (node.operator === "&&" || node.operator === "??") && isDefinitelyText(node.right)
+      return (node.operator === "&&" || node.operator === "??") && isDefinitelyText(node.right);
     case "CallExpression": {
-      const callee = node.callee
-      if (callee?.type === "Identifier" && callee.name === "String") return true
+      const callee = node.callee;
+      if (callee?.type === "Identifier" && callee.name === "String") return true;
       if (callee?.type === "MemberExpression" && callee.property?.type === "Identifier") {
-        return ["toString", "toFixed", "join", "padStart", "padEnd", "trim", "toUpperCase", "toLowerCase"].includes(
-          callee.property.name,
-        )
+        return [
+          "toString",
+          "toFixed",
+          "join",
+          "padStart",
+          "padEnd",
+          "trim",
+          "toUpperCase",
+          "toLowerCase",
+        ].includes(callee.property.name);
       }
-      return false
+      return false;
     }
     case "TSAsExpression":
     case "TSNonNullExpression":
-      return isDefinitelyText(node.expression)
+      return isDefinitelyText(node.expression);
     default:
-      return false
+      return false;
   }
 }
 
 /** The static string behind an attribute value, when there is one. */
 export function staticString(value: Node | undefined | null): string | undefined {
-  if (!value) return undefined
-  if (value.type === "Literal") return typeof value.value === "string" ? value.value : undefined
-  if (value.type === "JSXExpressionContainer") return staticString(value.expression)
+  if (!value) return undefined;
+  if (value.type === "Literal") return typeof value.value === "string" ? value.value : undefined;
+  if (value.type === "JSXExpressionContainer") return staticString(value.expression);
   if (value.type === "TemplateLiteral" && value.expressions?.length === 0) {
-    return value.quasis?.[0]?.value?.cooked as string | undefined
+    return value.quasis?.[0]?.value?.cooked as string | undefined;
   }
-  if (value.type === "TSAsExpression") return staticString(value.expression)
-  return undefined
+  if (value.type === "TSAsExpression") return staticString(value.expression);
+  return undefined;
 }
 
 export interface StaticStringSite {
-  value: string
+  value: string;
   /**
    * The node holding this exact string — a single branch of a conditional, not
    * the conditional itself. A fix that replaced the whole expression would
    * delete the other branch along with it.
    */
-  node: Node
+  node: Node;
 }
 
 /**
@@ -205,38 +226,38 @@ export interface StaticStringSite {
  * both branches of it.
  */
 export function staticStrings(value: Node | undefined | null): StaticStringSite[] {
-  if (!value) return []
-  if (value.type === "JSXExpressionContainer") return staticStrings(value.expression)
-  if (value.type === "TSAsExpression") return staticStrings(value.expression)
+  if (!value) return [];
+  if (value.type === "JSXExpressionContainer") return staticStrings(value.expression);
+  if (value.type === "TSAsExpression") return staticStrings(value.expression);
   if (value.type === "ConditionalExpression") {
-    return [...staticStrings(value.consequent), ...staticStrings(value.alternate)]
+    return [...staticStrings(value.consequent), ...staticStrings(value.alternate)];
   }
   if (value.type === "LogicalExpression") {
-    return [...staticStrings(value.left), ...staticStrings(value.right)]
+    return [...staticStrings(value.left), ...staticStrings(value.right)];
   }
-  const single = staticString(value)
-  return single === undefined ? [] : [{ value: single, node: value }]
+  const single = staticString(value);
+  return single === undefined ? [] : [{ value: single, node: value }];
 }
 
 /** The static number behind an attribute value, when there is one. */
 export function staticNumber(value: Node | undefined | null): number | undefined {
-  if (!value) return undefined
-  if (value.type === "Literal") return typeof value.value === "number" ? value.value : undefined
-  if (value.type === "JSXExpressionContainer") return staticNumber(value.expression)
+  if (!value) return undefined;
+  if (value.type === "Literal") return typeof value.value === "number" ? value.value : undefined;
+  if (value.type === "JSXExpressionContainer") return staticNumber(value.expression);
   if (value.type === "UnaryExpression" && value.operator === "-") {
-    const inner = staticNumber(value.argument)
-    return inner === undefined ? undefined : -inner
+    const inner = staticNumber(value.argument);
+    return inner === undefined ? undefined : -inner;
   }
-  if (value.type === "TSAsExpression") return staticNumber(value.expression)
-  return undefined
+  if (value.type === "TSAsExpression") return staticNumber(value.expression);
+  return undefined;
 }
 
 export function attributeName(attribute: Node): string | undefined {
-  if (attribute.type !== "JSXAttribute") return undefined
-  const name = attribute.name
-  if (name?.type === "JSXIdentifier") return name.name as string
-  if (name?.type === "JSXNamespacedName") return `${name.namespace.name}:${name.name.name}`
-  return undefined
+  if (attribute.type !== "JSXAttribute") return undefined;
+  const name = attribute.name;
+  if (name?.type === "JSXIdentifier") return name.name as string;
+  if (name?.type === "JSXNamespacedName") return `${name.namespace.name}:${name.name.name}`;
+  return undefined;
 }
 
 /**
@@ -246,42 +267,45 @@ export function attributeName(attribute: Node): string | undefined {
  * hoisted into a `const`, which is exactly how shared styles get written — so
  * the rules that inspect style objects have to make that hop themselves.
  */
-export function resolveObjectExpression(context: RuleContext, node: Node | undefined): Node | undefined {
-  if (!node) return undefined
-  if (node.type === "ObjectExpression") return node
-  if (node.type === "TSAsExpression") return resolveObjectExpression(context, node.expression)
-  if (node.type !== "Identifier") return undefined
+export function resolveObjectExpression(
+  context: RuleContext,
+  node: Node | undefined,
+): Node | undefined {
+  if (!node) return undefined;
+  if (node.type === "ObjectExpression") return node;
+  if (node.type === "TSAsExpression") return resolveObjectExpression(context, node.expression);
+  if (node.type !== "Identifier") return undefined;
 
-  let scope: Scope | undefined | null = context.sourceCode.getScope?.(node)
+  let scope: Scope | undefined | null = context.sourceCode.getScope?.(node);
   while (scope) {
     for (const reference of scope.references) {
-      if (reference.identifier !== node || !reference.resolved) continue
+      if (reference.identifier !== node || !reference.resolved) continue;
       for (const def of reference.resolved.defs) {
-        if (def.type !== "Variable") continue
-        const init = def.node?.init
+        if (def.type !== "Variable") continue;
+        const init = def.node?.init;
         // Only `const` is safe to follow; a `let` may be reassigned.
-        if (def.node?.parent?.kind !== "const") continue
-        const resolved = resolveObjectExpression(context, init)
-        if (resolved) return resolved
+        if (def.node?.parent?.kind !== "const") continue;
+        const resolved = resolveObjectExpression(context, init);
+        if (resolved) return resolved;
       }
     }
-    scope = scope.upper
+    scope = scope.upper;
   }
-  return undefined
+  return undefined;
 }
 
 /** Static `key: value` pairs of an object literal, ignoring spreads. */
 export function objectEntries(object: Node): Array<{ key: string; valueNode: Node; node: Node }> {
-  const entries: Array<{ key: string; valueNode: Node; node: Node }> = []
+  const entries: Array<{ key: string; valueNode: Node; node: Node }> = [];
   for (const property of (object.properties ?? []) as Node[]) {
-    if (property.type !== "Property" || property.computed) continue
+    if (property.type !== "Property" || property.computed) continue;
     const key =
       property.key?.type === "Identifier"
         ? (property.key.name as string)
         : property.key?.type === "Literal" && typeof property.key.value === "string"
           ? property.key.value
-          : undefined
-    if (key) entries.push({ key, valueNode: property.value, node: property })
+          : undefined;
+    if (key) entries.push({ key, valueNode: property.value, node: property });
   }
-  return entries
+  return entries;
 }

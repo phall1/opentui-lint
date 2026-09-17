@@ -26,19 +26,19 @@ and its own message rather than being lumped in with typos.
 Incorrect:
 
 ```tsx
-import { QRCodeRenderable } from "@opentui/qrcode"
+import { QRCodeRenderable } from "@opentui/qrcode";
 
-const App = () => <qr-code content="https://example.com" />
+const App = () => <qr-code content="https://example.com" />;
 ```
 
 Correct:
 
 ```tsx
-import { registerQRCode } from "@opentui/qrcode/react"
+import { registerQRCode } from "@opentui/qrcode/react";
 
-registerQRCode()
+registerQRCode();
 
-const App = () => <qr-code content="https://example.com" />
+const App = () => <qr-code content="https://example.com" />;
 ```
 
 The call may appear anywhere in the file: nothing is reported until the whole
@@ -47,9 +47,9 @@ normal.
 
 ## Element names differ by binding
 
-| | React | Solid |
-| --- | --- | --- |
-| element | `qr-code` | `qr_code` |
+|               | React                   | Solid                   |
+| ------------- | ----------------------- | ----------------------- |
+| element       | `qr-code`               | `qr_code`               |
 | register from | `@opentui/qrcode/react` | `@opentui/qrcode/solid` |
 
 ## The only package with this pattern

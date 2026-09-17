@@ -34,7 +34,7 @@ output. There is no mock of oxlint anywhere in this package.
   `text-must-be-wrapped`, `no-orphan-text-nodes`, `no-web-props`,
   `no-unsupported-values`, `require-registration`, `no-magic-density`) get a
   React **and** a Solid fixture; the other five (`valid-colors`,
-`no-raw-stdout`, `no-website-spacing`, `use-theme-tokens`, `no-restyle`) don't
+  `no-raw-stdout`, `no-website-spacing`, `use-theme-tokens`, `no-restyle`) don't
   branch on the binding, so one fixture proves their oxlint behavior. A
   dedicated test diffs the plugin's rule list against `src/rule-fixtures.ts`'s
   coverage table and fails if they don't match: adding a rule without an oxlint
@@ -56,7 +56,7 @@ output. There is no mock of oxlint anywhere in this package.
   Oxlint section (module path aside, see the file's own comment) reports
   `<div>` the way the README says it will.
 
-## What did *not* work
+## What did _not_ work
 
 Nothing. Every channel above worked identically to ESLint on the first attempt:
 `settings`, rule `options`, `context.filename`, `context.sourceCode.getScope()`
@@ -64,7 +64,7 @@ Nothing. Every channel above worked identically to ESLint on the first attempt:
 `const` declaration), `node:fs` calls from inside a rule (the tsconfig walk in
 `project/framework.ts`), real `fix` edits, and `suggest` applied via
 `--fix-suggestions`. That is a stronger result than the root README claims:
-"verified against oxlint 1.83" turns out to mean *everything the rules touch*
+"verified against oxlint 1.83" turns out to mean _everything the rules touch_
 survived the port, not just the one `no-unknown-elements` case that was
 hand-checked before this package existed.
 

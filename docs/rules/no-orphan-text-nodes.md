@@ -12,7 +12,7 @@ out, so neither binding will place one anywhere else.
 
 ```ts
 if (textNodeKeys.includes(type) && !hostContext.isInsideText) {
-  throw new Error(`Component of type "${type}" must be created inside of a text node`)
+  throw new Error(`Component of type "${type}" must be created inside of a text node`);
 }
 ```
 
@@ -59,5 +59,5 @@ A modifier returned straight from a component, where the `<text>` may well be at
 the call site:
 
 ```tsx
-const Label = () => <b>bold</b>        // not reported
+const Label = () => <b>bold</b>; // not reported
 ```

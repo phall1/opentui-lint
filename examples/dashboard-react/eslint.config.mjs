@@ -1,5 +1,5 @@
-import tsParser from "@typescript-eslint/parser"
-import { plugin as opentui, strict } from "opentui-lint"
+import tsParser from "@typescript-eslint/parser";
+import { plugin as opentui, strict } from "opentui-lint";
 
 export default [
   {
@@ -16,4 +16,4 @@ export default [
       },
     },
   },
-]
+];

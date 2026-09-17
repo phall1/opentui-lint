@@ -1,4 +1,4 @@
-import type { Framework } from "./index.js"
+import type { Framework } from "./index.js";
 
 /**
  * How each binding actually fails.
@@ -18,25 +18,25 @@ import type { Framework } from "./index.js"
  */
 export interface RuntimeFailure {
   /** The exact error text, with `{name}` standing in for the element name. */
-  message: string
+  message: string;
   /** What the developer sees when it happens. */
-  visible: string
+  visible: string;
 }
 
 export interface FrameworkRuntime {
-  unknownElement: RuntimeFailure
-  textOutsideText: RuntimeFailure
-  textNodeOutsideText: RuntimeFailure
+  unknownElement: RuntimeFailure;
+  textOutsideText: RuntimeFailure;
+  textNodeOutsideText: RuntimeFailure;
 }
 
 const REACT_BOUNDARY =
-  "the binding's ErrorBoundary catches it and replaces your app with a red stack trace"
-const SOLID_THROW = "there is no error boundary, so the render throws"
+  "the binding's ErrorBoundary catches it and replaces your app with a red stack trace";
+const SOLID_THROW = "there is no error boundary, so the render throws";
 
 export const RUNTIME: Readonly<Record<Framework, FrameworkRuntime>> = {
   react: {
     unknownElement: {
-      message: 'Unknown component type: {name}',
+      message: "Unknown component type: {name}",
       visible: REACT_BOUNDARY,
     },
     textOutsideText: {
@@ -62,20 +62,24 @@ export const RUNTIME: Readonly<Record<Framework, FrameworkRuntime>> = {
       visible: SOLID_THROW,
     },
   },
-}
+};
 
-export function failureText(framework: Framework, kind: keyof FrameworkRuntime, name?: string): string {
-  const failure = RUNTIME[framework][kind]
-  return name ? failure.message.replace("{name}", name) : failure.message
+export function failureText(
+  framework: Framework,
+  kind: keyof FrameworkRuntime,
+  name?: string,
+): string {
+  const failure = RUNTIME[framework][kind];
+  return name ? failure.message.replace("{name}", name) : failure.message;
 }
 
 export function failureVisible(framework: Framework, kind: keyof FrameworkRuntime): string {
-  return RUNTIME[framework][kind].visible
+  return RUNTIME[framework][kind].visible;
 }
 
 /**
  * The binding package a framework's JSX comes from, for message wording.
  */
 export function packageName(framework: Framework): string {
-  return `@opentui/${framework}`
+  return `@opentui/${framework}`;
 }

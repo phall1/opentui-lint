@@ -1,20 +1,23 @@
-import { join } from "node:path"
-import rule from "../src/rules/no-restyle.js"
-import { asRule, tester, undetectedTester } from "./helpers.js"
+import { join } from "node:path";
+import rule from "../src/rules/no-restyle.js";
+import { asRule, tester, undetectedTester } from "./helpers.js";
 
-const FIXTURE = join(import.meta.dir, "fixtures", "ds-app")
-const APP = join(FIXTURE, "app")
-const UI = join(FIXTURE, "components", "ui")
-const OUTSIDE_ANY_DESIGN_SYSTEM = "/tmp/opentui-lint-no-restyle-no-ds/App.tsx"
+const FIXTURE = join(import.meta.dir, "fixtures", "ds-app");
+const APP = join(FIXTURE, "app");
+const UI = join(FIXTURE, "components", "ui");
+const OUTSIDE_ANY_DESIGN_SYSTEM = "/tmp/opentui-lint-no-restyle-no-ds/App.tsx";
 
-const IMPORT_BUTTON = `import { Button } from "@/components/ui/button"\n`
-const IMPORT_DIALOG = `import { Dialog } from "@/components/ui/dialog"\n`
+const IMPORT_BUTTON = `import { Button } from "@/components/ui/button"\n`;
+const IMPORT_DIALOG = `import { Dialog } from "@/components/ui/dialog"\n`;
 
 tester().run("no-restyle", asRule(rule), {
   valid: [
     // Placement is always the call site's, whatever the value.
     { code: `${IMPORT_BUTTON}const a = <Button marginTop={1} />`, filename: join(APP, "a.tsx") },
-    { code: `${IMPORT_BUTTON}const a = <Button width={20} alignSelf="center" />`, filename: join(APP, "a.tsx") },
+    {
+      code: `${IMPORT_BUTTON}const a = <Button width={20} alignSelf="center" />`,
+      filename: join(APP, "a.tsx"),
+    },
     {
       code: `${IMPORT_BUTTON}const a = <Button flexGrow={1} minWidth={10} zIndex={2} position="absolute" />`,
       filename: join(APP, "a.tsx"),
@@ -77,10 +80,26 @@ tester().run("no-restyle", asRule(rule), {
       filename: join(APP, "a.tsx"),
       errors: [{ message: /backgroundColor sets Button's color/ }],
     },
-    { code: `${IMPORT_BUTTON}const a = <Button bg="red" fg="blue" />`, filename: join(APP, "a.tsx"), errors: 2 },
-    { code: `${IMPORT_BUTTON}const a = <Button border borderStyle="rounded" />`, filename: join(APP, "a.tsx"), errors: 2 },
-    { code: `${IMPORT_BUTTON}const a = <Button font="tiny" showUnderline />`, filename: join(APP, "a.tsx"), errors: 2 },
-    { code: `${IMPORT_BUTTON}const a = <Button paddingX={2} padding={1} />`, filename: join(APP, "a.tsx"), errors: 2 },
+    {
+      code: `${IMPORT_BUTTON}const a = <Button bg="red" fg="blue" />`,
+      filename: join(APP, "a.tsx"),
+      errors: 2,
+    },
+    {
+      code: `${IMPORT_BUTTON}const a = <Button border borderStyle="rounded" />`,
+      filename: join(APP, "a.tsx"),
+      errors: 2,
+    },
+    {
+      code: `${IMPORT_BUTTON}const a = <Button font="tiny" showUnderline />`,
+      filename: join(APP, "a.tsx"),
+      errors: 2,
+    },
+    {
+      code: `${IMPORT_BUTTON}const a = <Button paddingX={2} padding={1} />`,
+      filename: join(APP, "a.tsx"),
+      errors: 2,
+    },
     {
       code: `${IMPORT_BUTTON}const a = <Button gap={1} flexDirection="row" alignItems="center" justifyContent="center" flexWrap="wrap" />`,
       filename: join(APP, "a.tsx"),
@@ -111,7 +130,13 @@ tester().run("no-restyle", asRule(rule), {
     {
       code: `${IMPORT_BUTTON}const a = <Button backgroundColor="red" />`,
       filename: join(APP, "a.tsx"),
-      options: [{ contracts: [{ pattern: "^Button$", deny: ["color"], message: "Use intent instead of a raw color." }] }],
+      options: [
+        {
+          contracts: [
+            { pattern: "^Button$", deny: ["color"], message: "Use intent instead of a raw color." },
+          ],
+        },
+      ],
       errors: [{ message: "Use intent instead of a raw color." }],
     },
 
@@ -148,7 +173,7 @@ tester().run("no-restyle", asRule(rule), {
       errors: [{ line: 1, message: /not a restyle category/ }],
     },
   ],
-})
+});
 
 undetectedTester().run("no-restyle (not an OpenTUI file)", asRule(rule), {
   // Deliberately no `filename` under the fixture tree: it carries its own
@@ -157,4 +182,4 @@ undetectedTester().run("no-restyle (not an OpenTUI file)", asRule(rule), {
   // of this case — proving the rule is silent with none at all.
   valid: [`${IMPORT_BUTTON}export const Page = () => <Button backgroundColor="red" />`],
   invalid: [],
-})
+});

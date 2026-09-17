@@ -1,1 +1,4 @@
-{"name":"web-app","private":true}
+{
+  "name": "web-app",
+  "private": true
+}

@@ -16,18 +16,18 @@
 
 export interface CorpusSource {
   /** Human name used in report output. */
-  name: string
+  name: string;
   /** Clone URL. */
-  repo: string
+  repo: string;
   /**
    * A ref `git clone --branch` accepts (tag or branch), or a full commit SHA.
    * Tags are used where the upstream project cuts them; tuiparts does not tag
    * the whole monorepo (only individual `@tuiparts/*` package releases), so it
    * is pinned to a specific commit on `main` instead — see the comment there.
    */
-  ref: string
+  ref: string;
   /** True when `ref` is a commit SHA rather than a tag/branch git can shallow-fetch by name. */
-  isCommit: boolean
+  isCommit: boolean;
 }
 
 export const OPENTUI: CorpusSource = {
@@ -36,7 +36,7 @@ export const OPENTUI: CorpusSource = {
   // Matches CATALOG_VERSION exactly — see the file doc comment above.
   ref: "v0.5.11",
   isCommit: false,
-}
+};
 
 export const TUIPARTS: CorpusSource = {
   name: "tuiparts",
@@ -50,4 +50,4 @@ export const TUIPARTS: CorpusSource = {
   // built, as the first pin — bump it deliberately, the same as OPENTUI_REF.
   ref: "73b3622d4b989e4e4102f3ae85b364bdda7f76e2",
   isCommit: true,
-}
+};

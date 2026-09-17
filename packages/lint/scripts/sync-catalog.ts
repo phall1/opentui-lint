@@ -29,23 +29,23 @@
  * so the platform indirection would buy nothing and pin us to an unstable API.
  */
 
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises"
-import { tmpdir } from "node:os"
-import { dirname, join } from "node:path"
-import { fileURLToPath } from "node:url"
-import { BunRuntime } from "@effect/platform-bun"
-import { Effect, Schema } from "effect"
-import ts from "typescript"
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { BunRuntime } from "@effect/platform-bun";
+import { Effect, Schema } from "effect";
+import ts from "typescript";
 
-const HERE = dirname(fileURLToPath(import.meta.url))
-const OUT_FILE = join(HERE, "..", "src", "catalog", "generated.ts")
+const HERE = dirname(fileURLToPath(import.meta.url));
+const OUT_FILE = join(HERE, "..", "src", "catalog", "generated.ts");
 
 const FRAMEWORKS = {
   react: { jsx: "@opentui/react/jsx-runtime", catalogue: "@opentui/react" },
   solid: { jsx: "@opentui/solid/jsx-runtime", catalogue: "@opentui/solid/components" },
-} as const
+} as const;
 
-type FrameworkName = keyof typeof FRAMEWORKS
+type FrameworkName = keyof typeof FRAMEWORKS;
 
 // ---------------------------------------------------------------------------
 // Errors
@@ -83,34 +83,38 @@ class CatalogStale extends Schema.TaggedError<CatalogStale>()("CatalogStale", {
 /** Runs a command to completion, failing the effect on a non-zero exit. */
 const run = Effect.fnUntraced(function* (command: ReadonlyArray<string>, cwd: string) {
   const { exitCode, stderr } = yield* Effect.promise(async () => {
-    const proc = Bun.spawn([...command], { cwd, stdout: "pipe", stderr: "pipe" })
-    const [code, err] = await Promise.all([proc.exited, new Response(proc.stderr).text()])
-    return { exitCode: code, stderr: err }
-  })
+    const proc = Bun.spawn([...command], { cwd, stdout: "pipe", stderr: "pipe" });
+    const [code, err] = await Promise.all([proc.exited, new Response(proc.stderr).text()]);
+    return { exitCode: code, stderr: err };
+  });
 
   if (exitCode !== 0) {
-    return yield* new InstallFailed({ command: command.join(" "), exitCode, stderr })
+    return yield* new InstallFailed({ command: command.join(" "), exitCode, stderr });
   }
-})
+});
 
 /** Writes a throwaway script into the fixture and returns what it printed. */
 const probe = Effect.fnUntraced(function* (fixtureDir: string, name: string, source: string) {
-  const file = `probe-${name}.ts`
-  yield* Effect.promise(() => writeFile(join(fixtureDir, file), source))
+  const file = `probe-${name}.ts`;
+  yield* Effect.promise(() => writeFile(join(fixtureDir, file), source));
 
   const { exitCode, stdout, stderr } = yield* Effect.promise(async () => {
-    const proc = Bun.spawn(["bun", "run", file], { cwd: fixtureDir, stdout: "pipe", stderr: "pipe" })
+    const proc = Bun.spawn(["bun", "run", file], {
+      cwd: fixtureDir,
+      stdout: "pipe",
+      stderr: "pipe",
+    });
     const [code, out, err] = await Promise.all([
       proc.exited,
       new Response(proc.stdout).text(),
       new Response(proc.stderr).text(),
-    ])
-    return { exitCode: code, stdout: out, stderr: err }
-  })
+    ]);
+    return { exitCode: code, stdout: out, stderr: err };
+  });
 
-  if (exitCode !== 0) return yield* new ProbeFailed({ probe: name, stderr })
-  return stdout
-})
+  if (exitCode !== 0) return yield* new ProbeFailed({ probe: name, stderr });
+  return stdout;
+});
 
 /**
  * A throwaway project with the target OpenTUI installed, removed on any exit.
@@ -122,20 +126,22 @@ const probe = Effect.fnUntraced(function* (fixtureDir: string, name: string, sou
 const fixture = (version: string) =>
   Effect.acquireRelease(
     Effect.gen(function* () {
-      const dir = yield* Effect.promise(() => mkdtemp(join(tmpdir(), "opentui-lint-catalog-")))
-      yield* Effect.logInfo(`installing @opentui/*@${version}`).pipe(Effect.annotateLogs({ dir }))
+      const dir = yield* Effect.promise(() => mkdtemp(join(tmpdir(), "opentui-lint-catalog-")));
+      yield* Effect.logInfo(`installing @opentui/*@${version}`).pipe(Effect.annotateLogs({ dir }));
       yield* Effect.promise(() =>
         writeFile(
           join(dir, "package.json"),
           JSON.stringify({ name: "catalog-fixture", private: true, type: "module" }),
         ),
-      )
-      const specs = ["@opentui/core", "@opentui/react", "@opentui/solid"].map((p) => `${p}@${version}`)
-      yield* run(["bun", "add", ...specs, "react", "@types/react", "solid-js"], dir)
-      return dir
+      );
+      const specs = ["@opentui/core", "@opentui/react", "@opentui/solid"].map(
+        (p) => `${p}@${version}`,
+      );
+      yield* run(["bun", "add", ...specs, "react", "@types/react", "solid-js"], dir);
+      return dir;
     }),
     (dir) => Effect.promise(() => rm(dir, { recursive: true, force: true })),
-  )
+  );
 
 // ---------------------------------------------------------------------------
 // Facts
@@ -145,32 +151,158 @@ const fixture = (version: string) =>
 const COLOR_CANDIDATES = [
   "transparent",
   // CSS basic + extended names, so anything OpenTUI drops is detected as invalid.
-  "black", "silver", "gray", "grey", "white", "maroon", "red", "purple", "fuchsia", "green",
-  "lime", "olive", "yellow", "navy", "blue", "teal", "aqua", "cyan", "magenta", "orange",
-  "aliceblue", "antiquewhite", "aquamarine", "azure", "beige", "bisque", "blanchedalmond",
-  "blueviolet", "brown", "burlywood", "cadetblue", "chartreuse", "chocolate", "coral",
-  "cornflowerblue", "cornsilk", "crimson", "darkblue", "darkcyan", "darkgoldenrod",
-  "darkgray", "darkgreen", "darkgrey", "darkkhaki", "darkmagenta", "darkolivegreen",
-  "darkorange", "darkorchid", "darkred", "darksalmon", "darkseagreen", "darkslateblue",
-  "darkslategray", "darkturquoise", "darkviolet", "deeppink", "deepskyblue", "dimgray",
-  "dodgerblue", "firebrick", "floralwhite", "forestgreen", "gainsboro", "ghostwhite",
-  "gold", "goldenrod", "greenyellow", "honeydew", "hotpink", "indianred", "indigo",
-  "ivory", "khaki", "lavender", "lawngreen", "lemonchiffon", "lightblue", "lightcoral",
-  "lightcyan", "lightgray", "lightgreen", "lightgrey", "lightpink", "lightsalmon",
-  "lightseagreen", "lightskyblue", "lightslategray", "lightsteelblue", "lightyellow",
-  "limegreen", "linen", "mediumaquamarine", "mediumblue", "mediumorchid", "mediumpurple",
-  "mediumseagreen", "mediumslateblue", "mediumspringgreen", "mediumturquoise",
-  "mediumvioletred", "midnightblue", "mintcream", "mistyrose", "moccasin", "navajowhite",
-  "oldlace", "olivedrab", "orangered", "orchid", "palegoldenrod", "palegreen",
-  "paleturquoise", "palevioletred", "papayawhip", "peachpuff", "peru", "pink", "plum",
-  "powderblue", "rebeccapurple", "rosybrown", "royalblue", "saddlebrown", "salmon",
-  "sandybrown", "seagreen", "seashell", "sienna", "skyblue", "slateblue", "slategray",
-  "snow", "springgreen", "steelblue", "tan", "thistle", "tomato", "turquoise", "violet",
-  "wheat", "whitesmoke", "yellowgreen",
+  "black",
+  "silver",
+  "gray",
+  "grey",
+  "white",
+  "maroon",
+  "red",
+  "purple",
+  "fuchsia",
+  "green",
+  "lime",
+  "olive",
+  "yellow",
+  "navy",
+  "blue",
+  "teal",
+  "aqua",
+  "cyan",
+  "magenta",
+  "orange",
+  "aliceblue",
+  "antiquewhite",
+  "aquamarine",
+  "azure",
+  "beige",
+  "bisque",
+  "blanchedalmond",
+  "blueviolet",
+  "brown",
+  "burlywood",
+  "cadetblue",
+  "chartreuse",
+  "chocolate",
+  "coral",
+  "cornflowerblue",
+  "cornsilk",
+  "crimson",
+  "darkblue",
+  "darkcyan",
+  "darkgoldenrod",
+  "darkgray",
+  "darkgreen",
+  "darkgrey",
+  "darkkhaki",
+  "darkmagenta",
+  "darkolivegreen",
+  "darkorange",
+  "darkorchid",
+  "darkred",
+  "darksalmon",
+  "darkseagreen",
+  "darkslateblue",
+  "darkslategray",
+  "darkturquoise",
+  "darkviolet",
+  "deeppink",
+  "deepskyblue",
+  "dimgray",
+  "dodgerblue",
+  "firebrick",
+  "floralwhite",
+  "forestgreen",
+  "gainsboro",
+  "ghostwhite",
+  "gold",
+  "goldenrod",
+  "greenyellow",
+  "honeydew",
+  "hotpink",
+  "indianred",
+  "indigo",
+  "ivory",
+  "khaki",
+  "lavender",
+  "lawngreen",
+  "lemonchiffon",
+  "lightblue",
+  "lightcoral",
+  "lightcyan",
+  "lightgray",
+  "lightgreen",
+  "lightgrey",
+  "lightpink",
+  "lightsalmon",
+  "lightseagreen",
+  "lightskyblue",
+  "lightslategray",
+  "lightsteelblue",
+  "lightyellow",
+  "limegreen",
+  "linen",
+  "mediumaquamarine",
+  "mediumblue",
+  "mediumorchid",
+  "mediumpurple",
+  "mediumseagreen",
+  "mediumslateblue",
+  "mediumspringgreen",
+  "mediumturquoise",
+  "mediumvioletred",
+  "midnightblue",
+  "mintcream",
+  "mistyrose",
+  "moccasin",
+  "navajowhite",
+  "oldlace",
+  "olivedrab",
+  "orangered",
+  "orchid",
+  "palegoldenrod",
+  "palegreen",
+  "paleturquoise",
+  "palevioletred",
+  "papayawhip",
+  "peachpuff",
+  "peru",
+  "pink",
+  "plum",
+  "powderblue",
+  "rebeccapurple",
+  "rosybrown",
+  "royalblue",
+  "saddlebrown",
+  "salmon",
+  "sandybrown",
+  "seagreen",
+  "seashell",
+  "sienna",
+  "skyblue",
+  "slateblue",
+  "slategray",
+  "snow",
+  "springgreen",
+  "steelblue",
+  "tan",
+  "thistle",
+  "tomato",
+  "turquoise",
+  "violet",
+  "wheat",
+  "whitesmoke",
+  "yellowgreen",
   // Terminal-flavored names OpenTUI adds on top of the CSS set.
-  "brightBlack", "brightRed", "brightGreen", "brightBlue", "brightYellow", "brightCyan",
-  "brightMagenta", "brightWhite",
-]
+  "brightBlack",
+  "brightRed",
+  "brightGreen",
+  "brightBlue",
+  "brightYellow",
+  "brightCyan",
+  "brightMagenta",
+  "brightWhite",
+];
 
 /**
  * Asks the real `parseColor` which names it understands.
@@ -202,9 +334,9 @@ const probeColors = Effect.fnUntraced(function* (fixtureDir: string) {
     for (const name of ["magenta", "fuchsia"]) if (names.includes(name)) ok.push(name)
     process.stdout.write(JSON.stringify(ok))
   `,
-  )
-  return [...new Set<string>(JSON.parse(out))].toSorted()
-})
+  );
+  return [...new Set<string>(JSON.parse(out))].toSorted();
+});
 
 /**
  * Asks the framework's reconciler which element names it will actually
@@ -219,25 +351,25 @@ const probeCatalogue = Effect.fnUntraced(function* (fixtureDir: string, framewor
     `catalogue-${framework}`,
     `import { getComponentCatalogue } from "${FRAMEWORKS[framework].catalogue}"\n` +
       `process.stdout.write(JSON.stringify(Object.keys(getComponentCatalogue())))\n`,
-  )
-  return JSON.parse(out) as string[]
-})
+  );
+  return JSON.parse(out) as string[];
+});
 
 export interface ElementFacts {
   /** Props the element's JSX type declares, including inherited layout options. */
-  props: string[]
+  props: string[];
   /** True for `span`/`b`/`a`/… — nodes the reconciler requires inside `<text>`. */
-  textNode: boolean
+  textNode: boolean;
   /** False when the runtime renders it but JSX never declares it. */
-  typed: boolean
+  typed: boolean;
 }
 
 interface FrameworkFacts {
-  elements: Record<string, ElementFacts>
+  elements: Record<string, ElementFacts>;
   /** Element names JSX accepts only because React's HTML elements are inherited. */
-  domLeaks: string[]
+  domLeaks: string[];
   /** True when `JSX.IntrinsicElements` has a string index signature. */
-  acceptsAnyElement: boolean
+  acceptsAnyElement: boolean;
 }
 
 /**
@@ -245,7 +377,7 @@ interface FrameworkFacts {
  * Mirrors `textNodeKeys` in both framework packages; asserted by the
  * conformance suite so a rename upstream surfaces as a test failure.
  */
-const TEXT_NODE_ELEMENTS = new Set(["span", "b", "strong", "i", "em", "u", "br", "a"])
+const TEXT_NODE_ELEMENTS = new Set(["span", "b", "strong", "i", "em", "u", "br", "a"]);
 
 /**
  * Reads `JSX.IntrinsicElements` out of a framework's shipped `.d.ts` files.
@@ -260,13 +392,13 @@ const readIntrinsicElements = Effect.fnUntraced(function* (
   framework: FrameworkName,
   runtimeNames: ReadonlyArray<string>,
 ) {
-  const probePath = join(fixtureDir, `probe-${framework}.ts`)
+  const probePath = join(fixtureDir, `probe-${framework}.ts`);
   yield* Effect.promise(() =>
     writeFile(
       probePath,
       `import type { JSX } from "${FRAMEWORKS[framework].jsx}"\nexport type Intrinsics = JSX.IntrinsicElements\n`,
     ),
-  )
+  );
 
   const result = yield* Effect.sync(() => {
     const program = ts.createProgram([probePath], {
@@ -278,33 +410,34 @@ const readIntrinsicElements = Effect.fnUntraced(function* (
       noEmit: true,
       jsx: ts.JsxEmit.ReactJSX,
       types: ["react"],
-    })
-    const checker = program.getTypeChecker()
-    const source = program.getSourceFile(probePath)
-    if (!source) return { ok: false as const, reason: "the probe file did not load" }
+    });
+    const checker = program.getTypeChecker();
+    const source = program.getSourceFile(probePath);
+    if (!source) return { ok: false as const, reason: "the probe file did not load" };
 
     const alias = source.statements.find(
-      (s): s is ts.TypeAliasDeclaration => ts.isTypeAliasDeclaration(s) && s.name.text === "Intrinsics",
-    )
-    if (!alias) return { ok: false as const, reason: "JSX.IntrinsicElements did not resolve" }
-    const intrinsics = checker.getTypeAtLocation(alias.name)
+      (s): s is ts.TypeAliasDeclaration =>
+        ts.isTypeAliasDeclaration(s) && s.name.text === "Intrinsics",
+    );
+    if (!alias) return { ok: false as const, reason: "JSX.IntrinsicElements did not resolve" };
+    const intrinsics = checker.getTypeAtLocation(alias.name);
 
-    const elements: Record<string, ElementFacts> = {}
-    const domLeaks: string[] = []
+    const elements: Record<string, ElementFacts> = {};
+    const domLeaks: string[] = [];
 
     for (const symbol of intrinsics.getProperties()) {
-      const declaration = symbol.declarations?.[0]
-      const declaredIn = declaration?.getSourceFile().fileName ?? ""
-      const name = symbol.getName()
+      const declaration = symbol.declarations?.[0];
+      const declaredIn = declaration?.getSourceFile().fileName ?? "";
+      const name = symbol.getName();
 
       // Anything declared outside @opentui is inherited from React's DOM types:
       // it typechecks in JSX but has no renderable behind it.
       if (!declaredIn.includes("@opentui")) {
-        domLeaks.push(name)
-        continue
+        domLeaks.push(name);
+        continue;
       }
 
-      const propsType = checker.getTypeOfSymbolAtLocation(symbol, declaration!)
+      const propsType = checker.getTypeOfSymbolAtLocation(symbol, declaration!);
       elements[name] = {
         props: propsType
           .getProperties()
@@ -312,44 +445,47 @@ const readIntrinsicElements = Effect.fnUntraced(function* (
           .toSorted(),
         textNode: TEXT_NODE_ELEMENTS.has(name),
         typed: true,
-      }
+      };
     }
 
     // Runtime wins: a name the reconciler constructs renders fine even when the
     // declarations forgot it, and flagging it would be a false positive.
     for (const name of runtimeNames) {
-      elements[name] ??= { props: [], textNode: TEXT_NODE_ELEMENTS.has(name), typed: false }
+      elements[name] ??= { props: [], textNode: TEXT_NODE_ELEMENTS.has(name), typed: false };
     }
 
     return {
       ok: true as const,
       facts: {
-        elements: Object.fromEntries(Object.entries(elements).toSorted(([a], [b]) => a.localeCompare(b))),
+        elements: Object.fromEntries(
+          Object.entries(elements).toSorted(([a], [b]) => a.localeCompare(b)),
+        ),
         domLeaks: domLeaks.toSorted(),
-        acceptsAnyElement: checker.getIndexTypeOfType(intrinsics, ts.IndexKind.String) !== undefined,
+        acceptsAnyElement:
+          checker.getIndexTypeOfType(intrinsics, ts.IndexKind.String) !== undefined,
       } satisfies FrameworkFacts,
-    }
-  })
+    };
+  });
 
-  if (!result.ok) return yield* new TypesUnreadable({ framework, reason: result.reason })
-  return result.facts
-})
+  if (!result.ok) return yield* new TypesUnreadable({ framework, reason: result.reason });
+  return result.facts;
+});
 
 // ---------------------------------------------------------------------------
 // Derivation
 // ---------------------------------------------------------------------------
 
-const json = (value: unknown) => JSON.stringify(value, null, 2)
+const json = (value: unknown) => JSON.stringify(value, null, 2);
 
 /** Every prop name that appears on at least one element, in either binding. */
 function allProps(frameworks: Record<FrameworkName, FrameworkFacts>): string[] {
-  const names = new Set<string>()
+  const names = new Set<string>();
   for (const facts of Object.values(frameworks)) {
     for (const element of Object.values(facts.elements)) {
-      for (const prop of element.props) names.add(prop)
+      for (const prop of element.props) names.add(prop);
     }
   }
-  return [...names].toSorted()
+  return [...names].toSorted();
 }
 
 /**
@@ -360,13 +496,13 @@ function allProps(frameworks: Record<FrameworkName, FrameworkFacts>): string[] {
 function derivedColorProps(frameworks: Record<FrameworkName, FrameworkFacts>): string[] {
   return allProps(frameworks).filter(
     (name) => /(?:Color|Bg|Fg)$/.test(name) || name === "fg" || name === "bg" || name === "color",
-  )
+  );
 }
 
 function derivedSpacingProps(frameworks: Record<FrameworkName, FrameworkFacts>): string[] {
   return allProps(frameworks).filter(
     (name) => /^(?:padding|margin)/.test(name) || /^(?:row|column)?[Gg]ap$/.test(name),
-  )
+  );
 }
 
 function render(
@@ -426,7 +562,7 @@ export interface FrameworkFacts {
  * string index signature that lets *any* lowercase tag through the checker.
  */
 export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = ${json(frameworks)}
-`
+`;
 }
 
 // ---------------------------------------------------------------------------
@@ -434,48 +570,60 @@ export const FRAMEWORKS: Readonly<Record<"react" | "solid", FrameworkFacts>> = $
 // ---------------------------------------------------------------------------
 
 const sync = Effect.fnUntraced(function* (version: string, check: boolean) {
-  const fixtureDir = yield* fixture(version)
+  const fixtureDir = yield* fixture(version);
 
   const installed = yield* Effect.promise(() =>
     readFile(join(fixtureDir, "node_modules", "@opentui", "core", "package.json"), "utf8"),
-  ).pipe(Effect.map((raw) => JSON.parse(raw).version as string))
+  ).pipe(Effect.map((raw) => JSON.parse(raw).version as string));
 
   // The three probes are independent — two spawned Bun processes and one pure
   // read — so they run together rather than one after another.
   const [colors, reactNames, solidNames] = yield* Effect.all(
-    [probeColors(fixtureDir), probeCatalogue(fixtureDir, "react"), probeCatalogue(fixtureDir, "solid")],
+    [
+      probeColors(fixtureDir),
+      probeCatalogue(fixtureDir, "react"),
+      probeCatalogue(fixtureDir, "solid"),
+    ],
     { concurrency: "unbounded" },
-  )
+  );
 
   const frameworks = {
     react: yield* readIntrinsicElements(fixtureDir, "react", reactNames),
     solid: yield* readIntrinsicElements(fixtureDir, "solid", solidNames),
-  }
+  };
 
-  const source = render(installed, colors, frameworks)
+  const source = render(installed, colors, frameworks);
 
   if (check) {
-    const current = yield* Effect.promise(() => readFile(OUT_FILE, "utf8").catch(() => ""))
-    if (current.trim() !== source.trim()) return yield* new CatalogStale({ version: installed })
-    return yield* Effect.logInfo(`catalog is current for @opentui/core@${installed}`)
+    const current = yield* Effect.promise(() => readFile(OUT_FILE, "utf8").catch(() => ""));
+    if (current.trim() !== source.trim()) return yield* new CatalogStale({ version: installed });
+    return yield* Effect.logInfo(`catalog is current for @opentui/core@${installed}`);
   }
 
-  yield* Effect.promise(() => writeFile(OUT_FILE, source))
+  yield* Effect.promise(() => writeFile(OUT_FILE, source));
   const counts = Object.entries(frameworks)
-    .map(([name, f]) => `${name}: ${Object.keys(f.elements).length} elements, ${f.domLeaks.length} DOM leaks`)
-    .join(" · ")
-  yield* Effect.logInfo(`wrote catalog for @opentui/core@${installed} — ${colors.length} colors · ${counts}`)
-})
+    .map(
+      ([name, f]) =>
+        `${name}: ${Object.keys(f.elements).length} elements, ${f.domLeaks.length} DOM leaks`,
+    )
+    .join(" · ");
+  yield* Effect.logInfo(
+    `wrote catalog for @opentui/core@${installed} — ${colors.length} colors · ${counts}`,
+  );
+});
 
 /** Reports the failure in the terms it happened in, and exits non-zero. */
 const fail = (message: string) =>
-  Effect.logError(message).pipe(Effect.andThen(Effect.sync(() => process.exit(1))))
+  Effect.logError(message).pipe(Effect.andThen(Effect.sync(() => process.exit(1))));
 
-const args = process.argv.slice(2)
-const versionFlag = args.indexOf("--version")
+const args = process.argv.slice(2);
+const versionFlag = args.indexOf("--version");
 
 BunRuntime.runMain(
-  sync(versionFlag === -1 ? "latest" : (args[versionFlag + 1] ?? "latest"), args.includes("--check")).pipe(
+  sync(
+    versionFlag === -1 ? "latest" : (args[versionFlag + 1] ?? "latest"),
+    args.includes("--check"),
+  ).pipe(
     Effect.scoped,
     Effect.catchTag("CatalogStale", (error) =>
       fail(`Catalog is stale for @opentui/core@${error.version}. Run \`bun run catalog:sync\`.`),
@@ -483,9 +631,11 @@ BunRuntime.runMain(
     Effect.catchTag("InstallFailed", (error) =>
       fail(`\`${error.command}\` exited ${error.exitCode}\n${error.stderr}`),
     ),
-    Effect.catchTag("ProbeFailed", (error) => fail(`the ${error.probe} probe failed\n${error.stderr}`)),
+    Effect.catchTag("ProbeFailed", (error) =>
+      fail(`the ${error.probe} probe failed\n${error.stderr}`),
+    ),
     Effect.catchTag("TypesUnreadable", (error) =>
       fail(`could not read @opentui/${error.framework}'s JSX types: ${error.reason}`),
     ),
   ),
-)
+);

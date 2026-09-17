@@ -1,9 +1,11 @@
 {
   "name": "opentui-lint-workspace",
   "private": true,
+  "workspaces": [
+    "packages/*",
+    "examples/*"
+  ],
   "type": "module",
-  "packageManager": "bun@1.4.2",
-  "workspaces": ["packages/*", "examples/*"],
   "scripts": {
     "build": "bun run --filter opentui-lint build",
     "test": "bun run --filter '*' --if-present test",
@@ -18,5 +20,6 @@
     "oxfmt": "^0.41.0",
     "oxlint": "^1.56.0",
     "typescript": "^5.9.2"
-  }
+  },
+  "packageManager": "bun@1.4.2"
 }

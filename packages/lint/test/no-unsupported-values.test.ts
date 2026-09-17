@@ -1,5 +1,5 @@
-import rule from "../src/rules/no-unsupported-values.js"
-import { asRule, tester, undetectedTester } from "./helpers.js"
+import rule from "../src/rules/no-unsupported-values.js";
+import { asRule, tester, undetectedTester } from "./helpers.js";
 
 tester().run("no-unsupported-values", asRule(rule), {
   valid: [
@@ -17,7 +17,12 @@ tester().run("no-unsupported-values", asRule(rule), {
   invalid: [
     {
       code: `const a = <box position="static" />`,
-      errors: [{ message: /accepted by the types and ignored by the runtime.*coerces it to "relative".*returns early/s }],
+      errors: [
+        {
+          message:
+            /accepted by the types and ignored by the runtime.*coerces it to "relative".*returns early/s,
+        },
+      ],
     },
     {
       code: `const a = <box minWidth="auto" />`,
@@ -43,9 +48,9 @@ tester().run("no-unsupported-values", asRule(rule), {
       errors: 2,
     },
   ],
-})
+});
 
 undetectedTester().run("no-unsupported-values (not an OpenTUI file)", asRule(rule), {
   valid: [`export const Page = () => <div style={{ position: "static" }} />`],
   invalid: [],
-})
+});

@@ -1,22 +1,28 @@
-import { CSS_ONLY_PROPS, PROP_RENAME, WEB_ONLY_PROPS, elementsFor, knowsElement } from "../catalog/index.js"
-import { removeAttribute, renameAttribute } from "../project/fixes.js"
+import {
+  CSS_ONLY_PROPS,
+  PROP_RENAME,
+  WEB_ONLY_PROPS,
+  elementsFor,
+  knowsElement,
+} from "../catalog/index.js";
+import { removeAttribute, renameAttribute } from "../project/fixes.js";
 import {
   attributeName,
   elementName,
   isHostElement,
   objectEntries,
   resolveObjectExpression,
-} from "../project/jsx.js"
-import { defineRule } from "../project/rule.js"
-import type { Fixer, Node } from "../project/types.js"
+} from "../project/jsx.js";
+import { defineRule } from "../project/rule.js";
+import type { Fixer, Node } from "../project/types.js";
 
 function advise(name: string): string | undefined {
-  return WEB_ONLY_PROPS[name] ?? CSS_ONLY_PROPS[name]
+  return WEB_ONLY_PROPS[name] ?? CSS_ONLY_PROPS[name];
 }
 
 /** `data-testid` and friends: harmless in HTML, inert here. */
 function isWebNamespaced(name: string): boolean {
-  return name.startsWith("data-") || name.startsWith("aria-")
+  return name.startsWith("data-") || name.startsWith("aria-");
 }
 
 /**
@@ -63,9 +69,9 @@ export default defineRule(
     hasSuggestions: true,
   },
   (context) => {
-    const options = context.options[0] ?? {}
-    const allow = new Set<string>((options.allow as string[]) ?? [])
-    const checkUnknownProps = options.checkUnknownProps === true
+    const options = context.options[0] ?? {};
+    const allow = new Set<string>((options.allow as string[]) ?? []);
+    const checkUnknownProps = options.checkUnknownProps === true;
 
     /** Attribute-only: a key inside a style object is not removable this way. */
     function removable(node: Node) {
@@ -78,14 +84,19 @@ export default defineRule(
               },
             ],
           }
-        : {}
+        : {};
     }
 
-    function report(name: string, node: Node, elementLabel: string, accepts?: ReadonlySet<string>): void {
+    function report(
+      name: string,
+      node: Node,
+      elementLabel: string,
+      accepts?: ReadonlySet<string>,
+    ): void {
       // Only rename when the target really is a prop of this element. `src`
       // becomes `source` on <image>, but on a <box> neither name means
       // anything and renaming would just move the problem.
-      const rename = PROP_RENAME[name]
+      const rename = PROP_RENAME[name];
       if (rename && node.type === "JSXAttribute" && (!accepts || accepts.has(rename))) {
         context.report({
           node,
@@ -94,11 +105,11 @@ export default defineRule(
             `renderable, so there is no error at runtime — the value is simply never read. ` +
             `The OpenTUI name is \`${rename}\`.`,
           fix: (fixer) => renameAttribute(node, rename, fixer),
-        })
-        return
+        });
+        return;
       }
 
-      const advice = advise(name)
+      const advice = advise(name);
       if (advice) {
         context.report({
           node,
@@ -106,8 +117,8 @@ export default defineRule(
             `\`${name}\` does nothing on ${elementLabel}. OpenTUI assigns unknown props straight onto the ` +
             `renderable, so there is no error at runtime — the value is simply never read. ${advice}`,
           ...removable(node),
-        })
-        return
+        });
+        return;
       }
 
       context.report({
@@ -116,34 +127,34 @@ export default defineRule(
           `\`${name}\` is not a prop of ${elementLabel}. OpenTUI assigns it to the renderable and never reads ` +
           `it, so this silently does nothing. Remove it, or register a renderable that accepts it with extend().`,
         ...removable(node),
-      })
+      });
     }
 
     function knownProps(element: string): ReadonlySet<string> | undefined {
-      const facts = elementsFor(context.framework).elements[element]
+      const facts = elementsFor(context.framework).elements[element];
       // An element the runtime has but the types do not carries no prop list,
       // so there is nothing to check it against.
-      if (!facts || facts.props.length === 0) return undefined
-      return new Set(facts.props)
+      if (!facts || facts.props.length === 0) return undefined;
+      return new Set(facts.props);
     }
 
     return {
       JSXOpeningElement(node) {
-        const element = elementName(node)
-        if (!element || !isHostElement(element)) return
-        if (!knowsElement(context.framework, element)) return // no-unknown-elements owns this
-        if (context.extendedElements.has(element)) return
+        const element = elementName(node);
+        if (!element || !isHostElement(element)) return;
+        if (!knowsElement(context.framework, element)) return; // no-unknown-elements owns this
+        if (context.extendedElements.has(element)) return;
 
-        const label = `<${element}>`
-        const valid = knownProps(element)
+        const label = `<${element}>`;
+        const valid = knownProps(element);
 
         for (const attribute of (node.attributes ?? []) as Node[]) {
-          const name = attributeName(attribute)
-          if (!name || allow.has(name)) continue
+          const name = attributeName(attribute);
+          if (!name || allow.has(name)) continue;
 
           // Solid's sanctioned event syntax: `setProperty` routes any `on:x`
           // straight to `node.on("x", …)` on the renderable's emitter.
-          if (context.framework === "solid" && name.startsWith("on:")) continue
+          if (context.framework === "solid" && name.startsWith("on:")) continue;
 
           if (isWebNamespaced(name)) {
             context.report({
@@ -152,22 +163,24 @@ export default defineRule(
                 `\`${name}\` does nothing on ${label}. Terminal cells carry no attributes; ` +
                 `OpenTUI stores the value on the renderable and never reads it.`,
               ...removable(attribute),
-            })
-            continue
+            });
+            continue;
           }
 
           if (name === "style") {
             const expression =
-              attribute.value?.type === "JSXExpressionContainer" ? attribute.value.expression : undefined
-            const object = resolveObjectExpression(context, expression)
-            if (!object) continue
+              attribute.value?.type === "JSXExpressionContainer"
+                ? attribute.value.expression
+                : undefined;
+            const object = resolveObjectExpression(context, expression);
+            if (!object) continue;
             for (const entry of objectEntries(object)) {
-              if (allow.has(entry.key)) continue
+              if (allow.has(entry.key)) continue;
               if (advise(entry.key) || (checkUnknownProps && valid && !valid.has(entry.key))) {
-                report(entry.key, entry.node, `${label}'s style`)
+                report(entry.key, entry.node, `${label}'s style`);
               }
             }
-            continue
+            continue;
           }
 
           // An element's own catalogue wins over the advice table. `title` is
@@ -175,13 +188,17 @@ export default defineRule(
           // this rule's own advice text says — and reporting it as dead was
           // the single largest source of false positives when the rules were
           // first run over OpenTUI's own examples.
-          if (valid?.has(name)) continue
+          if (valid?.has(name)) continue;
 
-          if (PROP_RENAME[name] || advise(name) || (checkUnknownProps && valid && !valid.has(name))) {
-            report(name, attribute, label, valid)
+          if (
+            PROP_RENAME[name] ||
+            advise(name) ||
+            (checkUnknownProps && valid && !valid.has(name))
+          ) {
+            report(name, attribute, label, valid);
           }
         }
       },
-    }
+    };
   },
-)
+);

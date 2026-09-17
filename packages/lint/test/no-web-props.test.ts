@@ -1,5 +1,5 @@
-import rule from "../src/rules/no-web-props.js"
-import { asRule, tester, undetectedTester } from "./helpers.js"
+import rule from "../src/rules/no-web-props.js";
+import { asRule, tester, undetectedTester } from "./helpers.js";
 
 tester().run("no-web-props", asRule(rule), {
   valid: [
@@ -99,7 +99,10 @@ tester().run("no-web-props", asRule(rule), {
       code: `const panel = { padding: 1, boxShadow: "0 1px 2px", fontSize: 14 }
              const a = <box style={panel} />`,
       output: null,
-      errors: [{ message: /Cells cannot cast shadows/ }, { message: /Every cell is one character/ }],
+      errors: [
+        { message: /Cells cannot cast shadows/ },
+        { message: /Every cell is one character/ },
+      ],
     },
     {
       code: `const a = <box display="flex" />`,
@@ -123,7 +126,7 @@ tester().run("no-web-props", asRule(rule), {
       ],
     },
   ],
-})
+});
 
 tester("solid").run("no-web-props (solid)", asRule(rule), {
   valid: [
@@ -155,12 +158,12 @@ tester("solid").run("no-web-props (solid)", asRule(rule), {
       ],
     },
   ],
-})
+});
 
 undetectedTester().run("no-web-props (not an OpenTUI file)", asRule(rule), {
   valid: [`export const Page = () => <div className="grid" onClick={go} aria-label="x" />`],
   invalid: [],
-})
+});
 
 /**
  * Regression: an element's own catalogue outranks the advice table.
@@ -190,4 +193,4 @@ tester().run("no-web-props (real props are not advice)", asRule(rule), {
       ],
     },
   ],
-})
+});

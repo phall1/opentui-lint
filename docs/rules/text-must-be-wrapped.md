@@ -76,7 +76,7 @@ a newline, so it never reaches the reconciler:
 
 ## What it does not report
 
-Only text the rule can *prove* is text. An identifier could equally hold an
+Only text the rule can _prove_ is text. An identifier could equally hold an
 element:
 
 ```tsx
@@ -88,7 +88,7 @@ element:
 Reporting those needs type information, which
 [`checkTypes`](#checktypes-closing-the-gap-with-type-information) below adds.
 Without it the rule stays quiet: a rule that guesses wrong on ordinary code is a
-rule people turn off. What *is* reported: literals, template literals, string
+rule people turn off. What _is_ reported: literals, template literals, string
 concatenation, conditionals whose branches are all text, `&&` with a text
 right-hand side, and the string-returning methods (`toString`, `toFixed`,
 `join`, `padStart`, `trim`, …).
@@ -101,7 +101,7 @@ right-hand side, and the string-returning methods (`toString`, `toFixed`,
 
 Off by default. With it on, and only when your ESLint config already resolves
 types (`parserOptions.project` or `parserOptions.projectService` pointing at
-a real tsconfig), the rule also reports an expression whose *resolved type* is
+a real tsconfig), the rule also reports an expression whose _resolved type_ is
 definitely text, even where the syntax alone could not prove it:
 
 ```tsx
@@ -119,9 +119,9 @@ It stays quiet on the case the syntactic rule was built to leave alone: a
 value whose type could be an element:
 
 ```tsx
-declare const child: ReactNode
+declare const child: ReactNode;
 
-<box>{child}</box>                     // not reported — ReactNode includes elements
+<box>{child}</box>; // not reported — ReactNode includes elements
 ```
 
 The rule for "definitely text" is a type, not its printed name: a union is
@@ -132,7 +132,7 @@ the whole check, which is what keeps `ReactNode` (and any union shaped like
 it) unreported.
 
 Solid signals work the same way despite being accessors rather than plain
-values: `<box>{count()}</box>` is checked against the *call's* return type,
+values: `<box>{count()}</box>` is checked against the _call's_ return type,
 so `count: Accessor<string>` is reported and `count: Accessor<JSX.Element>`
 is not.
 
@@ -149,11 +149,13 @@ run to attach a fix to.
 
 ## How the context is decided
 
-The *nearest enclosing JSX element* settles it, because that element is the
+The _nearest enclosing JSX element_ settles it, because that element is the
 runtime parent. An outer `<text>` cannot reach through an intervening `<box>`:
 
 ```tsx
-<text><box>Hello</box></text>          // still reported, and still throws
+<text>
+  <box>Hello</box>
+</text> // still reported, and still throws
 ```
 
 When the walk reaches a function without finding any enclosing element, the JSX
@@ -161,7 +163,7 @@ is a component's return value and where it gets mounted decides the answer.
 That is unknowable, so the rule stays quiet:
 
 ```tsx
-const Label = () => <>{"hi"}</>        // not reported
+const Label = () => <>{"hi"}</>; // not reported
 ```
 
 ## Suggestion

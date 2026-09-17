@@ -12,8 +12,8 @@ throw: it warns and returns opaque magenta:
 
 ```ts
 if (!/^[0-9A-Fa-f]{6}$/.test(hex) && !/^[0-9A-Fa-f]{8}$/.test(hex)) {
-  console.warn(`Invalid hex color: ${hex}, defaulting to magenta`)
-  return RGBA.fromValues(1, 0, 1, 1)
+  console.warn(`Invalid hex color: ${hex}, defaulting to magenta`);
+  return RGBA.fromValues(1, 0, 1, 1);
 }
 ```
 
@@ -75,7 +75,7 @@ Static strings only. A computed value is the `RGBA` path and out of reach of a
 syntactic check:
 
 ```tsx
-<box backgroundColor={parseColor(input)} />   // not reported
+<box backgroundColor={parseColor(input)} /> // not reported
 ```
 
 ## Options

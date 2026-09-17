@@ -1,33 +1,39 @@
-import { CATALOG_VERSION, FRAMEWORKS, NAMED_COLORS, COLOR_PROPS, SPACING_PROPS } from "./generated.js"
-import type { ElementFacts, FrameworkFacts } from "./generated.js"
+import {
+  CATALOG_VERSION,
+  FRAMEWORKS,
+  NAMED_COLORS,
+  COLOR_PROPS,
+  SPACING_PROPS,
+} from "./generated.js";
+import type { ElementFacts, FrameworkFacts } from "./generated.js";
 
-export { CATALOG_VERSION, FRAMEWORKS, NAMED_COLORS, COLOR_PROPS, SPACING_PROPS }
-export type { ElementFacts, FrameworkFacts }
+export { CATALOG_VERSION, FRAMEWORKS, NAMED_COLORS, COLOR_PROPS, SPACING_PROPS };
+export type { ElementFacts, FrameworkFacts };
 
-export type Framework = "react" | "solid"
+export type Framework = "react" | "solid";
 
-const NAMED_COLOR_SET = new Set<string>(NAMED_COLORS.map((name) => name.toLowerCase()))
-const COLOR_PROP_SET = new Set<string>(COLOR_PROPS)
-const SPACING_PROP_SET = new Set<string>(SPACING_PROPS)
+const NAMED_COLOR_SET = new Set<string>(NAMED_COLORS.map((name) => name.toLowerCase()));
+const COLOR_PROP_SET = new Set<string>(COLOR_PROPS);
+const SPACING_PROP_SET = new Set<string>(SPACING_PROPS);
 
 export function isColorProp(name: string): boolean {
-  return COLOR_PROP_SET.has(name)
+  return COLOR_PROP_SET.has(name);
 }
 
 export function isSpacingProp(name: string): boolean {
-  return SPACING_PROP_SET.has(name)
+  return SPACING_PROP_SET.has(name);
 }
 
 export function elementsFor(framework: Framework): FrameworkFacts {
-  return FRAMEWORKS[framework]
+  return FRAMEWORKS[framework];
 }
 
 export function knowsElement(framework: Framework, name: string): boolean {
-  return name in FRAMEWORKS[framework].elements
+  return name in FRAMEWORKS[framework].elements;
 }
 
 export function isTextNodeElement(framework: Framework, name: string): boolean {
-  return FRAMEWORKS[framework].elements[name]?.textNode === true
+  return FRAMEWORKS[framework].elements[name]?.textNode === true;
 }
 
 /**
@@ -39,15 +45,15 @@ export function isTextNodeElement(framework: Framework, name: string): boolean {
  * agent reaching for `<div>` in a Solid file has made exactly the same mistake
  * and needs exactly the same answer.
  */
-const HTML_ELEMENTS = new Set<string>(FRAMEWORKS.react.domLeaks)
+const HTML_ELEMENTS = new Set<string>(FRAMEWORKS.react.domLeaks);
 
 export function isDomElement(name: string): boolean {
-  return HTML_ELEMENTS.has(name)
+  return HTML_ELEMENTS.has(name);
 }
 
 /** True when JSX accepts the name only because of the DOM types it inherits. */
 export function isInheritedDomElement(framework: Framework, name: string): boolean {
-  return FRAMEWORKS[framework].domLeaks.includes(name)
+  return FRAMEWORKS[framework].domLeaks.includes(name);
 }
 
 /**
@@ -99,7 +105,7 @@ const DOM_RENAME: Record<string, string> = {
   legend: "text",
   pre: "code",
   img: "image",
-}
+};
 
 /** Cases with no single right answer — described, never rewritten. */
 const DOM_ADVICE: Record<string, string> = {
@@ -111,76 +117,76 @@ const DOM_ADVICE: Record<string, string> = {
   picture: "<image>",
   source: "<image> with a source prop",
   svg: "<ascii-font> for text, or draw into a FrameBuffer",
-}
+};
 
 /** The element to rewrite to, when there is exactly one correct answer. */
 export function domRename(name: string): string | undefined {
-  return DOM_RENAME[name]
+  return DOM_RENAME[name];
 }
 
 export function domEquivalent(name: string): string | undefined {
-  const rename = DOM_RENAME[name]
-  if (rename) return `<${rename}>${name === "h1" ? ", or <ascii-font> for a banner" : ""}`
-  return DOM_ADVICE[name]
+  const rename = DOM_RENAME[name];
+  if (rename) return `<${rename}>${name === "h1" ? ", or <ascii-font> for a banner" : ""}`;
+  return DOM_ADVICE[name];
 }
 
 /** The same element under the other framework's naming convention, if any. */
 export function crossFrameworkName(framework: Framework, name: string): string | undefined {
-  const other: Framework = framework === "react" ? "solid" : "react"
+  const other: Framework = framework === "react" ? "solid" : "react";
   // React hyphenates compound names (`ascii-font`); Solid uses underscores.
-  const translated = framework === "react" ? name.replace(/_/g, "-") : name.replace(/-/g, "_")
-  if (translated === name) return undefined
-  if (!knowsElement(framework, translated)) return undefined
-  return knowsElement(other, name) ? translated : undefined
+  const translated = framework === "react" ? name.replace(/_/g, "-") : name.replace(/-/g, "_");
+  if (translated === name) return undefined;
+  if (!knowsElement(framework, translated)) return undefined;
+  return knowsElement(other, name) ? translated : undefined;
 }
 
 function editDistance(a: string, b: string): number {
-  if (a === b) return 0
-  const rows = a.length + 1
-  const cols = b.length + 1
-  let previous = Array.from({ length: cols }, (_, i) => i)
+  if (a === b) return 0;
+  const rows = a.length + 1;
+  const cols = b.length + 1;
+  let previous = Array.from({ length: cols }, (_, i) => i);
   for (let i = 1; i < rows; i++) {
-    const current = [i, ...Array<number>(cols - 1).fill(0)]
+    const current = [i, ...Array<number>(cols - 1).fill(0)];
     for (let j = 1; j < cols; j++) {
-      const substitution = previous[j - 1]! + (a[i - 1] === b[j - 1] ? 0 : 1)
-      current[j] = Math.min(current[j - 1]! + 1, previous[j]! + 1, substitution)
+      const substitution = previous[j - 1]! + (a[i - 1] === b[j - 1] ? 0 : 1);
+      current[j] = Math.min(current[j - 1]! + 1, previous[j]! + 1, substitution);
     }
-    previous = current
+    previous = current;
   }
-  return previous[cols - 1]!
+  return previous[cols - 1]!;
 }
 
 /** Closest match from `candidates`, or undefined when nothing is close enough. */
 export function closest(value: string, candidates: Iterable<string>): string | undefined {
-  const needle = value.toLowerCase()
-  let best: string | undefined
-  let bestDistance = Number.POSITIVE_INFINITY
+  const needle = value.toLowerCase();
+  let best: string | undefined;
+  let bestDistance = Number.POSITIVE_INFINITY;
   for (const candidate of candidates) {
-    const distance = editDistance(needle, candidate.toLowerCase())
+    const distance = editDistance(needle, candidate.toLowerCase());
     if (distance < bestDistance) {
-      bestDistance = distance
-      best = candidate
+      bestDistance = distance;
+      best = candidate;
     }
   }
   // Allow roughly one edit per three characters before calling it a typo.
-  return bestDistance <= Math.max(1, Math.floor(needle.length / 3)) ? best : undefined
+  return bestDistance <= Math.max(1, Math.floor(needle.length / 3)) ? best : undefined;
 }
 
 export function suggestElement(framework: Framework, name: string): string | undefined {
-  return closest(name, Object.keys(FRAMEWORKS[framework].elements))
+  return closest(name, Object.keys(FRAMEWORKS[framework].elements));
 }
 
 export function suggestColor(value: string): string | undefined {
-  return closest(value, NAMED_COLORS)
+  return closest(value, NAMED_COLORS);
 }
 
-const HEX = /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i
+const HEX = /^#(?:[0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i;
 
 export type ColorVerdict =
   | { kind: "ok" }
   | { kind: "malformed-hex" }
   | { kind: "css-function"; fn: string }
-  | { kind: "unknown-name" }
+  | { kind: "unknown-name" };
 
 /**
  * Mirrors `parseColor()`'s accept/reject decision for a literal string.
@@ -190,13 +196,14 @@ export type ColorVerdict =
  * screen. `ColorInput` is `string | RGBA`, so the type checker never looks.
  */
 export function checkColor(value: string): ColorVerdict {
-  const normalized = value.trim()
-  if (normalized.toLowerCase() === "transparent") return { kind: "ok" }
-  if (NAMED_COLOR_SET.has(normalized.toLowerCase())) return { kind: "ok" }
-  if (normalized.startsWith("#")) return HEX.test(normalized) ? { kind: "ok" } : { kind: "malformed-hex" }
-  const fn = /^([a-z]+)\s*\(/i.exec(normalized)
-  if (fn) return { kind: "css-function", fn: fn[1]! }
-  return { kind: "unknown-name" }
+  const normalized = value.trim();
+  if (normalized.toLowerCase() === "transparent") return { kind: "ok" };
+  if (NAMED_COLOR_SET.has(normalized.toLowerCase())) return { kind: "ok" };
+  if (normalized.startsWith("#"))
+    return HEX.test(normalized) ? { kind: "ok" } : { kind: "malformed-hex" };
+  const fn = /^([a-z]+)\s*\(/i.exec(normalized);
+  if (fn) return { kind: "css-function", fn: fn[1]! };
+  return { kind: "unknown-name" };
 }
 
 /**
@@ -211,7 +218,7 @@ export const PROP_RENAME: Record<string, string> = {
   onMouseLeave: "onMouseOut",
   onMouseWheel: "onMouseScroll",
   src: "source",
-}
+};
 
 /** Web-only props that survive into a renderable and then do nothing at all. */
 export const WEB_ONLY_PROPS: Record<string, string> = {
@@ -235,7 +242,7 @@ export const WEB_ONLY_PROPS: Record<string, string> = {
   title: "Only <box> and <scrollbox> have a title; it sets the border title.",
   hidden: "Use `visible={false}`.",
   disabled: "Not a core renderable prop; recipes implement it themselves.",
-}
+};
 
 /**
  * CSS properties with no OpenTUI equivalent. A terminal cell grid has no
@@ -243,7 +250,7 @@ export const WEB_ONLY_PROPS: Record<string, string> = {
  */
 export const CSS_ONLY_PROPS: Record<string, string> = {
   display: "Layout is always flex. Use `flexDirection`, or `visible={false}` to hide.",
-  borderRadius: "Border corners come from `borderStyle` (\"rounded\" is available).",
+  borderRadius: 'Border corners come from `borderStyle` ("rounded" is available).',
   boxShadow: "Cells cannot cast shadows.",
   textShadow: "Cells cannot cast shadows.",
   fontSize: "Every cell is one character.",
@@ -255,13 +262,13 @@ export const CSS_ONLY_PROPS: Record<string, string> = {
   lineHeight: "One line is one row.",
   cursor: "The terminal owns the cursor shape.",
   transition: "Use a timeline from `useTimeline` instead.",
-  transform: "Not supported. Position with `top`/`left` and `position=\"absolute\"`.",
+  transform: 'Not supported. Position with `top`/`left` and `position="absolute"`.',
   boxSizing: "Padding and borders always sit inside the box.",
   outline: "Use `border` and `focusedBorderColor`.",
   float: "Layout is always flex.",
   gridTemplateColumns: "There is no grid layout. Nest boxes with `flexDirection`.",
   gridTemplateRows: "There is no grid layout. Nest boxes with `flexDirection`.",
   whiteSpace: "Use `wrapMode` on <text>.",
-  textOverflow: "Truncate the string, or set `overflow: \"hidden\"`.",
+  textOverflow: 'Truncate the string, or set `overflow: "hidden"`.',
   verticalAlign: "Use `alignItems` on the parent.",
-}
+};
