@@ -140,12 +140,23 @@ short-lived credential, and the tarball lands with a provenance attestation
 pointing back at the run. The npm side is a trusted publisher on the package
 naming this repository and `publish.yml`.
 
-Two things worth knowing when it misbehaves:
+The release path is the repo root, not `packages/lint`. Release-please decides
+what to release by splitting commits on that path, and the README it publishes
+to npm lives at the root, so a docs fix under `packages/lint` would never have
+counted. `extra-files` keeps `packages/lint/package.json` as the version that
+ships, `exclude-paths` keeps the private conformance and example packages from
+cutting releases on their own, and the root `package.json` carries a version
+field it never had before, which nothing installs and nothing reads.
+
+Three things worth knowing when it misbehaves:
 
 - A release whose publish job failed is recoverable without a new commit. Run
   the workflow by hand (`gh workflow run publish.yml`); it publishes whatever
   version `packages/lint/package.json` is at, and npm rejects a version it
   already has, so there is nothing to overwrite.
+- A release that reports `Considering: 0 commits` did not see your commit as
+  touching the release path. Check `exclude-paths` before assuming the commit
+  message was the problem.
 - A release-please release cannot trigger a separate workflow. The tag and the
   release are created with `GITHUB_TOKEN`, and GitHub suppresses the events that
   token produces, which is why the publish job hangs off `needs` rather than a
