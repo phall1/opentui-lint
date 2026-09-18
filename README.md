@@ -122,15 +122,65 @@ Copying a snippet between the two bindings is its own mistake, and
 [`examples/dashboard-solid`](examples/dashboard-solid) are the same file in both
 bindings, and neither is the "main" one.
 
-## Install
+## Run it
 
-Requires Bun 1.4.1+ (or Node 20.19+) and ESLint 9.30+.
+Nothing to install and nothing to configure:
 
 ```bash
-bun add -d opentui-lint eslint @typescript-eslint/parser
+bunx opentui-lint --react src    # or --solid; npx opentui-lint works the same
 ```
 
-`eslint.config.mjs`:
+`bunx` installs the package with ESLint and the TypeScript parser as peers,
+builds the ESLint config in memory, and lints every `.ts`, `.tsx`, `.js` and
+`.jsx` file under the paths you give it (default: the current directory),
+skipping `node_modules`, `dist` and `build`. Add `--fix` to write the safe
+autofixes, `--strict` for the design-system rules, and `--format json` or
+`--format compact` when a tool reads the output. `--help` has the rest.
+
+Without `--react` or `--solid`, a file is checked only when it shows evidence
+of OpenTUI (see [It only lints terminal code](#it-only-lints-terminal-code)).
+A run that checks no files exits 2 and says so, instead of printing a clean
+report:
+
+```text
+opentui-lint checked 0 of 7 files: none gave evidence of OpenTUI.
+
+  A file counts as OpenTUI when it carries a `@jsxImportSource @opentui/react`
+  (or @opentui/solid) pragma, imports from @opentui/react or @opentui/solid,
+  or sits under a tsconfig.json whose compilerOptions.jsxImportSource names
+  one of them. Otherwise every rule stays silent, so <div> in a web app is
+  never reported.
+
+  Say which binding these files render with:
+
+    bunx opentui-lint --react <paths>
+    bunx opentui-lint --solid <paths>
+
+  @opentui/solid in package.json here, so probably --solid.
+```
+
+Exit codes: 0 means clean, 1 means errors were reported, 2 means nothing was
+checked or the arguments were wrong. The summary line goes to stderr, so
+stdout is only the report.
+
+Then in `AGENTS.md`:
+
+```md
+After changing any TUI code, run `bunx opentui-lint --react src` and fix every error.
+```
+
+## Install
+
+For the rules in your editor and a `lint` script of your own. Requires Bun
+1.4.1+ (or Node 20.19+) and ESLint 9.30+.
+
+```bash
+bun add -d opentui-lint    # eslint and @typescript-eslint/parser come along as peers
+bunx opentui-lint init     # writes eslint.config.mjs, a lint script and the AGENTS.md line
+bunx opentui-lint doctor   # confirms the setup is checking your files
+```
+
+What `init` writes, if you would rather do it by hand. `eslint.config.mjs`:
 
 ```js
 import tsParser from "@typescript-eslint/parser";
@@ -147,12 +197,6 @@ export default [
     rules: recommended,
   },
 ];
-```
-
-Then in `AGENTS.md`:
-
-```md
-After changing any TUI code, run `bun run lint` and fix every error.
 ```
 
 ## It only lints terminal code

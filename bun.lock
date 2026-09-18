@@ -87,9 +87,9 @@
     },
     "packages/lint": {
       "name": "opentui-lint",
-      "version": "0.3.0",
+      "version": "0.4.1",
       "bin": {
-        "opentui-lint": "./dist/cli.js",
+        "opentui-lint": "dist/cli.js",
       },
       "devDependencies": {
         "@effect/platform-bun": "4.0.0-rc.115",
@@ -102,11 +102,9 @@
         "typescript": "^5.9.2",
       },
       "peerDependencies": {
+        "@typescript-eslint/parser": ">=8.40.0",
         "eslint": ">=9.30.0",
       },
-      "optionalPeers": [
-        "eslint",
-      ],
     },
     "packages/oxlint-conformance": {
       "name": "opentui-lint-conformance-oxlint",
