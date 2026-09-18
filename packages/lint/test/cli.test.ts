@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { cpSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -134,12 +134,69 @@ describe("opentui-lint (lint)", () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  test("with no arguments and no config file, lints . instead of printing init help", () => {
+    expect(existsSync(join(FIXTURE, "eslint.config.mjs"))).toBe(false);
+    const { code, stdout, stderr } = run(FIXTURE);
+    expect(code).toBe(1);
+    expect(stdout).toContain("Import.tsx");
+    expect(stdout).toContain("opentui/no-unknown-elements");
+    expect(stderr).toContain("checked 1 of 3 files (1 solid): 2 errors.");
+    expect(stdout).not.toContain("Usage");
+    expect(stderr).not.toContain("opentui-lint init");
+  });
+
+  test("a present eslint.config.mjs is optional and is not loaded", () => {
+    const dir = scratchCopy();
+    try {
+      // If the CLI started using this file, every path would be ignored and
+      // the run would exit 2 with nothing checked.
+      writeFileSync(join(dir, "eslint.config.mjs"), "export default [{ ignores: ['**/*'] }];\n");
+      const { code, stdout, stderr } = run(dir, "--solid", "src/Import.tsx", "--format", "compact");
+      expect(code).toBe(1);
+      expect(stdout).toContain("opentui/no-unknown-elements");
+      expect(stderr).toContain("checked 1 of 1 files (1 solid): 2 errors.");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test("an OpenTUI sample with no config is linted by a bare run", () => {
+    const dir = mkdtempSync(join(tmpdir(), "opentui-lint-noconfig-"));
+    try {
+      for (const name of ["package.json", "tsconfig.json", "dashboard.tsx"]) {
+        cpSync(join(EXAMPLES, "dashboard-react", name), join(dir, name));
+      }
+      expect(existsSync(join(dir, "eslint.config.mjs"))).toBe(false);
+      const { code, stdout, stderr } = run(dir, "--format", "json");
+      expect(code).toBe(1);
+      expect(count(stdout)).toBe(12);
+      expect(stderr).toContain("checked 1 of 1 files (1 react): 12 errors.");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test("the same sample's eslint.config.mjs does not change the CLI's recommended run", () => {
+    const { code, stdout, stderr } = run(
+      join(EXAMPLES, "dashboard-react"),
+      "dashboard.tsx",
+      "--format",
+      "json",
+    );
+    expect(code).toBe(1);
+    // The file's config uses `strict` (15). The CLI keeps recommended (12)
+    // unless `--strict` is passed; that flag is covered separately.
+    expect(count(stdout)).toBe(12);
+    expect(stderr).toContain("checked 1 of 1 files (1 react): 12 errors.");
+  });
 });
 
 describe("opentui-lint (arguments)", () => {
   test("--help exits 0 and documents the exit codes", () => {
     const { code, stdout } = run(FIXTURE, "--help");
     expect(code).toBe(0);
+    expect(stdout).toContain("bunx opentui-lint\n");
     expect(stdout).toContain("bunx opentui-lint --react src");
     expect(stdout).toContain("Exit codes");
   });
@@ -168,5 +225,39 @@ describe("opentui-lint (arguments)", () => {
     const { code, stderr } = run(FIXTURE, "--framework", "vue");
     expect(code).toBe(2);
     expect(stderr).toContain('--framework must be react or solid, not "vue".');
+  });
+});
+
+describe("opentui-lint (init)", () => {
+  test("init is still available and writes a config without becoming the default", () => {
+    const dir = mkdtempSync(join(tmpdir(), "opentui-lint-init-"));
+    try {
+      writeFileSync(
+        join(dir, "package.json"),
+        `${JSON.stringify(
+          {
+            name: "init-app",
+            private: true,
+            devDependencies: { "@opentui/react": "^0.5.11" },
+          },
+          null,
+          2,
+        )}\n`,
+      );
+      const bare = run(dir);
+      expect(bare.code).toBe(2);
+      expect(bare.stderr).toContain('found no files in "."');
+      expect(existsSync(join(dir, "eslint.config.mjs"))).toBe(false);
+
+      const inited = run(dir, "init");
+      expect(inited.code).toBe(0);
+      expect(inited.stdout).toContain(`wrote eslint.config.mjs`);
+      expect(readFileSync(join(dir, "eslint.config.mjs"), "utf8")).toContain(
+        'import { plugin as opentui, recommended } from "opentui-lint"',
+      );
+      expect(readFileSync(join(dir, "AGENTS.md"), "utf8")).toContain("opentui-lint");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

@@ -16,7 +16,7 @@ planned, kept because the _reasons_ are still the useful part.
 | `no-raw-stdout`        | [`no-raw-stdout`](rules/no-raw-stdout.md)                                            |
 | Oxlint JS plugin entry | `packages/oxlint-conformance` runs every rule under the real binary                  |
 | Type-aware tier        | `checkTypes: true` on `text-must-be-wrapped`                                         |
-| Zero-config CLI        | `bunx opentui-lint --react src`, with `--fix`, `--strict` and `--format json`        |
+| Zero-config CLI        | `bunx opentui-lint`, with `--fix`, `--strict` and `--format json`                    |
 
 Three things the plan got wrong. The corrections cost real work:
 
