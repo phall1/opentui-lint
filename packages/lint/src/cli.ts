@@ -6,9 +6,9 @@
  *   opentui-lint init
  *   opentui-lint doctor
  *
- * The first form is the point: one `bunx opentui-lint --react src` with no
- * config file, no ESLint install and no lint script. `init` and `doctor` are
- * for a project that wants the rules wired in permanently.
+ * The first form is the point: one `bunx opentui-lint` with no config file,
+ * no ESLint install and no lint script. `init` and `doctor` are for a project
+ * that wants the rules wired in permanently.
  */
 
 import { readFileSync } from "node:fs";
@@ -46,6 +46,7 @@ Without --react or --solid, a file is checked only when it shows evidence of
 OpenTUI: a @jsxImportSource pragma, an @opentui/* import, or jsxImportSource in
 its nearest tsconfig.json. A run that checks no files exits 2 and says so.
 
+  bunx opentui-lint
   bunx opentui-lint --react src
   bunx opentui-lint --solid . --fix
   bunx opentui-lint --format json > lint.json

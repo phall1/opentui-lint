@@ -127,13 +127,18 @@ bindings, and neither is the "main" one.
 Nothing to install and nothing to configure:
 
 ```bash
-bunx opentui-lint --react src    # or --solid; npx opentui-lint works the same
+bunx opentui-lint
 ```
+
+That lints the current directory with the recommended rules. No
+`eslint.config.mjs`, no `init`, no ESLint of your own. `npx opentui-lint`
+works the same.
 
 `bunx` installs the package with ESLint and the TypeScript parser as peers,
 builds the ESLint config in memory, and lints every `.ts`, `.tsx`, `.js` and
-`.jsx` file under the paths you give it (default: the current directory),
-skipping `node_modules`, `dist` and `build`. Add `--fix` to write the safe
+`.jsx` file under the paths you give it (default: `.`), skipping
+`node_modules`, `dist` and `build`. Pass paths to narrow the run, `--react` or
+`--solid` if a file has no OpenTUI evidence, `--fix` to write the safe
 autofixes, `--strict` for the design-system rules, and `--format json` or
 `--format compact` when a tool reads the output. `--help` has the rest.
 
@@ -166,7 +171,7 @@ stdout is only the report.
 Then in `AGENTS.md`:
 
 ```md
-After changing any TUI code, run `bunx opentui-lint --react src` and fix every error.
+After changing any TUI code, run `bunx opentui-lint` and fix every error.
 ```
 
 ## Install
