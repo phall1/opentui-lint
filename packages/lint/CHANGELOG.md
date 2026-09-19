@@ -5,6 +5,13 @@ commits. The three entries below were written by hand after the fact, from the
 commits that bumped the version. 0.2.0 and 0.3.0 never reached npm, which is why
 0.1.0 sat on the registry while the repo moved on.
 
+## [0.5.0](https://github.com/phall1/opentui-lint/compare/v0.4.1...v0.5.0) (2026-09-19)
+
+
+### Features
+
+* lint with nothing installed via `bunx opentui-lint` ([#4](https://github.com/phall1/opentui-lint/issues/4)) ([04ba93c](https://github.com/phall1/opentui-lint/commit/04ba93c5ed10cb4e9febfbea249a1dcb3050d029))
+
 ## [0.4.1](https://github.com/phall1/opentui-lint/compare/v0.4.0...v0.4.1) (2026-09-17)
 
 
