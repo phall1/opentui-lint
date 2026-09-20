@@ -46,8 +46,14 @@ jobs:
           manifest-file: .release-please-manifest.json
       # Cheap insurance against the same class of mistake: when a release does
       # not publish, the outputs the decision was made on are in the log.
+      #
+      # Passed through the environment, not interpolated into the script: the
+      # JSON carries the release body, and a commit subject with an apostrophe
+      # (`file's own package.json`) closes the shell quote and fails the job.
       - if: github.event_name == 'push'
-        run: echo '${{ toJSON(steps.release.outputs) }}'
+        env:
+          RELEASE_OUTPUTS: ${{ toJSON(steps.release.outputs) }}
+        run: echo "$RELEASE_OUTPUTS"
 
   publish:
     needs: release-please
