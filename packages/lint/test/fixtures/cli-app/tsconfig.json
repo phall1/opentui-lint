@@ -1,4 +1,5 @@
 {
-  // No jsxImportSource on purpose: only the import in src/Import.tsx is evidence.
+  // No jsxImportSource on purpose: evidence comes from the import in
+  // src/Import.tsx and from the @opentui/solid dependency in package.json.
   "compilerOptions": { "jsx": "preserve" }
 }

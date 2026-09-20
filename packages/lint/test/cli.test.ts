@@ -1,5 +1,13 @@
 import { describe, expect, test } from "bun:test";
-import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  cpSync,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -11,6 +19,8 @@ import { join } from "node:path";
  */
 const CLI = join(import.meta.dir, "..", "src", "cli.ts");
 const FIXTURE = join(import.meta.dir, "fixtures", "cli-app");
+const WEB = join(import.meta.dir, "fixtures", "web-app");
+const MIXED = join(import.meta.dir, "fixtures", "mixed-app");
 const EXAMPLES = join(import.meta.dir, "..", "..", "..", "examples");
 
 function run(cwd: string, ...args: string[]) {
@@ -38,26 +48,62 @@ function scratchCopy(): string {
 }
 
 describe("opentui-lint (lint)", () => {
-  test("without a flag, checks the file with evidence and says what it skipped", () => {
+  test("a declared binding covers every file in its package, with no per-file evidence", () => {
+    // `cli-app` declares @opentui/solid; `src/Plain.tsx` imports nothing and
+    // has no pragma, so only the package manifest identifies it. This is the
+    // signal that makes `bunx opentui-lint` agree with `init` and `doctor`.
     const { code, stdout, stderr } = run(FIXTURE, "src");
     expect(code).toBe(1);
     expect(stdout).toContain("Import.tsx");
+    expect(stdout).toContain("Plain.tsx");
     expect(stdout).toContain("opentui/no-unknown-elements");
-    expect(stdout).not.toContain("Plain.tsx");
-    expect(stderr).toContain("checked 1 of 2 files (1 solid): 2 errors.");
+    expect(stderr).toContain("checked 2 of 2 files (2 solid): 5 errors.");
+    expect(stderr).not.toContain("no OpenTUI evidence");
+  });
+
+  test("per-file evidence still decides a package that declares no binding", () => {
+    // `mixed-app` declares nothing, so only `Widget.tsx`'s import counts and
+    // the sibling web page stays silent — the safety property, unchanged.
+    const { code, stdout, stderr } = run(MIXED, "src", "--format", "json");
+    expect(code).toBe(1);
+    expect(count(stdout)).toBe(2);
+    expect(stderr).toContain("checked 1 of 2 files (1 react): 2 errors.");
     expect(stderr).toContain("1 file had no OpenTUI evidence");
     expect(stderr).toContain("pass --react or --solid");
   });
 
   test("a run that checks nothing exits 2 and says how to pick a binding", () => {
-    const { code, stdout, stderr } = run(FIXTURE, "web");
+    const { code, stdout, stderr } = run(WEB, "src");
     expect(code).toBe(2);
     expect(stdout).toBe("");
     expect(stderr).toContain("checked 0 of 1 files: none gave evidence of OpenTUI");
     expect(stderr).toContain("--react <paths>");
     expect(stderr).toContain("--solid <paths>");
-    // The package.json names the binding, so the hint names the flag.
-    expect(stderr).toContain("@opentui/solid in package.json here, so probably --solid.");
+    expect(stderr).toContain("package.json that depends on one");
+  });
+
+  test("a bare run at a monorepo root lints a workspace package that declares the binding", () => {
+    const dir = mkdtempSync(join(tmpdir(), "opentui-lint-workspace-"));
+    try {
+      writeFileSync(
+        join(dir, "package.json"),
+        `${JSON.stringify({ name: "root", private: true, workspaces: ["packages/*"] }, null, 2)}\n`,
+      );
+      mkdirSync(join(dir, "packages", "tui", "src"), { recursive: true });
+      writeFileSync(
+        join(dir, "packages", "tui", "package.json"),
+        `${JSON.stringify({ name: "tui", dependencies: { "@opentui/react": "^0.5.11" } }, null, 2)}\n`,
+      );
+      writeFileSync(
+        join(dir, "packages", "tui", "src", "View.tsx"),
+        `export const View = () => <div>hi</div>;\n`,
+      );
+      const { code, stderr } = run(dir);
+      expect(code).toBe(1);
+      expect(stderr).toContain("checked 1 of 1 files (1 react)");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   test("--solid covers every file and --format json is ESLint's shape", () => {
@@ -141,7 +187,7 @@ describe("opentui-lint (lint)", () => {
     expect(code).toBe(1);
     expect(stdout).toContain("Import.tsx");
     expect(stdout).toContain("opentui/no-unknown-elements");
-    expect(stderr).toContain("checked 1 of 3 files (1 solid): 2 errors.");
+    expect(stderr).toContain("checked 2 of 2 files (2 solid): 5 errors.");
     expect(stdout).not.toContain("Usage");
     expect(stderr).not.toContain("opentui-lint init");
   });
@@ -201,6 +247,14 @@ describe("opentui-lint (arguments)", () => {
     expect(stdout).toContain("Exit codes");
   });
 
+  test("the help subcommand prints the same text as --help", () => {
+    const { code, stdout } = run(FIXTURE, "help");
+    expect(code).toBe(0);
+    expect(stdout).toContain("Getting started");
+    expect(stdout).toContain("package.json that depends on");
+    expect(stdout).toContain("Exit codes");
+  });
+
   test("--version prints the package version", () => {
     const { version } = JSON.parse(
       readFileSync(join(import.meta.dir, "..", "package.json"), "utf8"),
@@ -256,6 +310,34 @@ describe("opentui-lint (init)", () => {
         'import { plugin as opentui, recommended } from "opentui-lint"',
       );
       expect(readFileSync(join(dir, "AGENTS.md"), "utf8")).toContain("opentui-lint");
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test("in a monorepo, init names the workspace package and leaves settings to per-file detection", () => {
+    const dir = mkdtempSync(join(tmpdir(), "opentui-lint-init-mono-"));
+    try {
+      writeFileSync(
+        join(dir, "package.json"),
+        `${JSON.stringify({ name: "root", private: true, workspaces: ["packages/*"] }, null, 2)}\n`,
+      );
+      mkdirSync(join(dir, "packages", "tui"), { recursive: true });
+      writeFileSync(
+        join(dir, "packages", "tui", "package.json"),
+        `${JSON.stringify({ name: "tui", dependencies: { "@opentui/solid": "^0.5.11" } }, null, 2)}\n`,
+      );
+
+      const { code, stdout } = run(dir, "init");
+      expect(code).toBe(0);
+      expect(stdout).toContain("packages/tui/package.json");
+      // A root-level settings.framework would apply to every workspace,
+      // including a web one; the config must not add it.
+      expect(readFileSync(join(dir, "eslint.config.mjs"), "utf8")).not.toContain("settings");
+
+      const { stdout: diagnosed } = run(dir, "doctor");
+      expect(diagnosed).toContain("packages/tui/package.json");
+      expect(diagnosed).not.toContain("every rule will stay silent");
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

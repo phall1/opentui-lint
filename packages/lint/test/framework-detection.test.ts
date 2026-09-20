@@ -17,6 +17,10 @@ undetectedTester().run("framework detection", asRule(rule), {
     { code: `export const Page = () => <div />`, filename: file("web-app") },
     // A tsconfig that points at React proper, not @opentui/react.
     { code: `export const Page = () => <section><p>hi</p></section>`, filename: file("web-app") },
+    // A web page in a package that declares no binding, even when a sibling
+    // file in the same package imports the binding: the package boundary is
+    // the nearest manifest, and this one names nothing.
+    { code: `export const Page = () => <div />`, filename: file("mixed-app") },
   ],
   invalid: [
     {
@@ -66,6 +70,15 @@ undetectedTester().run("framework detection", asRule(rule), {
       output: `export const App = () => <ascii_font text="hi" />`,
       filename: file("solid-app"),
       errors: [{ message: /is the @opentui\/react spelling/ }],
+    },
+    {
+      // The nearest package.json declares the binding and the tsconfig says
+      // nothing, so the manifest is the only evidence. This is the file that
+      // `init` and `doctor` already called covered while a bare run skipped it.
+      code: `export const App = () => <div />`,
+      output: `export const App = () => <box />`,
+      filename: join(FIXTURES, "cli-app", "src", "Plain.tsx"),
+      errors: [{ message: /<div> is an HTML element/ }],
     },
   ],
 });

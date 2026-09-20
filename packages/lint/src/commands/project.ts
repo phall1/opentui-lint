@@ -7,8 +7,8 @@
  * the same picture, so it lives in one place.
  */
 
-import { existsSync, readFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
 import type { Framework } from "../catalog/index.js";
 import { readThemeTokens } from "../project/design-system.js";
 
@@ -21,6 +21,8 @@ export interface Project {
   framework: Framework | null;
   /** How the framework was determined, for the report. */
   via: string;
+  /** A workspace package that declares a binding when the root does not. */
+  workspaceFramework: { framework: Framework; manifest: string } | null;
   installedOpenTui: string | null;
   hasConfig: boolean;
   packageManager: PackageManager;
@@ -71,6 +73,12 @@ export function runBinary(manager: PackageManager, args: string): string {
   return `${runner} opentui-lint ${args}`.trim();
 }
 
+function frameworkFromDeps(deps: Record<string, string>): Framework | null {
+  if (deps["@opentui/react"]) return "react";
+  if (deps["@opentui/solid"]) return "solid";
+  return null;
+}
+
 function frameworkFromProject(
   root: string,
   deps: Record<string, string>,
@@ -84,12 +92,71 @@ function frameworkFromProject(
   if (jsxImportSource?.startsWith("@opentui/solid")) {
     return { framework: "solid", via: "tsconfig.json jsxImportSource" };
   }
-  if (deps["@opentui/react"]) return { framework: "react", via: "@opentui/react in package.json" };
-  if (deps["@opentui/solid"]) return { framework: "solid", via: "@opentui/solid in package.json" };
+  const declared = frameworkFromDeps(deps);
+  if (declared) return { framework: declared, via: `@opentui/${declared} in package.json` };
   return { framework: null, via: "nothing found" };
 }
 
-export function inspect(cwd: string): Project {
+/** Directories a workspace scan never descends into. */
+const WORKSPACE_SKIP = new Set([
+  "node_modules",
+  "dist",
+  "build",
+  ".git",
+  ".cache",
+  "coverage",
+  "out",
+  ".next",
+  ".turbo",
+  ".output",
+]);
+
+/**
+ * Every nested `package.json` that is a package boundary. Order does not
+ * matter — the question is only which binding some sibling package declares.
+ * A directory with a manifest is a package and is not descended into, so a
+ * package's own source and test fixtures are not mistaken for more packages.
+ */
+function workspaceManifests(root: string, depth = 3): string[] {
+  const found: string[] = [];
+  const visit = (dir: string, remaining: number): void => {
+    if (remaining < 0) return;
+    let entries;
+    try {
+      entries = readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    if (dir !== root && entries.some((e) => e.isFile() && e.name === "package.json")) {
+      found.push(join(dir, "package.json"));
+      return;
+    }
+    for (const entry of entries) {
+      if (entry.isDirectory() && !WORKSPACE_SKIP.has(entry.name)) {
+        visit(join(dir, entry.name), remaining - 1);
+      }
+    }
+  };
+  visit(root, depth);
+  return found.toSorted();
+}
+
+/**
+ * A monorepo root often declares no binding at all — the dependency lives in
+ * the workspace package. The zero-config run detects each file through its own
+ * package, so `init` and `doctor` have to look there too or they would call a
+ * fully covered repo uncovered.
+ */
+function findWorkspaceFramework(root: string): Project["workspaceFramework"] {
+  for (const manifest of workspaceManifests(root)) {
+    const pkg = readJson(manifest) ?? {};
+    const framework = frameworkFromDeps({ ...pkg.dependencies, ...pkg.devDependencies });
+    if (framework) return { framework, manifest: relative(root, manifest) };
+  }
+  return null;
+}
+
+export function inspect(cwd: string, options: { workspaces?: boolean } = {}): Project {
   const root = findRoot(cwd);
   const pkg = readJson(join(root, "package.json")) ?? {};
   const deps: Record<string, string> = { ...pkg.dependencies, ...pkg.devDependencies };
@@ -99,6 +166,10 @@ export function inspect(cwd: string): Project {
   return {
     root,
     ...frameworkFromProject(root, deps),
+    // The scan is only worth it for `init` and `doctor`, which report on the
+    // whole repo; a lint run reaches it only when it has already checked
+    // nothing and is about to explain why.
+    workspaceFramework: options.workspaces ? findWorkspaceFramework(root) : null,
     installedOpenTui: corePkg?.version ?? null,
     hasConfig: existsSync(join(root, CONFIG_FILE)),
     packageManager: detectPackageManager(root),

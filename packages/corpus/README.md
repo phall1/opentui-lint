@@ -277,11 +277,12 @@ Solid/React OpenTUI code. They also produced zero findings.
 
 ## Framework detection
 
-Every target relies on `opentui-lint`'s own detection (import, pragma, or
-`tsconfig.json` `jsxImportSource`), with **no `settings.opentui.framework`
-override anywhere in this package**. That was checked file by file while
-building the corpus (see the exploration notes in the PR this package
-shipped in): a handful of files in OpenTUI's own `examples/` directories
+Every target relies on `opentui-lint`'s own detection (import, pragma,
+`tsconfig.json` `jsxImportSource`, or the nearest `package.json`'s dependency
+list), with **no `settings.opentui.framework` override anywhere in this
+package**. That was checked file by file while building the corpus (see the
+exploration notes in the PR this package shipped in): a handful of files in
+OpenTUI's own `examples/` directories
 (`packages/react/examples/.plugin/slot-components.tsx`,
 `packages/solid/examples/components/mouse-demo.tsx`, and a few others) carry
 no direct `@opentui/react`/`@opentui/solid` import or pragma of their own,
@@ -289,6 +290,12 @@ but every one of them lives under a directory whose own `tsconfig.json` sets
 `compilerOptions.jsxImportSource`, which `opentui-lint`'s tsconfig walk-up
 finds correctly. No file in the corpus needed an override; if one had, that
 would itself have been worth reporting as a detection gap.
+
+The package.json signal is the newest one, and the corpus is its guard: those
+same `examples/` workspaces declare `@opentui/react`/`@opentui/solid`, so a
+file whose nearest manifest names the binding is now detected even where the
+tsconfig walk-up found nothing. The baseline is unchanged, which is the
+evidence that the broadening added no false positive on real source.
 
 ## Files this package does not own
 
