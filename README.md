@@ -152,16 +152,14 @@ opentui-lint checked 0 of 7 files: none gave evidence of OpenTUI.
 
   A file counts as OpenTUI when it carries a `@jsxImportSource @opentui/react`
   (or @opentui/solid) pragma, imports from @opentui/react or @opentui/solid,
-  or sits under a tsconfig.json whose compilerOptions.jsxImportSource names
-  one of them. Otherwise every rule stays silent, so <div> in a web app is
-  never reported.
+  sits under a tsconfig.json whose compilerOptions.jsxImportSource names one,
+  or belongs to a package.json that depends on one. Otherwise every rule
+  stays silent, so <div> in a web app is never reported.
 
   Say which binding these files render with:
 
     bunx opentui-lint --react <paths>
     bunx opentui-lint --solid <paths>
-
-  @opentui/solid in package.json here, so probably --solid.
 ```
 
 Exit codes: 0 means clean, 1 means errors were reported, 2 means nothing was
@@ -215,6 +213,14 @@ unless the file gives positive evidence that its JSX compiles to a terminal:
 3. an import from `@opentui/react` or `@opentui/solid`
 4. `compilerOptions.jsxImportSource` in the nearest `tsconfig.json`, following
    `extends`
+5. `@opentui/react` or `@opentui/solid` in the nearest `package.json`'s
+   dependency lists
+
+The first four are per-file. The fifth is per-package and is what makes the
+zero-config run agree with `init` and `doctor`: a project that declares the
+binding gets every file in that package checked, even a component file that
+imports nothing from OpenTUI itself. The walk stops at the nearest manifest, so
+a web package in the same repo stays silent unless it declares the binding too.
 
 No evidence, no diagnostics. The plugin never guesses from the presence of JSX.
 

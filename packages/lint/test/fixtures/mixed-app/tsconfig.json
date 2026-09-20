@@ -1,0 +1,5 @@
+{
+  // Deliberately no jsxImportSource: only a per-file import can identify a
+  // terminal file here, so the sibling web page stays silent.
+  "compilerOptions": { "jsx": "preserve" }
+}

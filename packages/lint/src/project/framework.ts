@@ -21,6 +21,17 @@ const PRAGMA = /@jsxImportSource\s+(\S+)/;
 /** tsconfig lookups are hot and the answer never changes within a run. */
 const tsconfigCache = new Map<string, Framework | null>();
 
+/** package.json lookups are hot for the same reason. */
+const packageCache = new Map<string, Framework | null>();
+
+/** Every dependency list that can name a binding. */
+const DEPENDENCY_FIELDS = [
+  "dependencies",
+  "devDependencies",
+  "peerDependencies",
+  "optionalDependencies",
+] as const;
+
 function frameworkFromSpecifier(specifier: string): Framework | null {
   if (REACT_PKG.test(specifier)) return "react";
   if (SOLID_PKG.test(specifier)) return "solid";
@@ -109,6 +120,66 @@ function frameworkFromTsconfig(filename: string): Framework | null {
   return null;
 }
 
+/**
+ * Walks up from the file to its own `package.json` and reads the binding out
+ * of the dependency lists.
+ *
+ * This is the signal that makes `bunx opentui-lint` agree with `init` and
+ * `doctor`, which both treat a declared `@opentui/*` dependency as proof the
+ * project renders to a terminal. Without it, a project could declare
+ * `@opentui/react`, have `init` write a config that names `react`, pass
+ * `doctor` — and still get `checked 0 of N files` from the command the README
+ * tells agents to run.
+ *
+ * The walk stops at the nearest manifest, so a web package that happens to
+ * live in the same repo stays silent unless it declares the binding itself.
+ * That package boundary is also why a workspace package is covered: its own
+ * `package.json` carries the dependency, not the monorepo root's.
+ */
+function frameworkFromPackage(filename: string): Framework | null {
+  let dir = dirname(resolve(filename));
+  const visited: string[] = [];
+
+  for (;;) {
+    const cached = packageCache.get(dir);
+    if (cached !== undefined) {
+      for (const seen of visited) packageCache.set(seen, cached);
+      return cached;
+    }
+    visited.push(dir);
+
+    const manifest = join(dir, "package.json");
+    if (existsSync(manifest)) {
+      // A manifest is the package boundary: stop here whether or not it named
+      // a binding, rather than walking into an unrelated parent package.
+      const framework = frameworkFromDependencies(readFileSync(manifest, "utf8"));
+      for (const seen of visited) packageCache.set(seen, framework);
+      return framework;
+    }
+
+    const parent = dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+
+  for (const seen of visited) packageCache.set(seen, null);
+  return null;
+}
+
+function frameworkFromDependencies(source: string): Framework | null {
+  const pkg = parseJsonc(source) as Record<string, unknown> | undefined;
+  if (!pkg) return null;
+  for (const field of DEPENDENCY_FIELDS) {
+    const deps = pkg[field];
+    if (!deps || typeof deps !== "object") continue;
+    for (const name of Object.keys(deps as Record<string, unknown>)) {
+      const framework = frameworkFromSpecifier(name);
+      if (framework) return framework;
+    }
+  }
+  return null;
+}
+
 function frameworkFromPragma(context: RuleContext): Framework | null {
   // The pragma must precede the code, so only leading comments count.
   for (const comment of context.sourceCode.getAllComments?.() ?? []) {
@@ -148,7 +219,7 @@ export function readSettings(context: RuleContext): OpenTuiSettings {
   return (settings && typeof settings === "object" ? settings : {}) as OpenTuiSettings;
 }
 
-export type DetectionSignal = "settings" | "pragma" | "import" | "tsconfig" | "none";
+export type DetectionSignal = "settings" | "pragma" | "import" | "tsconfig" | "package" | "none";
 
 export interface Detection {
   framework: Framework | null;
@@ -176,6 +247,11 @@ export function explainFramework(context: RuleContext, program: Node): Detection
   const config = frameworkFromTsconfig(context.filename);
   if (config) return { framework: config, via: "tsconfig" };
 
+  // Last, and only when the file's own package declares a binding: the
+  // strongest evidence (what compiles the JSX) has already had its say.
+  const declared = frameworkFromPackage(context.filename);
+  if (declared) return { framework: declared, via: "package" };
+
   return { framework: null, via: "none" };
 }
 
@@ -187,7 +263,8 @@ export function detectFramework(context: RuleContext, program: Node): Framework 
   return explainFramework(context, program).framework;
 }
 
-/** Exposed so tests can reset the per-directory tsconfig memoization. */
+/** Exposed so tests can reset the per-directory tsconfig/package memoization. */
 export function clearFrameworkCache(): void {
   tsconfigCache.clear();
+  packageCache.clear();
 }

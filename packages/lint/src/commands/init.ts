@@ -40,12 +40,18 @@ export function agentsLine(run: string): string {
 }
 
 export function init(cwd: string): number {
-  const project = inspect(cwd);
+  const project = inspect(cwd, { workspaces: true });
   const run = runScript(project.packageManager, "lint");
   console.log(`opentui-lint init — ${project.root}\n`);
 
   if (project.framework) {
     console.log(`  framework   ${project.framework}  (${project.via})`);
+  } else if (project.workspaceFramework) {
+    console.log(
+      `  framework   ${project.workspaceFramework.framework}  (${project.workspaceFramework.manifest})`,
+    );
+    console.log(`              The root declares none, so the config omits settings.framework;`);
+    console.log(`              each file is detected through its own package.json.`);
   } else {
     console.log(`  framework   not detected`);
     console.log(`              No @opentui/react or @opentui/solid found. Install one first,`);

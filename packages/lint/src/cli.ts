@@ -27,6 +27,11 @@ Usage
   opentui-lint init                   write eslint.config.mjs, a lint script and an AGENTS.md line
   opentui-lint doctor                 check that a setup actually covers its files
 
+Getting started
+  bunx opentui-lint                   lint the current directory; nothing to install
+  bunx opentui-lint init              wire the rules into ESLint permanently
+  bunx opentui-lint doctor            confirm the setup is checking your files
+
 Options
   --react, --solid                    treat every file as this binding, skipping detection
   --framework <react|solid>           the same, as a value
@@ -37,15 +42,21 @@ Options
   -h, --help                          this text
   -v, --version                       the version
 
+Which files are linted
+  With no --react or --solid, a file is linted only when it shows evidence of
+  OpenTUI: a @jsxImportSource @opentui/react (or @opentui/solid) pragma, an
+  import from @opentui/react or @opentui/solid, a tsconfig.json whose
+  compilerOptions.jsxImportSource names one, or a package.json that depends on
+  one. No evidence, no diagnostics, so <div> in a web app is never reported.
+  A run that checks no files exits 2 and says so instead of printing a clean
+  report.
+
 Exit codes
   0  no errors
   1  errors reported (or fixed some and others remain)
   2  nothing was checked, bad arguments, or eslint is missing
 
-Without --react or --solid, a file is checked only when it shows evidence of
-OpenTUI: a @jsxImportSource pragma, an @opentui/* import, or jsxImportSource in
-its nearest tsconfig.json. A run that checks no files exits 2 and says so.
-
+Examples
   bunx opentui-lint
   bunx opentui-lint --react src
   bunx opentui-lint --solid . --fix
@@ -102,7 +113,7 @@ function parse(
     },
   });
 
-  if (values.help) return { command: "help" };
+  if (values.help || positionals[0] === "help") return { command: "help" };
   if (values.version) return { command: "version" };
   if (positionals[0] === "init" || positionals[0] === "doctor") return { command: positionals[0] };
 

@@ -61,7 +61,7 @@ function agentsMentionLinter(root: string): boolean {
 }
 
 export function doctor(cwd: string): number {
-  const project = inspect(cwd);
+  const project = inspect(cwd, { workspaces: true });
   const bunx = runBinary(project.packageManager, "");
   console.log(`opentui-lint doctor — ${project.root}\n`);
 
@@ -72,7 +72,14 @@ export function doctor(cwd: string): number {
   };
 
   if (project.framework) ok("framework", `${project.framework} (${project.via})`);
-  else {
+  else if (project.workspaceFramework) {
+    ok(
+      "framework",
+      `${project.workspaceFramework.framework} (${project.workspaceFramework.manifest})`,
+    );
+    more("The repo root declares no binding; each file is covered through its");
+    more("own package.json, so only the packages that declare one are linted.");
+  } else {
     warn("framework", "not detected — every rule will stay silent");
     more("Set compilerOptions.jsxImportSource in tsconfig.json, pass");
     more(`--react or --solid to \`${bunx}\`, or set settings.opentui.framework`);

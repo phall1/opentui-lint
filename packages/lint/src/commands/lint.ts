@@ -146,9 +146,9 @@ function explainNothingChecked(total: number, cwd: string): void {
   log();
   log(`  A file counts as OpenTUI when it carries a \`@jsxImportSource @opentui/react\``);
   log(`  (or @opentui/solid) pragma, imports from @opentui/react or @opentui/solid,`);
-  log(`  or sits under a tsconfig.json whose compilerOptions.jsxImportSource names`);
-  log(`  one of them. Otherwise every rule stays silent, so <div> in a web app is`);
-  log(`  never reported.`);
+  log(`  sits under a tsconfig.json whose compilerOptions.jsxImportSource names one,`);
+  log(`  or belongs to a package.json that depends on one. Otherwise every rule`);
+  log(`  stays silent, so <div> in a web app is never reported.`);
   log();
   log(`  Say which binding these files render with:`);
   log();
@@ -156,7 +156,8 @@ function explainNothingChecked(total: number, cwd: string): void {
   log(`    ${bunx} --solid <paths>`);
   if (project.framework) {
     log();
-    log(`  ${project.via} here, so probably --${project.framework}.`);
+    log(`  ${project.via} here, but these paths are not under it.`);
+    log(`  Pass --${project.framework} to check them anyway.`);
   }
 }
 
