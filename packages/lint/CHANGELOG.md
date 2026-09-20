@@ -5,6 +5,19 @@ commits. The three entries below were written by hand after the fact, from the
 commits that bumped the version. 0.2.0 and 0.3.0 never reached npm, which is why
 0.1.0 sat on the registry while the repo moved on.
 
+## [0.5.0](https://github.com/phall1/opentui-lint/compare/v0.4.1...v0.5.0) (2026-09-20)
+
+
+### Features
+
+* detect the binding from the file's own package.json ([#7](https://github.com/phall1/opentui-lint/issues/7)) ([26127ab](https://github.com/phall1/opentui-lint/commit/26127ab8bbf8b66d81184ec9ebfbca30b635b691))
+* lint with nothing installed via `bunx opentui-lint` ([#4](https://github.com/phall1/opentui-lint/issues/4)) ([04ba93c](https://github.com/phall1/opentui-lint/commit/04ba93c5ed10cb4e9febfbea249a1dcb3050d029))
+
+
+### Bug fixes
+
+* pass release-please outputs through the environment ([#8](https://github.com/phall1/opentui-lint/issues/8)) ([7212f5b](https://github.com/phall1/opentui-lint/commit/7212f5b84267cfe119bd618c3a11cabd5e69c1ba))
+
 ## [0.4.1](https://github.com/phall1/opentui-lint/compare/v0.4.0...v0.4.1) (2026-09-17)
 
 
